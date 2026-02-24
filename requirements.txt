@@ -1,0 +1,16 @@
+pandas==2.3.3
+playwright==1.57.0
+RapidFuzz==3.14.3
+openpyxl==3.1.5
+beautifulsoup4==4.14.3
+urllib3==2.5.0
+requests==2.32.5
+numpy==2.2.6
+sqlalchemy==2.0.45
+
+# OCR requirements
+paddleocr==3.3.2
+paddlepaddle==3.2.2
+
+# PDF requirements
+camelot-py==1.0.9

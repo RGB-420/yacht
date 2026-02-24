@@ -1,0 +1,74 @@
+canonical_name,pattern
+5.5 Metre,\b5\.5\s*METRE\b
+5.5 Metre,\b5\.5M\b
+6 Metre,\b6\s*(M|METRE|METER|MR)\b
+8 Metre,\b8\s*METRE\b
+8 Metre,\b8M\b
+12 Metre,\b12\s*METRE\b
+12 Metre,\b12M\b
+Quarter Tonner,QUARTER\s*TON
+Quarter Tonner,QT\b
+Quarter Tonner,1/4\s*TON(NER)?
+Quarter Tonner,QUARTER\s*TO
+Half Tonner,HALF\s*TON
+"Fast 40+","FAST\s*(40|42)\+"
+First 40,FIRST\s*40
+Class 40,CLASS\s*40
+Cape 31,CAPE\s*31
+Sigma 33,SIGMA\s*33
+Sun Fast 3300,SUN\s*FAST\s*3300
+Sun Fast 3300,SUN\s*FAST\s*33
+Sun Fast 3200,SUN\s*FAST\s*3200
+Sun Fast 3200,SUN\s*FAST\s*32
+Sun Fast 3600,SUN\s*FAST\s*3600
+Sun Fast 3600,SUN\s*FAST\s*36
+Hunter 707,HUNTER\s*707
+Falmouth Working Boat,\bFALMOUTH\s+WORKING\s+BOAT\b
+Daring,\bDARING\b
+Dragon,\bDRAGON\b
+Etchells,\bETCHELLS\b
+Flying 15,\b(?:FLYING\s*(?:15|FIFTEEN)|F\s*15)\b
+KER 32,\bKER\s*/?\s*32\b
+KER 36,\bKER\s*/?\s*36\b
+KER 39,\bKER\s*/?\s*39\b
+KER 43,\bKER\s*/?\s*43\b
+KER 46,\bKER\s*/?\s*46\b
+RS200,\bRS\s*200\b
+RS400,\bRS\s*400\b
+RS Elite,\bRS\s*ELITE\b
+RS Feva,\bRS\s*FEVA\b
+RS Feva,\bFEVA\b
+RS Tera,\bRS\s*TERA\b
+RS Tera,\bTERA\b
+RS Aero,\bRS\s*AERO\b
+RS Aero,\bAERO\s*(\d|6\/7)?\b
+ILCA 4,\bILCA\s*4\b
+ILCA 6,\bILCA\s*6\b
+ILCA 7,\bILCA\s*7\b
+ILCA 4/6/7 (Laser),\bILCA\b
+Optimist,\bOPTIMIST\b
+Topper,\bTOPPER\b
+Nordic Folkboat,\bFOLKBOAT\b
+Nordic Folkboat,\bFOLK\b
+Carkeek 40,\bCARKEEK\s*40\b
+Carkeek 45,\bCARKEEK\s*45\b
+Sonar,\bSONAR\b
+Sonata,\bSONATA\b
+Sprint 15,\bSPRINT\s*15\b
+Seaview Mermaid,\bMERMAID\b
+SB20,\bSB20\b
+SF30,\bSF30\b
+Squib,\bSQUIB\b
+Squib,\b(?:NATIONAL\s+)?SQUIB\b
+XOD,\bXOD\b
+XP 33,\bXP\s*33\b
+XP 38,\bXP\s*38\b
+XP 44,\bXP\s*44\b
+J/70,\bJ[\s/-]?70\b
+J/111,\bJ[\s/-]?111\b
+J/24,\bJ[\s/-]?24\b
+J/109,\bJ[\s/-]?109\b
+J/92,\bJ[\s/-]?92\b
+J/80,\bJ[\s/-]?80\b
+J/112,\bJ[\s/-]?112\b
+J/105,\bJ[\s/-]?105\b
