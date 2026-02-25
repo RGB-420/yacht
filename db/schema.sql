@@ -1,6 +1,5 @@
 BEGIN;
 
-
 CREATE TABLE IF NOT EXISTS yacht_db.regattas
 (
     id_regatta integer NOT NULL GENERATED ALWAYS AS IDENTITY,
@@ -28,7 +27,8 @@ CREATE TABLE IF NOT EXISTS yacht_db.owners
     id_owner integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     name text NOT NULL,
     created_at timestamp with time zone DEFAULT NOW(),
-    PRIMARY KEY (id_owner)
+    PRIMARY KEY (id_owner),
+    UNIQUE (name)
 );
 
 CREATE TABLE IF NOT EXISTS yacht_db.clubs
@@ -39,7 +39,8 @@ CREATE TABLE IF NOT EXISTS yacht_db.clubs
     estimated_numbers integer,
     id_location integer,
     created_at timestamp with time zone DEFAULT NOW(),
-    PRIMARY KEY (id_club)
+    PRIMARY KEY (id_club),
+    UNIQUE (name)
 );
 
 CREATE TABLE IF NOT EXISTS yacht_db.locations
@@ -73,7 +74,8 @@ CREATE TABLE IF NOT EXISTS yacht_db.boat_classes
     crew_max integer,
     length_m numeric(5, 2),
     created_at timestamp with time zone DEFAULT NOW(),
-    PRIMARY KEY (id_class)
+    PRIMARY KEY (id_class),
+    UNIQUE (name)
 );
 
 CREATE TABLE IF NOT EXISTS yacht_db.edition_classes
@@ -91,7 +93,8 @@ CREATE TABLE IF NOT EXISTS yacht_db.boats
     id_class integer,
     id_club integer,
     created_at timestamp with time zone DEFAULT NOW(),
-    PRIMARY KEY (id_boat)
+    PRIMARY KEY (id_boat),
+    UNIQUE (name, boat_identifier)
 );
 
 CREATE TABLE IF NOT EXISTS yacht_db.boat_type
@@ -100,7 +103,8 @@ CREATE TABLE IF NOT EXISTS yacht_db.boat_type
     name text NOT NULL,
     id_class integer,
     created_at timestamp with time zone DEFAULT NOW(),
-    PRIMARY KEY (id_type)
+    PRIMARY KEY (id_type),
+    UNIQUE (name, id_class)
 );
 
 CREATE TABLE IF NOT EXISTS yacht_db.boats_owner
