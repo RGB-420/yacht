@@ -14,9 +14,19 @@ def upsert_boat_classes(conn, name, manufacturer=None, category=None, rating_rul
             crew_max = COALESCE(EXCLUDED.crew_max, yacht_db.boat_classes.crew_max),
             length_m = COALESCE(EXCLUDED.length_m, yacht_db.boat_classes.length_m)
                  
-        RETURNING id_class, (cmax = 0) AS inserted;
+        RETURNING id_class, (xmax = 0) AS inserted;
     """)
 
     result = conn.execute(query, {"name": name, "manufacturer": manufacturer, "category": category, "rating_rule": rating_rule, "start_year": start_year, "crew_min": crew_min, "crew_max": crew_max, "length_m":length_m}).fetchone()
 
     return result[0], result[1]
+
+def get_class_id(conn, name):
+    query = text("""
+        SELECT id_class FROM yacht_db.boat_classes
+        WHERE name = :name
+    """)
+
+    result = conn.execute(query, {"name": name})
+
+    return result[0] if result else None

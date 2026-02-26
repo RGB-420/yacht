@@ -6,7 +6,7 @@ from db.repositories.editions_repo import upsert_edition
 from db.repositories.regatta_links_repo import upsert_regatta_link
 from db.repositories.locations_repo import get_or_create_location
 
-from domain.masters_code.master_regattas import generate_master_regattas
+from domain.masters.master_regattas import generate_master_regattas
 
 
 REGATTAS_FILE = Path("data/regattas_master.csv")

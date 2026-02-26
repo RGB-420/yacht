@@ -2,7 +2,7 @@ from pathlib import Path
 from datetime import datetime
 import pandas as pd
 
-from domain.masters_code.master_boats import generate_master_boats
+from domain.masters.master_boats import generate_master_boats
 
 RAW_DIR = Path("data/raw/regattas")
 PROCESSED_DIR = Path("data/processed/masters")
