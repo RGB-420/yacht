@@ -4,7 +4,8 @@ REQUIRED_COLUMNS = [
     "regatta_name",
     "type",
     "year",
-    "link"
+    "link",
+    "city"
 ]
 
 def generate_master_regattas(file_path):
@@ -20,6 +21,8 @@ def generate_master_regattas(file_path):
 
     df["year"] = df["year"].astype(int)
     df["link"] = df["link"].fillna("").astype(str).str.strip()
+
+    df["city"] = df["city"].str.strip()
 
     df = df.drop_duplicates()
 

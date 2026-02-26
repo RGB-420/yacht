@@ -4,6 +4,7 @@ from db.connection import get_engine
 from db.repositories.regattas_repo import upsert_regatta
 from db.repositories.editions_repo import upsert_edition
 from db.repositories.regatta_links_repo import upsert_regatta_link
+from db.repositories.locations_repo import get_or_create_location
 
 from domain.masters_code.master_regattas import generate_master_regattas
 
@@ -28,7 +29,12 @@ def run_regattas_pipeline():
 
     with engine.begin() as conn:
         for _, row in df.iterrows():
-            regatta_id, created_regatta = upsert_regatta(conn, name=row.regatta_name, type=row.type, club_id=None, location_id=None)
+            location_id, _ = get_or_create_location(conn, city=row['city'], region=row['region'], country=row['country'])
+
+            if not location_id:
+                raise ValueError(f"Location not found: {row['city']}")
+
+            regatta_id, created_regatta = upsert_regatta(conn, name=row.regatta_name, type=row.type, club_id=None, location_id=location_id)
 
             if created_regatta:
                 inserted_regattas += 1
