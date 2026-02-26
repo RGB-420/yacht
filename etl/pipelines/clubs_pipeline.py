@@ -1,0 +1,39 @@
+from pathlib import Path
+
+from db.connection import get_engine
+from db.repositories.clubs_repo import upsert_club
+from db.repositories.locations_repo import get_or_create_location
+
+from domain.masters.master_clubs import generate_master_clubs
+
+CLUBS_FILE = Path("data/clubs_master.csv")
+
+def run_clubs_pipeline():
+    print("Running clubs pipeline...")
+
+    if not CLUBS_FILE.exists():
+        print("clubs_master.csv not found")
+        return
+    
+    df = generate_master_clubs(CLUBS_FILE)
+
+    engine = get_engine()
+
+    inserted_clubs = 0
+    inserted_locations = 0
+
+    with engine.begin() as conn:
+        for _, row in df.iterrows():
+            location_id, created_location = get_or_create_location(conn, city=row['city'], region=row['region'], country=row['country'])
+
+            if created_location:
+                inserted_locations += 1
+
+            club_id, created_club = upsert_club(conn, name=row['name'], short_name=row['short_name'], estimated_numbers=row['estimated_numbers'], location_id=location_id)
+
+            if created_club:
+                inserted_clubs += 1
+
+    print(f"Locations inserted: {inserted_locations}")
+    print(f"Clubs inserted: {inserted_locations}")
+    print("Clubs pipeline finished")
