@@ -5,7 +5,7 @@ from utils.read_files import read_csv
 from domain.grouping.boats import group_boats
 from domain.grouping.aggregation import aggregate_boat_groups
 
-final_columns = ["Name", "Class", "Boat Type", "Owner", "Boat Id", "Club", "Source"]
+final_columns = ["Name", "Class", "Boat Type", "Owner", "Boat Id", "Club", "Source", "Year"]
 
 def generate_master_boats(archivos):
     df = read_csv(archivos)

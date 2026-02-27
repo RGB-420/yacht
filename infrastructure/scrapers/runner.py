@@ -33,7 +33,7 @@ SCRAPERS = {
     "wlyc_pdf": wlyc_pdf.scrape
 }
 
-def run_scraper(scrape_fn, source, name, class_=None, browser=None):
+def run_scraper(scrape_fn, source, year, name, class_=None, browser=None):
     if browser:
         df = scrape_fn(source, browser)
     else:
@@ -45,7 +45,7 @@ def run_scraper(scrape_fn, source, name, class_=None, browser=None):
     df = df.dropna(axis=1, how="all")
     BASE_OUTPUT.mkdir(parents=True, exist_ok=True)
 
-    df.to_csv(BASE_OUTPUT / f"{name}.csv", index=False)
+    df.to_csv(BASE_OUTPUT / f"{name}-{year}.csv", index=False)
 
 def scrape_web():
     df_links = pd.read_excel(CONFIG_FILE, sheet_name="Web")
@@ -63,6 +63,7 @@ def scrape_web():
                 run_scraper(
                     SCRAPERS[pagina],
                     row["URL"],
+                    row["Year"],
                     row["Regatta Name"],
                     row["Specified Class"],
                     browser=browser
@@ -84,6 +85,7 @@ def scrape_pdfs():
             run_scraper(
                 SCRAPERS[pagina],
                 row["PDF Route"],
+                row["Year"],
                 row["Regatta Name"],
                 row["Specified Class"]
             )

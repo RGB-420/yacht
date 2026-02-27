@@ -1,6 +1,6 @@
 from sqlalchemy import text
 
-def insert_boat_editions(conn, boat_id, edition_id):
+def insert_boat_edition(conn, boat_id, edition_id):
     query = text("""
         INSERT INTO yacht_db.boat_editions (id_boat, id_edition)
         VALUES (:boat_id, :edition_id)

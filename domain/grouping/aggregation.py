@@ -5,6 +5,7 @@ from utils.lists import upper_class_list, list_to_csv_cell
 
 def aggregate_boat_groups(df, final_columns):
     df = df.sort_values(by="Boat Number")
+    
     for col in df.columns:
         if df[col].apply(lambda x: isinstance(x, list)).any():
             print(f"Columna con listas: {col}")
