@@ -1,5 +1,6 @@
 BEGIN;
 
+
 CREATE TABLE IF NOT EXISTS yacht_db.regattas
 (
     id_regatta integer NOT NULL GENERATED ALWAYS AS IDENTITY,
@@ -114,6 +115,13 @@ CREATE TABLE IF NOT EXISTS yacht_db.boats_owner
     PRIMARY KEY (id_boat, id_owner)
 );
 
+CREATE TABLE IF NOT EXISTS yacht_db.boat_editions
+(
+    id_boat integer NOT NULL,
+    id_edition integer NOT NULL,
+    PRIMARY KEY (id_boat, id_edition)
+);
+
 ALTER TABLE IF EXISTS yacht_db.regattas
     ADD FOREIGN KEY (id_location)
     REFERENCES yacht_db.locations (id_location) MATCH SIMPLE
@@ -205,6 +213,22 @@ ALTER TABLE IF EXISTS yacht_db.boats_owner
 ALTER TABLE IF EXISTS yacht_db.boats_owner
     ADD FOREIGN KEY (id_owner)
     REFERENCES yacht_db.owners (id_owner) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS yacht_db.boat_editions
+    ADD FOREIGN KEY (id_boat)
+    REFERENCES yacht_db.boats (id_boat) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS yacht_db.boat_editions
+    ADD FOREIGN KEY (id_edition)
+    REFERENCES yacht_db.regatta_editions (id_edition) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
     NOT VALID;
