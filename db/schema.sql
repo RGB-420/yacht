@@ -92,7 +92,6 @@ CREATE TABLE IF NOT EXISTS yacht_db.boats
     name text NOT NULL,
     boat_identifier text,
     id_class integer,
-    id_club integer,
     created_at timestamp with time zone DEFAULT NOW(),
     PRIMARY KEY (id_boat),
     UNIQUE (name, boat_identifier)
@@ -120,6 +119,25 @@ CREATE TABLE IF NOT EXISTS yacht_db.boat_editions
     id_boat integer NOT NULL,
     id_edition integer NOT NULL,
     PRIMARY KEY (id_boat, id_edition)
+);
+
+CREATE TABLE IF NOT EXISTS yacht_db.boat_clubs
+(
+    id_boat integer NOT NULL,
+    id_club integer NOT NULL,
+    PRIMARY KEY (id_boat, id_club)
+);
+
+CREATE TABLE IF NOT EXISTS yacht_raw.raw_regatta_results
+(
+    id_raw_result integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    source_type text,
+    source_page text,
+    regatta_name text,
+    year integer,
+    scraped_at timestamp with time zone DEFAULT NOW(),
+    raw_data jsonb,
+    PRIMARY KEY (id_raw_result)
 );
 
 ALTER TABLE IF EXISTS yacht_db.regattas
@@ -186,14 +204,6 @@ ALTER TABLE IF EXISTS yacht_db.boats
     NOT VALID;
 
 
-ALTER TABLE IF EXISTS yacht_db.boats
-    ADD FOREIGN KEY (id_club)
-    REFERENCES yacht_db.clubs (id_club) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
-
-
 ALTER TABLE IF EXISTS yacht_db.boat_type
     ADD FOREIGN KEY (id_class)
     REFERENCES yacht_db.boat_classes (id_class) MATCH SIMPLE
@@ -229,6 +239,22 @@ ALTER TABLE IF EXISTS yacht_db.boat_editions
 ALTER TABLE IF EXISTS yacht_db.boat_editions
     ADD FOREIGN KEY (id_edition)
     REFERENCES yacht_db.regatta_editions (id_edition) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS yacht_db.boat_clubs
+    ADD FOREIGN KEY (id_boat)
+    REFERENCES yacht_db.boats (id_boat) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS yacht_db.boat_clubs
+    ADD FOREIGN KEY (id_club)
+    REFERENCES yacht_db.clubs (id_club) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
     NOT VALID;

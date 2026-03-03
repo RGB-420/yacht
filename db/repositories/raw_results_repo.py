@@ -1,9 +1,11 @@
 from sqlalchemy import text
 import pandas as pd
 
+from psycopg2.extras import Json
+
 def get_all_raw_results(conn):
     query = text("""
-        SELECT regatta_name, year, data
+        SELECT regatta_name, year, raw_data
         FROM yacht_raw.raw_regatta_results
     """)
 
@@ -21,9 +23,9 @@ def get_all_raw_results(conn):
 def insert_raw_result(conn, source_type, source_page, regatta_name, year, data):
     query = text("""
         INSERT INTO yacht_raw.raw_regatta_results 
-            (source_type, source_page, regatta_name, year, data)
+            (source_type, source_page, regatta_name, year, raw_data)
                  
         VALUES (:source_type, :source_page, :regatta_name, :year, :data)
     """)
 
-    conn.execute(query, {"source_type": source_type, "source_page": source_page, "regatta_name": regatta_name, "year": year, "data":data})
+    conn.execute(query, {"source_type": source_type, "source_page": source_page, "regatta_name": regatta_name, "year": year, "data": Json(data)})

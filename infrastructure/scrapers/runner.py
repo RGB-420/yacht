@@ -6,7 +6,7 @@ from pathlib import Path
 from db.connection import get_engine
 from db.repositories.raw_results_repo import insert_raw_result
 
-from infrastructure.scrapers import events2, burnhamweek, cape31, cowesclassic, flying15, j70, halsail, sailracehq, sailwave, yacthscoring, racing_islands, rtyc, sailevent, sailworld, yachtsandyachting, racing_rules, cowesweek
+from infrastructure.scrapers import events2, burnhamweek, cape31, cowesclassic, flying15, j70, halsail, sailracehq, sailwave, yachtscoring, racing_islands, rtyc, sailevent, sailworld, yachtsandyachting, racing_rules, cowesweek
 from infrastructure.scrapers import sailwave_pdf, royalsolent_pdf, wlyc_pdf
 
 BASE_OUTPUT = Path("data/raw/regattas")
@@ -22,7 +22,7 @@ SCRAPERS = {
     "halsail": halsail.scrape,
     "sailracehq": sailracehq.scrape,
     "sailwave": sailwave.scrape,
-    "yacthscoring": yacthscoring.scrape,
+    "yachtscoring": yachtscoring.scrape,
     "racing_islands": racing_islands.scrape,
     "rtyc": rtyc.scrape,
     "sailevent": sailevent.scrape,
