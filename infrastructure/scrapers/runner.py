@@ -3,6 +3,9 @@ import pandas as pd
 from playwright.sync_api import sync_playwright
 from pathlib import Path
 
+from db.connection import get_engine
+from db.repositories.raw_results_repo import insert_raw_result
+
 from infrastructure.scrapers import events2, burnhamweek, cape31, cowesclassic, flying15, j70, halsail, sailracehq, sailwave, yacthscoring, racing_islands, rtyc, sailevent, sailworld, yachtsandyachting, racing_rules, cowesweek
 from infrastructure.scrapers import sailwave_pdf, royalsolent_pdf, wlyc_pdf
 
@@ -33,7 +36,7 @@ SCRAPERS = {
     "wlyc_pdf": wlyc_pdf.scrape
 }
 
-def run_scraper(scrape_fn, source, year, name, class_=None, browser=None):
+def run_scraper(scrape_fn, source, year, name, class_=None, source_page=None, source_type=None, browser=None):
     if browser:
         df = scrape_fn(source, browser)
     else:
@@ -43,6 +46,13 @@ def run_scraper(scrape_fn, source, year, name, class_=None, browser=None):
         df["class"] = class_
 
     df = df.dropna(axis=1, how="all")
+
+    engine = get_engine()
+
+    with engine.begin() as conn:
+        print(f"Inserting raw results: {name} {year}")
+        insert_raw_result(conn, source_type=source_type, source_page=source_page, regatta_name=name, year=year, data = df.to_dict(orient="records"))
+
     BASE_OUTPUT.mkdir(parents=True, exist_ok=True)
 
     df.to_csv(BASE_OUTPUT / f"{name}-{year}.csv", index=False)
@@ -66,6 +76,8 @@ def scrape_web():
                     row["Year"],
                     row["Regatta Name"],
                     row["Specified Class"],
+                    pagina,
+                    "Web",
                     browser=browser
                 )
                 log_success(pagina, row["Regatta Name"])
@@ -87,9 +99,11 @@ def scrape_pdfs():
                 row["PDF Route"],
                 row["Year"],
                 row["Regatta Name"],
-                row["Specified Class"]
+                row["Specified Class"],
+                pagina,
+                "PDF"
             )
-            log_success(pagina, row["regatta Name"])
+            log_success(pagina, row["Regatta Name"])
         except Exception as e:
             log_error(pagina, row["PDF Route"], e)
 

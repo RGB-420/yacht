@@ -2,9 +2,11 @@ from pathlib import Path
 from datetime import datetime
 import pandas as pd
 
+from db.connection import get_engine
+from db.repositories.raw_results_repo import get_all_raw_results
+
 from domain.masters.master_boats import generate_master_boats
 
-RAW_DIR = Path("data/raw/regattas")
 PROCESSED_DIR = Path("data/processed/masters")
 BACKUP_DIR = Path("data/backups")
 
@@ -18,13 +20,16 @@ def backup_if_exists(path):
 
 def run_master_boats_pipeline():
     print("Running master boats pipeline...")
-    file_paths = list(RAW_DIR.glob("*.csv"))
+    engine = get_engine()
 
-    if not file_paths:
-        print("No raw regatta files found")
+    with engine.connect() as conn:
+        df_raw = get_all_raw_results(conn)
+
+    if df_raw.empty:
+        print("No raw results found in database")
         return
     
-    df_boats = generate_master_boats(file_paths)
+    df_boats = generate_master_boats(df_raw)
 
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
