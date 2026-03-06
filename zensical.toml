@@ -1,0 +1,93 @@
+[project]
+site_name = "Regatta Data Platform"
+
+repo_name = "Regatta Data Platform"
+repo_url = "https://github.com/RGB-420/yacht"
+
+# ---------------------------
+# Navigation
+# ---------------------------
+
+nav = [
+
+  { Home = "index.md" },
+
+  { Project = [
+      { Overview = "project/overview.md" },
+      { Roadmap = "project/roadmap.md" }
+  ]},
+
+  { Architecture = [
+      { "System Overview" = "architecture/system-overview.md" },
+      { "Data Model" = "architecture/data-model.md" }
+  ]},
+
+  { Decisions = [
+      { Overview = "decisions/index.md" },
+      { "ADR-001" = "decisions/adr-001-database-first-architecture.md" },
+      { "ADR-002" = "decisions/adr-002-raw-vs-canonical-layer.md" },
+      { "ADR-003" = "decisions/adr-003-jsonb-raw-storage.md" },
+      { "ADR-004" = "decisions/adr-004-entity-centric-data-model.md" }
+  ]},
+
+  { "AI Context" = [
+      { "Overview" = "ai-context/index.md"},
+      { "AI Development Context" = "ai-context/ai-development-context.md" }
+  ]}
+
+]
+
+# ---------------------------
+# Theme
+# ---------------------------
+
+[project.theme]
+name = "material"
+
+features = [
+  "navigation.instant",
+  "navigation.expand",
+  "navigation.tabs",
+  "search.highlight"
+]
+
+[project.theme.icon]
+repo = "fontawesome/brands/github"
+logo = "lucide/sailboat"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+accent = "blue"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+accent = "light blue"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
+
+# ---------------------------
+# Markdown
+# ---------------------------
+
+[markdown]
+
+extensions = [
+  "admonition",
+  "tables"
+]
+
+[markdown.toc]
+permalink = true
+
+
+# ---------------------------
+# Plugins
+# ---------------------------
+
+[plugins]
+
+search = true
