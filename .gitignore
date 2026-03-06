@@ -3,6 +3,13 @@ data/
 esquema.pgerd
 prueba.py
 
+# -------------------------------------------------
+# Docker (eliminar cuando este bien hecho)
+docker-compose.yml
+Dockerfile
+.dockerignore
+# -------------------------------------------------
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
