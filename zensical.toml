@@ -47,7 +47,6 @@ name = "material"
 features = [
   "navigation.instant",
   "navigation.expand",
-  "navigation.tabs",
   "search.highlight"
 ]
 
