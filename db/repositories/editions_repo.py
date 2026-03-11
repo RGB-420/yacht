@@ -32,9 +32,10 @@ def upsert_edition(conn, regatta_id, year):
 def get_edition_id(conn, regatta_name, year):
     query = text("""
         SELECT e.id_edition FROM yacht_db.regatta_editions e
-        JOIN yacht_db.regattas r ON r.id_regatta = e.id_regatta
-            WHERE r.name = :regatta_name
-                AND e.year = :year
+        JOIN yacht_db.regattas r 
+            ON r.id_regatta = e.id_regatta
+        WHERE r.name = :regatta_name
+            AND e.year = :year
     """)
 
     result = conn.execute(query, {"regatta_name": regatta_name, "year": year}).fetchone()
@@ -43,21 +44,29 @@ def get_edition_id(conn, regatta_name, year):
 
 def get_regatta_editions(conn, regatta_id):
     query = text("""
-        SELECT id_edition, id_regatta, year, created_at
-        FROM yacht_db.regatta_editions
-        WHERE id_regatta = :id
+        SELECT e.id_edition, e.year, r.name AS regatta_name
+        FROM yacht_db.regatta_editions e
+        
+        LEFT JOIN yacht_db.regattas r
+            ON r.id_regatta = e.id_regatta
+                 
+        WHERE e.id_regatta = :id_regatta
         ORDER BY year DESC
     """)
 
-    result = conn.execute(query, {"id": regatta_id})
+    result = conn.execute(query, {"id_regatta": regatta_id})
 
     return rows_to_dict(result)
 
 def get_edition_by_id(conn, edition_id):
     query = text("""
-        SELECT id_edition, id_regatta, year, created_at
-        FROM yacht_db.regatta_editions
-        WHERE id_edition = :edition_id
+        SELECT e.id_edition, e.year, r.name AS regatta_name
+        FROM yacht_db.regatta_editions e
+        
+        LEFT JOIN yacht_db.regattas r
+            ON r.id_regatta = e.id_regatta
+                 
+        WHERE e.id_edition = :edition_id
     """)
 
     result = conn.execute(query, {"edition_id": edition_id}).fetchone()

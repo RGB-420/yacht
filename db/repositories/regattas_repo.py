@@ -22,8 +22,14 @@ def upsert_regatta(conn, name, type=None, club_id=None, location_id=None):
 
 def get_regattas(conn):
     query = text("""
-        SELECT id_regatta, name, type, id_club, id_location, created_at
-        FROM yacht_db.regattas
+        SELECT r.id_regatta, r.name, r.type, c.name AS club_name, l.city, l.region, l.country
+        FROM yacht_db.regattas r
+        
+        LEFT JOIN yacht_db.clubs c
+            ON r.id_club = c.id_club
+        LEFT JOIN yacht_db.locations l
+            ON r.id_location = l.id_location
+                 
         ORDER BY name
     """)
 
@@ -33,9 +39,17 @@ def get_regattas(conn):
 
 def get_regatta_by_id(conn, regatta_id):
     query = text("""
-        SELECT id_regatta, name, type, id_club, id_location, created_at
-        FROM yacht_db.regattas 
-        WHERE id_regatta = :id
+        SELECT r.id_regatta, r.name, r.type, c.name AS club_name, l.city, l.region, l.country
+        FROM yacht_db.regattas r
+                 
+        LEFT JOIN yacht_db.clubs c
+            ON r.id_club = c.id_club
+        LEFT JOIN yacht_db.locations l
+            ON r.id_location = l.id_location
+                 
+        WHERE r.id_regatta = :id
+                 
+        ORDER BY name
     """)
 
     result = conn.execute(query, {"id": regatta_id}).fetchone()

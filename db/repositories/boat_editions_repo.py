@@ -20,8 +20,10 @@ def get_edition_boats(conn, edition_id):
                  
         JOIN yacht_db.boats b
             ON be.id_boat = b.id_boat
+        LEFT JOIN yacht_db.boat_type bt
+            ON bt.id_type = b.id_type
         LEFT JOIN yacht_db.boat_classes bc
-            ON b.id_class = bc.id_class
+            ON bt.id_class = bc.id_class
                  
         WHERE be.id_edition = :edition_id
         ORDER BY b.name
