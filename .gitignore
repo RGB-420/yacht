@@ -2,6 +2,7 @@
 data/
 esquema.pgerd
 prueba.py
+api_map.md
 
 # -------------------------------------------------
 # Docker (eliminar cuando este bien hecho)

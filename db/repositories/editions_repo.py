@@ -1,5 +1,7 @@
 from sqlalchemy import text 
 
+from utils.db_utils import row_to_dict, rows_to_dict
+
 def upsert_edition(conn, regatta_id, year):
     insert_query = text("""
         INSERT INTO yacht_db.regatta_editions (id_regatta, year)
@@ -38,3 +40,26 @@ def get_edition_id(conn, regatta_name, year):
     result = conn.execute(query, {"regatta_name": regatta_name, "year": year}).fetchone()
 
     return result[0] if result else None
+
+def get_regatta_editions(conn, regatta_id):
+    query = text("""
+        SELECT id_edition, id_regatta, year, created_at
+        FROM yacht_db.regatta_editions
+        WHERE id_regatta = :id
+        ORDER BY year DESC
+    """)
+
+    result = conn.execute(query, {"id": regatta_id})
+
+    return rows_to_dict(result)
+
+def get_edition_by_id(conn, edition_id):
+    query = text("""
+        SELECT id_edition, id_regatta, year, created_at
+        FROM yacht_db.regatta_editions
+        WHERE id_edition = :edition_id
+    """)
+
+    result = conn.execute(query, {"edition_id": edition_id}).fetchone()
+
+    return row_to_dict(result)

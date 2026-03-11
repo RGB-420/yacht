@@ -1,6 +1,6 @@
 # AI Development Context
 
-This document provides guidance for AI-assisted development tools (such as Claude or Cursor) working within this repository.
+This document provides guidance for AI-assisted development tool working within this repository.
 
 Its purpose is to help AI systems understand the structure of the project and the architectural constraints that must be respected when generating or modifying code.
 
