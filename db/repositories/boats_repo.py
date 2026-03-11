@@ -73,3 +73,19 @@ def get_boat_by_id(conn, boat_id):
     result = conn.execute(query, {"boat_id": boat_id}).fetchone()
 
     return row_to_dict(result)
+
+def get_class_boats(conn, class_id):
+    query = text("""
+        SELECT b.id_boat, b.name, b.boat_identifier
+        FROM yacht_db.boats b
+        
+        JOIN yacht_db.boat_type bt
+            ON b.id_type = bt.id_type
+                
+        WHERE bt.id_class = :class_id
+        ORDER BY b.name
+    """)
+
+    result = conn.execute(query, {"class_id": class_id})
+
+    return rows_to_dict(result)

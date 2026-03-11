@@ -1,5 +1,7 @@
 from sqlalchemy import text
 
+from utils.db_utils import row_to_dict, rows_to_dict
+
 def upsert_boat_classes(conn, name, manufacturer=None, category=None, rating_rule=None, start_year=None, crew_min=None, crew_max=None, length_m=None):
     query = text("""
         INSERT INTO yacht_db.boat_classes (name, manufacturer, category, rating_rule, start_year, crew_min, crew_max, length_m)
@@ -30,3 +32,27 @@ def get_class_id(conn, name):
     result = conn.execute(query, {"name": name})
 
     return result[0] if result else None
+
+def get_classes(conn):
+    query = text("""
+        SELECT id_class, name, manufacturer, category, rating_rule, start_year, crew_min, crew_max, length_m
+        FROM yacht_db.boat_classes
+        
+        ORDER BY name
+    """)
+
+    result = conn.execute(query)
+
+    return rows_to_dict(result)
+
+def get_class_by_id(conn, class_id):
+    query = text("""
+        SELECT id_class, name, manufacturer, category, rating_rule, start_year, crew_min, crew_max, length_m
+        FROM yacht_db.boat_classes
+                
+        WHERE id_class = :class_id
+    """)
+
+    result = conn.execute(query, {"class_id": class_id}).fetchone()
+
+    return row_to_dict(result)
