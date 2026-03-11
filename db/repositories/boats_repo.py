@@ -1,6 +1,6 @@
 from sqlalchemy import text
 
-from utils.db_utils import rows_to_dict
+from utils.db_utils import row_to_dict, rows_to_dict
 
 def upsert_boat(conn, name, boat_identifier, type_id=None):
     query = text("""
@@ -45,3 +45,31 @@ def get_boats(conn):
     result = conn.execute(query)
 
     return rows_to_dict(result)
+
+def get_boat_by_id(conn, boat_id):
+    query = text("""
+        SELECT b.id_boat, b.name, b.boat_identifier, bc.name AS class_name, bt.name AS type_name,
+                ARRAY_REMOVE(ARRAY_AGG(DISTINCT o.name), NULL) AS owners,
+                ARRAY_REMOVE(ARRAY_AGG(DISTINCT c.name), NULL) AS clubs
+        FROM yacht_db.boats b
+                 
+        LEFT JOIN yacht_db.boat_type bt
+            ON bt.id_type = b.id_type
+        LEFT JOIN yacht_db.boat_classes bc
+            ON bt.id_class = bc.id_class
+        LEFT JOIN yacht_db.boats_owner bo
+            ON b.id_boat = bo.id_boat
+        LEFT JOIN yacht_db.owners o
+            ON bo.id_owner = o.id_owner
+        LEFT JOIN yacht_db.boat_clubs bclu
+            ON b.id_boat = bclu.id_boat
+        LEFT JOIN yacht_db.clubs c
+            ON bclu.id_club = c.id_club
+                 
+        WHERE b.id_boat = :boat_id
+        GROUP BY b.id_boat, b.name, b.boat_identifier, bc.name, bt.name
+    """)
+
+    result = conn.execute(query, {"boat_id": boat_id}).fetchone()
+
+    return row_to_dict(result)
