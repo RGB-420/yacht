@@ -85,7 +85,7 @@ def run_boats_pipeline():
 
             # Insert boat
             boat_id_value = row["Boat Id"]
-            boat_id, created_boat = upsert_boat(conn, row["Name"], boat_id_value, class_id)
+            boat_id, created_boat = upsert_boat(conn, row["Name"], boat_id_value, type_id)
 
             if created_boat:
                 inserted_boats += 1

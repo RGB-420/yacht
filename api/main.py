@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI
 
-from api.routes import regattas, project, editions
+from api.routes import regattas, project, editions, boats
 
 docs_url = os.getenv("PROJECT_DOCS_URL")
 
@@ -19,5 +19,6 @@ app = FastAPI(
 
 app.include_router(regattas.router)
 app.include_router(editions.router)
+app.include_router(boats.router)
 
 app.include_router(project.router)
