@@ -33,7 +33,7 @@ def get_boat_clubs(conn, boat_id):
 
 def get_club_boats(conn, club_id):
     query = text("""
-        SELECT b.id_boat, b.name, b.boat_identifier, bc.name AS class_name
+        SELECT b.id_boat, b.name, b.boat_identifier, bc.id_class, bc.name AS class_name
         FROM yacht_db.boat_clubs bclu
         
         JOIN yacht_db.boats b

@@ -15,7 +15,7 @@ def insert_boat_edition(conn, boat_id, edition_id):
 
 def get_edition_boats(conn, edition_id):
     query = text("""
-        SELECT b.id_boat, b.name, b.boat_identifier, bc.name as class_name
+        SELECT b.id_boat, b.name, b.boat_identifier, bc.id_class, bc.name as class_name
         FROM yacht_db.boat_editions be
                  
         JOIN yacht_db.boats b
@@ -35,13 +35,15 @@ def get_edition_boats(conn, edition_id):
 
 def get_boats_edition(conn, boat_id):
     query = text("""
-        SELECT re.id_edition, re.year, r.id_regatta, r.name AS regatta_name
+        SELECT re.id_edition, re.year, r.id_regatta, r.name AS regatta_name, l.city, l.region, l.country
         FROM yacht_db.boat_editions be
         
         JOIN yacht_db.regatta_editions re
             ON be.id_edition = re.id_edition
         JOIN yacht_db.regattas r
             ON re.id_regatta = r.id_regatta
+        LEFT JOIN yacht_db.locations l
+            ON l.id_location = r.id_location
         
         WHERE be.id_boat = :boat_id
         ORDER BY re.year DESC

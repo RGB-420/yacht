@@ -14,7 +14,7 @@ class Club(BaseModel):
 
 class ClubDetail(BaseModel):
     id_club: int
-    name: set
+    name: str
 
     short_name: Optional[str]
     estimated_numbers: Optional[int]

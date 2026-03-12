@@ -19,7 +19,7 @@ def upsert_boat(conn, name, boat_identifier, type_id=None):
 
 def get_boats(conn):
     query = text("""
-        SELECT b.id_boat, b.name, b.boat_identifier, bc.name AS class_name, bt.name AS type_name,
+        SELECT b.id_boat, b.name, b.boat_identifier, bc.id_class, bc.name AS class_name, bt.id_type, bt.name AS type_name,
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT o.name), NULL) AS owners,
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT c.name), NULL) AS clubs
         FROM yacht_db.boats b
@@ -37,7 +37,7 @@ def get_boats(conn):
         LEFT JOIN yacht_db.clubs c
             ON bclu.id_club = c.id_club
                  
-        GROUP BY b.id_boat, b.name, b.boat_identifier, bc.name, bt.name
+        GROUP BY b.id_boat, b.name, b.boat_identifier, bc.id_class, bc.name, bt.id_type, bt.name
                  
         ORDER BY b.name
     """)
@@ -48,7 +48,7 @@ def get_boats(conn):
 
 def get_boat_by_id(conn, boat_id):
     query = text("""
-        SELECT b.id_boat, b.name, b.boat_identifier, bc.name AS class_name, bt.name AS type_name,
+        SELECT b.id_boat, b.name, b.boat_identifier, bc.id_class, bc.name AS class_name, bt.id_type, bt.name AS type_name,
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT o.name), NULL) AS owners,
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT c.name), NULL) AS clubs
         FROM yacht_db.boats b
@@ -67,7 +67,7 @@ def get_boat_by_id(conn, boat_id):
             ON bclu.id_club = c.id_club
                  
         WHERE b.id_boat = :boat_id
-        GROUP BY b.id_boat, b.name, b.boat_identifier, bc.name, bt.name
+        GROUP BY b.id_boat, b.name, b.boat_identifier, bc.id_class, bc.name, bt.id_type, bt.name
     """)
 
     result = conn.execute(query, {"boat_id": boat_id}).fetchone()
@@ -76,13 +76,21 @@ def get_boat_by_id(conn, boat_id):
 
 def get_class_boats(conn, class_id):
     query = text("""
-        SELECT b.id_boat, b.name, b.boat_identifier
+        SELECT b.id_boat, b.name, b.boat_identifier,
+            ARRAY_REMOVE(ARRAY_AGG(DISTINCT o.name), NULL) AS owners
         FROM yacht_db.boats b
         
         JOIN yacht_db.boat_type bt
             ON b.id_type = bt.id_type
+        LEFT JOIN yacht_db.boats_owner bo
+            ON bo.id_boat = b.id_boat
+        LEFT JOIN yacht_db.owners o
+            ON o.id_owner = bo.id_owner
                 
         WHERE bt.id_class = :class_id
+
+        GROUP BY b.id_boat, b.name, b.boat_identifier
+                         
         ORDER BY b.name
     """)
 

@@ -12,3 +12,5 @@ class Regatta(BaseModel):
     city: Optional[str]
     region: Optional[str]
     country: Optional[str]
+
+    number_of_editions: int

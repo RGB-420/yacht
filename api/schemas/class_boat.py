@@ -1,7 +1,9 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 class ClassBoat(BaseModel):
     id_boat: int
-    name: set
+    name: str
     boat_identifier: Optional[str]
+
+    owners: List[str]

@@ -1,12 +1,12 @@
 from pydantic import BaseModel
 from typing import Optional
 
-class BoatEdition(BaseModel):
-    id_edition: int
-    year: int
+class BoatClub(BaseModel):
+    id_club: int
+    name: str
 
-    id_regatta: int
-    regatta_name: str
+    short_name: Optional[str]
+    estimated_numbers: Optional[int]
 
     city: Optional[str]
     region: Optional[str]

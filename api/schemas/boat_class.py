@@ -15,3 +15,4 @@ class BoatClass(BaseModel):
 
     length_m: Optional[float]
     
+    number_of_boats: int

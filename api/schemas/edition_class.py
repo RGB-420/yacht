@@ -7,3 +7,5 @@ class EditionClass(BaseModel):
     manufacturer: Optional[str]
     category: Optional[str]
     rating_rule: Optional[str]
+
+    number_of_boats: int

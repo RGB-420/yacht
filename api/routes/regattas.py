@@ -4,7 +4,7 @@ from typing import List
 
 from api.dependencies.database import get_db
 from api.schemas.regatta import Regatta
-from api.schemas.edition import Edition
+from api.schemas.regatta_edition import RegattaEdition
 from api.schemas.regatta_link import RegattaLink
 
 from db.repositories.regattas_repo import get_regattas, get_regatta_by_id
@@ -31,7 +31,7 @@ def get_regatta(regatta_id: int, db: Session = Depends(get_db)):
     
     return regatta
 
-@router.get("/{regatta_id}/editions", response_model=List[Edition])
+@router.get("/{regatta_id}/editions", response_model=List[RegattaEdition])
 def list_regatta_editions(regatta_id: int, db: Session = Depends(get_db)):
     editions = get_regatta_editions(db, regatta_id)
 

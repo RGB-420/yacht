@@ -22,15 +22,20 @@ def upsert_regatta(conn, name, type=None, club_id=None, location_id=None):
 
 def get_regattas(conn):
     query = text("""
-        SELECT r.id_regatta, r.name, r.type, c.name AS club_name, l.city, l.region, l.country
+        SELECT r.id_regatta, r.name, r.type, c.name AS club_name, l.city, l.region, l.country,
+            COUNT(re.id_edition) AS number_of_editions
         FROM yacht_db.regattas r
         
         LEFT JOIN yacht_db.clubs c
             ON r.id_club = c.id_club
         LEFT JOIN yacht_db.locations l
             ON r.id_location = l.id_location
-                 
-        ORDER BY name
+        LEFT JOIN yacht_db.regatta_editions re
+            ON re.id_regatta = r.id_regatta
+        
+        GROUP BY r.id_regatta, r.name, r.type, c.name, l.city, l.region, l.country
+                                
+        ORDER BY r.name
     """)
 
     result = conn.execute(query)
@@ -39,17 +44,22 @@ def get_regattas(conn):
 
 def get_regatta_by_id(conn, regatta_id):
     query = text("""
-        SELECT r.id_regatta, r.name, r.type, c.name AS club_name, l.city, l.region, l.country
+        SELECT r.id_regatta, r.name, r.type, c.name AS club_name, l.city, l.region, l.country,
+            COUNT(re.id_edition) AS number_of_editions
         FROM yacht_db.regattas r
                  
         LEFT JOIN yacht_db.clubs c
             ON r.id_club = c.id_club
         LEFT JOIN yacht_db.locations l
             ON r.id_location = l.id_location
+        LEFT JOIN yacht_db.regatta_editions re
+            ON r.id_regatta = re.id_regatta
                  
         WHERE r.id_regatta = :id
                  
-        ORDER BY name
+        GROUP BY r.id_regatta, r.name, r.type, c.name, l.city, l.region, l.country
+                 
+        ORDER BY r.name
     """)
 
     result = conn.execute(query, {"id": regatta_id}).fetchone()

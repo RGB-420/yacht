@@ -4,8 +4,8 @@ from typing import List
 
 from api.dependencies.database import get_db
 from api.schemas.boat import Boat
-from api.schemas.owner import Owner
-from api.schemas.club import Club
+from api.schemas.boat_owner import BoatOwner
+from api.schemas.boat_club import BoatClub
 from api.schemas.boat_edition import BoatEdition
 
 from db.repositories.boats_repo import get_boats, get_boat_by_id
@@ -33,13 +33,13 @@ def get_boat(boat_id: int, db: Session = Depends(get_db)):
     
     return boat
 
-@router.get("/{boat_id}/owners", response_model=List[Owner])
+@router.get("/{boat_id}/owners", response_model=List[BoatOwner])
 def list_boat_owners(boat_id: int, db: Session = Depends(get_db)):
     owners = get_boat_owners(db, boat_id)
 
     return owners
 
-@router.get("/{boat_id}/clubs", response_model=List[Club])
+@router.get("/{boat_id}/clubs", response_model=List[BoatClub])
 def list_boat_clubs(boat_id: int, db: Session = Depends(get_db)):
     clubs = get_boat_clubs(db, boat_id)
 

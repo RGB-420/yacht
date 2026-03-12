@@ -60,13 +60,21 @@ def get_regatta_editions(conn, regatta_id):
 
 def get_edition_by_id(conn, edition_id):
     query = text("""
-        SELECT e.id_edition, e.year, r.name AS regatta_name
+        SELECT e.id_edition, e.year, r.name AS regatta_name, r.id_regatta,
+            COUNT(DISTINCT(be.id_boat)) AS number_of_boats,
+            COUNT(DISTINCT(ec.id_class)) AS number_of_classes
         FROM yacht_db.regatta_editions e
         
         LEFT JOIN yacht_db.regattas r
             ON r.id_regatta = e.id_regatta
-                 
+        LEFT JOIN yacht_db.boat_editions be
+            ON be.id_edition = e.id_edition
+        LEFT JOIN yacht_db.edition_classes ec
+            ON ec.id_edition = e.id_edition
+        
         WHERE e.id_edition = :edition_id
+                 
+        GROUP BY e.id_edition, e.year, r.name
     """)
 
     result = conn.execute(query, {"edition_id": edition_id}).fetchone()

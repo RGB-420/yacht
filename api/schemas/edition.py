@@ -1,10 +1,11 @@
 from pydantic import BaseModel
-from datetime import datetime
 
 class Edition(BaseModel):
     id_edition: int
-    year: int  
-    
+    year: int
+
+    id_regatta: int
     regatta_name: str
 
-    
+    number_of_boats: int
+    number_of_classes: int
