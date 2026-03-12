@@ -1,5 +1,7 @@
 from sqlalchemy import text
 
+from utils.db_utils import row_to_dict, rows_to_dict
+
 def upsert_club(conn, name, short_name=None, estimated_numbers=None, location_id=None):
     query = text("""
         INSERT INTO yacht_db.clubs (name, short_name, estimated_numbers, id_location)
@@ -26,3 +28,41 @@ def get_club_id(conn, name):
     result = conn.execute(query, {"name": name}).fetchone()
 
     return result[0] if result else None
+
+def get_clubs(conn):
+    query = text("""    
+        SELECT c.id_club, c.name, c.short_name, c.estimated_numbers, l.city, l.region, l.country
+        FROM yacht_db.clubs c
+        
+        LEFT JOIN yacht_db.locations l
+            ON c.id_location = l.id_location
+                 
+        ORDER BY c.name
+    """)
+
+    result = conn.execute(query)
+
+    return rows_to_dict(result)
+
+def get_club_by_id(conn, club_id):
+    query = text("""
+        SELECT c.id_club, c.name, c.short_name, c.estimated_numbers, l.city, l.region, l.country,
+            COUNT(DISTINCT bc.id_boat) AS number_of_boats,
+            COUNT(DISTINCT r.id_regatta) AS number_of_regattas
+        FROM yacht_db.clubs c
+            
+        LEFT JOIN yacht_db.locations l
+            ON c.id_location = l.id_location
+        LEFT JOIN yacht_db.boat_clubs bc    
+            ON c.id_club = bc.id_club
+        LEFT JOIN yacht_db.regattas r
+            ON c.id_club = r.id_club
+        
+        WHERE c.id_club = :club_id
+            
+        GROUP BY c.id_club, c.name, c.short_name, c.estimated_numbers, l.city, l.region, l.country
+    """)
+
+    result = conn.execute(query, {"club_id": club_id}).fetchone()
+
+    return row_to_dict(result)

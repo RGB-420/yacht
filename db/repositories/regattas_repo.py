@@ -55,3 +55,25 @@ def get_regatta_by_id(conn, regatta_id):
     result = conn.execute(query, {"id": regatta_id}).fetchone()
 
     return row_to_dict(result)
+
+def get_club_regattas(conn, club_id):
+    query = text("""
+        SELECT r.id_regatta, r.name, l.city, l.region, l.country,
+            COUNT(re.id_edition) AS number_of_editions
+        FROM yacht_db.regattas r
+                 
+        LEFT JOIN yacht_db.locations l
+            ON r.id_location = l.id_location
+        LEFT JOIN yacht_db.regatta_editions re
+            ON r.id_regatta = re.id_regatta
+        
+        WHERE r.id_club = :club_id
+            
+        GROUP BY r.id_regatta, r.name, l.city, l.region, l.country
+                 
+        ORDER BY r.name
+    """)
+
+    result = conn.execute(query, {"club_id": club_id})
+
+    return rows_to_dict(result)
