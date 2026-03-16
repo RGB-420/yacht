@@ -21,4 +21,5 @@ camelot-py==1.0.9
 # MkDocs requirements
 mkdocs
 mkdocs-material
+mkdocs-with-pdf
 zensical

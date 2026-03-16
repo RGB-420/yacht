@@ -1,0 +1,9 @@
+site_name: Regatta Data Platform
+
+docs_dir: docs
+
+plugins:
+  - search
+  - with-pdf:
+      cover_title: Regatta Data Platform Documentation
+      cover_subtitle: Architecture & Decisions

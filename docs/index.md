@@ -4,6 +4,14 @@ This documentation describes the architecture, governance and development contex
 
 The goal of this documentation is to provide a clear and structured overview of the system for developers, collaborators and AI-assisted development tools.
 
+## Download Documentation
+
+You can download the complete documentation or access the Markdown source.
+
+[📄 Download PDF](pdf/document.pdf){ .md-button .md-button--primary }
+
+[📦 Download ZIP](download/regatta-docs.zip){ .md-button }
+
 ## Documentation Structure
 
 ### Project
