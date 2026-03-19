@@ -1,28 +1,19 @@
 import pandas as pd
-import requests
 from bs4 import BeautifulSoup
 
-df = pd.DataFrame()
-
-#---------- CONFIGURATION ----------
-# Column aliases: add new header names here if they appear in other tables
-COLUMN_MAP = { 
-    "division": ["Fleet"],
-    "sailno": ["SailNo", "Sail Number", "Sail number", "Sail_No"],
-    "boat": ["Boat", "Boat Name"],
-    "type": ["Class", "Boat type"],
-    "club": ["Club", "Yacht Club"],
-    "owner": ["Owner", "Helm/Owner"],
-    "mna": ["Boat MNA"],
+COLUMN_MAP = {
+    "sailno": "Sail No.",
+    "boat": "Boat",
+    "club": "Club",
+    "type": "Design",
+    "owner": "Person"
 }
-#-----------------------------------
-
 
 def scrape(url, browser):
     df = pd.DataFrame()
 
     page = browser.new_page()
-        
+    
     html = get_html_with_playwright(page, url)
     if html:
         datos = obtener_barcos(html)
@@ -35,7 +26,8 @@ def scrape(url, browser):
     else:
         print("No se pudo obtener el HTML")
 
-    df = df.dropna(axis=1, how="all")
+    df = df.dropna(how='all')
+    df = df.drop_duplicates(subset=['sailno', 'boat'], keep="first")
 
     return df
 
@@ -43,27 +35,6 @@ def get_html_with_playwright(page, url: str) -> str:
     page.goto(url)
     page.wait_for_load_state("networkidle")
     return page.content()
-
-def obtener_html(session, URL):
-    try:
-        response = session.get(URL, timeout=5)
-        response.raise_for_status()
-        return response.text
-    except requests.RequestException as e:
-        print(f"Error obteniendo {URL}: {e}")
-        return None
-
-def resolve_columns(indices, column_map):
-    resolved = {}
-
-    for logical_name, possible_headers in column_map.items():
-        resolved[logical_name] = None
-        for header in possible_headers:
-            if header in indices:
-                resolved[logical_name] = indices[header]
-                break
-
-    return resolved
 
 def get_column_indices(tabla):
     header = tabla.find("thead").find_all("th")
@@ -82,16 +53,17 @@ def get_cell_text(cells, idx):
 
 def obtener_barcos(html):
     soup = BeautifulSoup(html, "html.parser")
-    tablas = soup.find_all("table", class_=["summarytable", "entry"])
+    tablas = soup.find_all("table", class_="pretty")
     print("Tablas encontradas:", len(tablas))
 
     datos = []
 
-    for tabla in tablas:
+    for i, tabla in enumerate(tablas):
         indices = get_column_indices(tabla)
-        cols = resolve_columns(indices, COLUMN_MAP)
+        cols = {k: indices.get(v) for k, v in COLUMN_MAP.items()}
 
         filas = tabla.find("tbody").find_all("tr")
+        print(f"Tabla {i}: filas =", len(filas))
 
         for fila in filas:
             datos_barco = fila.find_all("td")
@@ -104,4 +76,3 @@ def obtener_barcos(html):
             datos.append(fila_datos)
 
     return datos
-

@@ -7,7 +7,6 @@ def scrape(url, browser):
     page = browser.new_page()
             
     links = obtener_links_resultados(page, url)
-    print(links)
     for link in links:
         datos = obtener_datos(page, link['url'], link['title'])
         if datos:
@@ -46,7 +45,6 @@ def obtener_links_resultados(page, base_url):
     )
 
     count = anchors.count()
-    print(count)
     for i in range(count):
         href = anchors.nth(i).get_attribute("href")
         title = anchors.nth(i).inner_text().strip()
@@ -95,7 +93,6 @@ def obtener_datos(page, url: str, clase):
     rows = table.locator("tbody tr")
 
     col_map = get_column_map(table)
-    print(col_map)
 
     boats = []
 

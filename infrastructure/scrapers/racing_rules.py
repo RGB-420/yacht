@@ -12,8 +12,6 @@ columnas_fijas = [
     "helm_name",
 ]
 
-nombre_csv = "West Highland.csv"
-
 ocr = PaddleOCR(use_angle_cls=True, lang='en')
 
 def scrape(url, browser):
@@ -109,7 +107,6 @@ def extraer_tabla_desde_imagen(url_imagen):
     tabla_recortada = [fila[:6] for fila in tabla]
 
     df_tabla = pd.DataFrame(tabla_recortada[1:], columns=columnas_fijas)
-    print(df_tabla.head())
 
     return df_tabla
 

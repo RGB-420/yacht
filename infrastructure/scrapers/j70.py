@@ -33,8 +33,6 @@ def scrape(url, browser):
 
                     df_index = pd.DataFrame(datos)
 
-                    df_index.to_csv("Prueab_indice.csv")
-
             else:
                 headers = get_columns(html)
                 if not headers:

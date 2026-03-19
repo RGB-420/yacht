@@ -54,6 +54,7 @@ def run_boats_pipeline():
             if not edition_id:
                 raise ValueError(f"Edition not found: {regatta_name} {year}")
 
+# Cambiar esta parte ------------------------------------------------------
             # Get class
             class_name = row["Class"]
             class_id = get_class_id(conn, class_name)
@@ -67,7 +68,7 @@ def run_boats_pipeline():
 
             if not club_id:
                 raise ValueError(f"Club not found: {club_name}")
-            
+# -------------------------------------------------------------------------
             # Insert type
             type_name = row["Boat Type"]
             if pd.notna(type_name) and str(type_name).strip() != "":

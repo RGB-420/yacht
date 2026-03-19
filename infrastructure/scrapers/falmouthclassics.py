@@ -8,9 +8,9 @@ df = pd.DataFrame()
 # Column aliases: add new header names here if they appear in other tables
 COLUMN_MAP = { 
     "division": ["Fleet"],
-    "sailno": ["SailNo", "Sail Number", "Sail number", "Sail_No"],
+    "sailno": ["SailNo", "Sail Number", "ID"],
     "boat": ["Boat", "Boat Name"],
-    "type": ["Class", "Boat type"],
+    "class": ["Class"],
     "club": ["Club", "Yacht Club"],
     "owner": ["Owner", "Helm/Owner"],
     "mna": ["Boat MNA"],
@@ -82,7 +82,8 @@ def get_cell_text(cells, idx):
 
 def obtener_barcos(html):
     soup = BeautifulSoup(html, "html.parser")
-    tablas = soup.find_all("table", class_=["summarytable", "entry"])
+    tablas = soup.select("figure.wp-block-table.summarytable table")
+
     print("Tablas encontradas:", len(tablas))
 
     datos = []

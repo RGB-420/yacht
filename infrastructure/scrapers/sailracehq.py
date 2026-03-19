@@ -46,6 +46,7 @@ def scrape(url, browser):
         print("⚠️ Tipo de link desconocido, se ignora")
 
     for LINK in LINKS:
+        page.close()
         page = browser.new_page()
 
         page.goto(LINK)

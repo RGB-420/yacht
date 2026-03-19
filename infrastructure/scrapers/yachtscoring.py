@@ -2,11 +2,11 @@ import pandas as pd
 
 COLUMN_MAP = {
     "sailno": ["sailno", "sail number"],
-    "boat": ["boat", "boat name"],
+    "boat": ["boat", "boat name", "yacht name"],
     "class": ["class"],
-    "type": ["boat type"],
+    "type": ["boat type", "yacht type"],
     "club": ["club", "yacht club"],
-    "owner": ["owner"]
+    "owner": ["owner", "owner's name"]
 }
 
 def scrape(url, browser):
@@ -117,6 +117,7 @@ def conseguir_owner_y_club(page, df):
 
     if "boat_url" not in df.columns:
         df["boat_url"] = BASE_URL + df["boat_link"]
+        df = df.dropna(subset=["boat_url"])
 
     for idx, row in df.iterrows():
         boat_url = row["boat_url"]
