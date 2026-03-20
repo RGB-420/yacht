@@ -5,7 +5,9 @@ REQUIRED_COLUMNS = [
     "type",
     "year",
     "link",
-    "city"
+    "city",
+    "region",
+    "country"
 ]
 
 def generate_master_regattas(file_path):
@@ -15,14 +17,11 @@ def generate_master_regattas(file_path):
 
     if missing:
         raise ValueError(f"Missing columns in csv: {missing}")
-    
-    df["regatta_name"] = df["regatta_name"].str.strip()
-    df["type"] = df["type"].str.strip()
 
     df["year"] = df["year"].astype(int)
-    df["link"] = df["link"].fillna("").astype(str).str.strip()
 
-    df["city"] = df["city"].str.strip()
+    for col in ["regatta_name", "type", "link", "city", "region", "country"]:
+        df[col] = df[col].fillna("").astype(str).str.strip()
 
     df = df.drop_duplicates()
 

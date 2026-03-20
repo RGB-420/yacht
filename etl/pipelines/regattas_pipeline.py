@@ -29,10 +29,10 @@ def run_regattas_pipeline():
 
     with engine.begin() as conn:
         for _, row in df.iterrows():
-            location_id, _ = get_or_create_location(conn, city=row['city'], region=row['region'], country=row['country'])
-
-            if not location_id:
-                raise ValueError(f"Location not found: {row['city']}")
+            location_id = None
+            
+            if any([row.city, row.region, row.country]):
+                location_id, _ = get_or_create_location(conn, city=row["city"], region=row["region"], country=row["country"])
 
             regatta_id, created_regatta = upsert_regatta(conn, name=row.regatta_name, type=row.type, club_id=None, location_id=location_id)
 
