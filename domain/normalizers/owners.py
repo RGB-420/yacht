@@ -2,6 +2,8 @@ import re
 import pandas as pd
 import unicodedata
 
+from pathlib import Path
+
 from domain.mappings.owner_mapping import owner_mapping
 
 """
@@ -11,18 +13,30 @@ Owner normalizer
 are combined in the same cell (e.g. "John Smith - Royal Thames YC").
 """
 
+PRENORM_PATH = Path("domain/mappings/owner_prenormalization.csv")
+
+SEEN_PRENORM = set()
+
 # ------ Main function ------
 def finalize_owner_column(df):
     if "Owner" not in df.columns:
         return df
 
-    df["Owner"] = df["Owner"].str.lower()
     df["Owner"] = df["Owner"].apply(split_and_dedupe)
     df = df.explode("Owner").reset_index(drop=True)
 
     df["Owner"] = (df["Owner"].astype("string").str.replace(r"\s+", " ", regex=True).str.strip())
 
-    df["Owner"] = df["Owner"].apply(map_owner)
+    df["Owner_raw"] = df["Owner"]
+
+    # Normalizar
+    df["Owner_norm"] = df["Owner"].apply(normalize_owner).astype("string")
+
+    # Mapear o capturar prenormalization
+    df["Owner"] = df.apply(
+        lambda row: map_or_collect_owner(row["Owner_norm"], row["Owner_raw"]),
+        axis=1
+    )
 
     df[["Owner", "Club"]] = df.apply(
         lambda row: pd.Series(
@@ -32,6 +46,8 @@ def finalize_owner_column(df):
     )
     
     df["Owner"] = df["Owner"].str.title()
+
+    df = df.drop(columns=["Owner_raw", "Owner_norm"])
 
     return df
 
@@ -59,9 +75,19 @@ def normalize_owner(name):
 
     return name.strip()
 
-def map_owner(name):
-    norm = normalize_owner(name)
-    return owner_mapping.get(norm, name)
+def map_or_collect_owner(norm_name, raw_name):
+    if pd.isna(norm_name):
+        return None
+
+    canonical = owner_mapping.get(norm_name)
+
+    if canonical:
+        return canonical
+
+    # ❌ no mapeado → guardar
+    save_owner_prenorm(raw_name)
+
+    return str(raw_name).strip()
 
 def split_and_dedupe(cell):
     if pd.isna(cell):
@@ -124,3 +150,36 @@ def split_owner_and_club(owner, club):
         return pd.NA, owner_str
 
     return owner, club
+
+def save_owner_prenorm(raw_name):
+    if pd.isna(raw_name) or str(raw_name).strip() == "":
+        return
+
+    key = str(raw_name).lower()
+
+    if key in SEEN_PRENORM:
+        return
+
+    SEEN_PRENORM.add(key)
+
+    row = {
+        "raw_name": raw_name,
+        "canonical_name": "",
+        "status": "pending",
+        "confidence": "",
+        "notes": ""
+    }
+
+    df_new = pd.DataFrame([row])
+
+    if PRENORM_PATH.exists():
+        df_existing = pd.read_csv(PRENORM_PATH)
+
+        if key in df_existing["raw_name"].str.lower().values:
+            return
+
+        df_final = pd.concat([df_existing, df_new], ignore_index=True)
+    else:
+        df_final = df_new
+
+    df_final.to_csv(PRENORM_PATH, index=False)

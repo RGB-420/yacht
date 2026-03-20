@@ -9,7 +9,7 @@ def upsert_boat(conn, name, boat_identifier, type_id=None):
                  
         ON CONFLICT (name, boat_identifier) DO UPDATE SET
             id_type = COALESCE(EXCLUDED.id_type, yacht_db.boats.id_type)
-                 
+
         RETURNING id_boat, (xmax = 0) AS inserted;
     """)
 

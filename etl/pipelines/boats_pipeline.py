@@ -40,6 +40,13 @@ def run_boats_pipeline():
     inserted_types = 0
 
     with engine.begin() as conn:
+
+        prenorm = {
+            "class": set(),
+            "club": set(),
+            "boat_type": set(),
+        }
+
         for _, row in df_master.iterrows():
             source = row["Source"]
 
@@ -54,23 +61,31 @@ def run_boats_pipeline():
             if not edition_id:
                 raise ValueError(f"Edition not found: {regatta_name} {year}")
 
-# Cambiar esta parte ------------------------------------------------------
+
             # Get class
             class_name = row["Class"]
-            class_id = get_class_id(conn, class_name)
-
-            if not class_id:
-                raise ValueError(f"Class not found: {class_name}")
+            class_id = None
+            if pd.notna(class_name) and str(class_name).strip() != "":
+                class_id = get_class_id(conn, class_name)
+                
+                if not class_id:
+                    print(f"[WARNING] Class not found: {class_name}")
+                    prenorm["class"].add(class_name)
             
             # Get club
             club_name = row["Club"]
-            club_id = get_club_id(conn, club_name)
+            club_id = None
 
-            if not club_id:
-                raise ValueError(f"Club not found: {club_name}")
-# -------------------------------------------------------------------------
+            if pd.notna(club_name) and str(club_name).strip() != "":
+                club_id = get_club_id(conn, club_name)
+                
+                if not club_id:
+                    print(f"[WARNING] Club not found: {club_name}")
+
             # Insert type
             type_name = row["Boat Type"]
+            type_id = None
+
             if pd.notna(type_name) and str(type_name).strip() != "":
                 type_id, created_type = upsert_boat_type(conn, type_name, class_id)
 
@@ -93,9 +108,14 @@ def run_boats_pipeline():
 
             # Relations
             insert_boat_owner(conn, boat_id, owner_id)
-            insert_boat_club(conn, boat_id, club_id)
+            
+            if club_id:
+                insert_boat_club(conn, boat_id, club_id)
+                
             insert_boat_edition(conn, boat_id, edition_id)
-            insert_edition_class(conn, edition_id, class_id)
+            
+            if class_id:
+                insert_edition_class(conn, edition_id, class_id)
 
     print(f"Boats inserted: {inserted_boats}")
     print(f"Owners inserted: {inserted_owners}")

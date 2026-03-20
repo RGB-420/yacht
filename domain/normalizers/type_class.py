@@ -1,13 +1,22 @@
 import pandas as pd
 import re
 
+from pathlib import Path
+
 from domain.mappings.type_class_mapping import type_class_mapping
 from domain.mappings.class_mapping import class_mapping
+
+PRENORM_PATH = Path("domain/mappings/class_type_prenormalization.csv")
+
+SEEN_PRENORM = set()
 
 def final_type_class_columns(df):
     if "Class" not in df.columns and "Boat Type" not in df.columns:
         return df
     
+    df["Class_raw"] = df["Class"]
+    df["Type_raw"] = df["Boat Type"]
+
     df["Class"] = (df["Class"].astype(str).str.strip().str.replace("\xa0", "", regex=False))
 
     df["Class"] = df["Class"].apply(preprocess_class)
@@ -19,6 +28,23 @@ def final_type_class_columns(df):
     df["Boat Type"] = df["Boat Type"].str.replace(r"\s+\d\.\d+$", "", regex=True)
 
     df["Boat Type"] = df["Boat Type"].apply(preprocess_type)
+
+    df["Class_norm"] = df["Class"]
+    df["Type_norm"] = df["Boat Type"]
+
+    df[["Class", "Boat Type"]] = df.apply(
+        lambda row: pd.Series(
+            map_or_collect_class_type(
+                row["Class_norm"],
+                row["Type_norm"],
+                row["Class_raw"],
+                row["Type_raw"]
+            )
+        ),
+        axis=1
+    )
+
+    df = df.drop(columns=["Class_raw", "Type_raw", "Class_norm", "Type_norm"])
 
     return df
 
@@ -143,3 +169,59 @@ def normalize_x_boat(value):
         return None
     
     return model
+
+def map_or_collect_class_type(class_norm, type_norm, raw_class, raw_type):
+    if pd.isna(class_norm) and pd.isna(type_norm):
+        return None, None
+
+    key = (class_norm, type_norm)
+
+    mapping = type_class_mapping.get(key)
+
+    if mapping:
+        return mapping["canonical_class"], mapping["canonical_type"]
+
+    # ❌ no mapeado
+    save_class_type_prenorm(raw_class, raw_type)
+
+    return raw_class, raw_type
+
+def save_class_type_prenorm(raw_class, raw_type):
+    if pd.isna(raw_class) and pd.isna(raw_type):
+        return
+
+    key = f"{str(raw_class).lower()}|{str(raw_type).lower()}"
+
+    if key in SEEN_PRENORM:
+        return
+
+    SEEN_PRENORM.add(key)
+
+    row = {
+        "raw_class": raw_class,
+        "raw_type": raw_type,
+        "canonical_type": "",
+        "canonical_class": "",
+        "status": "pending",
+        "confidence": "",
+        "notes": ""
+    }
+
+    df_new = pd.DataFrame([row])
+
+    if PRENORM_PATH.exists():
+        df_existing = pd.read_csv(PRENORM_PATH)
+
+        existing_keys = (
+            df_existing["raw_class"].fillna("").str.lower() + "|" +
+            df_existing["raw_type"].fillna("").str.lower()
+        )
+
+        if key in existing_keys.values:
+            return
+
+        df_final = pd.concat([df_existing, df_new], ignore_index=True)
+    else:
+        df_final = df_new
+
+    df_final.to_csv(PRENORM_PATH, index=False)

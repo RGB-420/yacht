@@ -1,6 +1,8 @@
 import pandas as pd
 import re 
 
+from pathlib import Path
+
 from domain.mappings.club_mapping import club_mapping
 
 """
@@ -8,6 +10,9 @@ Club normalizer
 
 ⚠️ Depends on 'Name' column for inference
 """
+
+PRENORM_PATH = Path("domain/mappings/club_prenormalization.csv")
+SEEN_PRENORM = set()
 
 # ------ Main function ------
 def finalize_club_column(df):
@@ -22,7 +27,11 @@ def finalize_club_column(df):
         axis=1
     )
 
-    df["Club"] = (
+    # Guardar raw
+    df["Club_raw"] = df["Club"]
+
+    # Normalizar
+    df["Club_norm"] = (
         df["Club"]
         .apply(normalize_club)
         .astype("string")
@@ -30,18 +39,15 @@ def finalize_club_column(df):
         .str.strip()
     )
 
-    #df["Club"] = df["Club_norm"].apply(map_club)
-    return df
-"""    mask = df["Club_canonical"].isna()
-
-    df.loc[mask, "Club_canonical"] = (
-        df.loc[mask, "Club_norm"]
-        .str.replace(r"\s*y\s*c\.?\s*$", " yacht club", regex=True, case=False)
-        .str.replace(r"\s*s\s*c\.?\s*$", " sailing club", regex=True, case=False)
+    # Mapear o capturar prenormalization
+    df["Club"] = df.apply(
+        lambda row: map_or_collect_club(row["Club_norm"], row["Club_raw"]),
+        axis=1
     )
 
-    df["Club"] = df["Club_canonical"].fillna(df["Club_norm"].str.title())"""
-    
+    df = df.drop(columns=["Club_raw", "Club_norm"])
+
+    return df
 
 
 # ------ Utils ------
@@ -71,10 +77,18 @@ def normalize_club(s):
 
     return s
 
-def map_club(norm_name):
+def map_or_collect_club(norm_name, raw_name):
     if pd.isna(norm_name):
         return None
-    return club_mapping.get(norm_name, None)
+
+    canonical = club_mapping.get(norm_name)
+
+    if canonical:
+        return canonical
+
+    save_club_prenorm(raw_name)
+
+    return raw_name
 
 def split_club(cell):
     if pd.isna(cell):
@@ -99,3 +113,36 @@ def infer_club_from_boat_name(name, club):
             return club_name
 
     return club
+
+def save_club_prenorm(raw_name):
+    if pd.isna(raw_name) or str(raw_name).strip() == "":
+        return
+
+    key = str(raw_name).lower()
+
+    if key in SEEN_PRENORM:
+        return
+
+    SEEN_PRENORM.add(key)
+
+    row = {
+        "raw_name": raw_name,
+        "canonical_name": "",
+        "status": "pending",
+        "confidence": "",
+        "notes": ""
+    }
+
+    df_new = pd.DataFrame([row])
+
+    if PRENORM_PATH.exists():
+        df_existing = pd.read_csv(PRENORM_PATH)
+
+        if key in df_existing["raw_name"].str.lower().values:
+            return
+
+        df_final = pd.concat([df_existing, df_new], ignore_index=True)
+    else:
+        df_final = df_new
+
+    df_final.to_csv(PRENORM_PATH, index=False)
