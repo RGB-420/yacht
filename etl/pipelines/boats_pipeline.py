@@ -17,6 +17,8 @@ from db.repositories.raw_results_repo import get_all_raw_results
 
 from domain.masters.master_boats import generate_master_boats
 
+from domain.normalizers.columns import normalize_columns
+
 from utils.boats_transformation import explode_boats_for_db
 
 def run_boats_pipeline():
@@ -31,7 +33,9 @@ def run_boats_pipeline():
         print("No raw results")
         return
     
-    df_master = generate_master_boats(df_raw)
+    df_normalized = normalize_columns(df_raw)
+
+    df_master = generate_master_boats(df_normalized)
 
     df_master = explode_boats_for_db(df_master)
 
@@ -57,10 +61,8 @@ def run_boats_pipeline():
             year = int(year)
 
             edition_id = get_edition_id(conn, regatta_name, year)
-
             if not edition_id:
                 raise ValueError(f"Edition not found: {regatta_name} {year}")
-
 
             # Get class
             class_name = row["Class"]
@@ -94,20 +96,26 @@ def run_boats_pipeline():
 
             # Insert owner
             owner_name = row["Owner"]
-            owner_id, created_owner = upsert_owner(conn, owner_name)
 
-            if created_owner:
-                inserted_owners += 1
+            if pd.isna(owner_name) or str(owner_name).strip() == "":
+                owner_id = None
+            else:
+                owner_id, created_owner = upsert_owner(conn, owner_name)
+
+                if created_owner:
+                    inserted_owners += 1
 
             # Insert boat
             boat_id_value = row["Boat Id"]
+
             boat_id, created_boat = upsert_boat(conn, row["Name"], boat_id_value, type_id)
 
             if created_boat:
                 inserted_boats += 1
 
             # Relations
-            insert_boat_owner(conn, boat_id, owner_id)
+            if owner_id:
+                insert_boat_owner(conn, boat_id, owner_id)
             
             if club_id:
                 insert_boat_club(conn, boat_id, club_id)

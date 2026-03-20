@@ -29,7 +29,7 @@ def get_class_id(conn, name):
         WHERE name = :name
     """)
 
-    result = conn.execute(query, {"name": name})
+    result = conn.execute(query, {"name": name}).fetchone()
 
     return result[0] if result else None
 

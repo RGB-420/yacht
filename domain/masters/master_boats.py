@@ -3,7 +3,7 @@ from domain.normalizers import owners, name, boat_id, clubs, type_class
 from domain.grouping.boats import group_boats
 from domain.grouping.aggregation import aggregate_boat_groups
 
-final_columns = ["Name", "Class", "Boat Type", "Owner", "Boat Id", "Club", "Source", "Year"]
+final_columns = ["Name", "Class", "Boat Type", "Owner", "Boat Id", "Club", "Source"]
 
 def generate_master_boats(df):
     df = owners.finalize_owner_column(df)
