@@ -1,5 +1,7 @@
 import camelot
 import pandas as pd
+import numpy as np
+
 from pathlib import Path
 
 columns_map = {
@@ -39,6 +41,35 @@ def map_columns(df, columns_map):
     df.columns = new_cols
     return df
 
+def merge_multiline_rows(df):
+    rows = []
+    current = None
+
+    for _, row in df.iterrows():
+        number = str(row.get("number", "")).strip()
+
+        # Si empieza una nueva fila (tiene número)
+        if number and any(char.isdigit() for char in number):
+            if current is not None:
+                rows.append(current)
+            current = row.to_dict()
+
+        else:
+            # Continuación de la fila anterior
+            if current is not None:
+                for col in df.columns:
+                    val = str(row[col]).strip()
+                    if val and val.lower() != "nan":
+                        if current[col] is None or current[col] == "":
+                            current[col] = val
+                        else:
+                            current[col] += " " + val
+
+    if current is not None:
+        rows.append(current)
+
+    return pd.DataFrame(rows)
+
 def scrape(route):
     route = Path(route)
 
@@ -68,6 +99,8 @@ def scrape(route):
 
         df = map_columns(df, columns_map)
 
+        df = merge_multiline_rows(df)
+
         df = df[df["number"].astype(str).str.contains(r"\d+", na=False)]
 
         dfs.append(df)
@@ -80,5 +113,7 @@ def scrape(route):
     expected = ["number", "boat", "owner", "club"]
     available = [c for c in expected if c in df_all.columns]
     df_all = df_all[available]
+
+    df_all = df_all.replace({np.nan: None})
 
     return df_all
