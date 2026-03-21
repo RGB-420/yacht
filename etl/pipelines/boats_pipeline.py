@@ -4,7 +4,7 @@ import pandas as pd
 
 from db.connection import get_engine
 from db.repositories.boat_classes_repo import get_class_id
-from db.repositories.clubs_repo import get_club_id
+from db.repositories.clubs_repo import upsert_club
 from db.repositories.owners_repo import upsert_owner
 from db.repositories.boats_repo import upsert_boat
 from db.repositories.boats_owner_repo import insert_boat_owner
@@ -42,6 +42,7 @@ def run_boats_pipeline():
     inserted_boats = 0
     inserted_owners = 0
     inserted_types = 0
+    inserted_clubs = 0
 
     with engine.begin() as conn:
 
@@ -79,10 +80,10 @@ def run_boats_pipeline():
             club_id = None
 
             if pd.notna(club_name) and str(club_name).strip() != "":
-                club_id = get_club_id(conn, club_name)
-                
-                if not club_id:
-                    print(f"[WARNING] Club not found: {club_name}")
+                club_id, created_club = upsert_club(conn, club_name)
+
+                if created_club:
+                    inserted_clubs += 1
 
             # Insert type
             type_name = row["Boat Type"]
@@ -128,4 +129,5 @@ def run_boats_pipeline():
     print(f"Boats inserted: {inserted_boats}")
     print(f"Owners inserted: {inserted_owners}")
     print(f"Types inserted: {inserted_types}")
+    print(f"Clubs inserted: {inserted_clubs}")
     print("Boats DB pipeline finished")           

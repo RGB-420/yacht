@@ -1,4 +1,5 @@
 from pathlib import Path
+import pandas as pd
 
 from db.connection import get_engine
 from db.repositories.boat_classes_repo import upsert_boat_classes
@@ -15,6 +16,8 @@ def run_classes_pipeline():
         return
     
     df = generate_master_classes(CLASSES_FILE)
+
+    df = df.astype(object).where(pd.notna(df), None)
 
     engine = get_engine()
 
