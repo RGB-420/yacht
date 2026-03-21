@@ -13,7 +13,7 @@ Owner normalizer
 are combined in the same cell (e.g. "John Smith - Royal Thames YC").
 """
 
-PRENORM_PATH = Path("domain/mappings/owner_prenormalization.csv")
+PRENORM_PATH = Path("data/prenormalization/owner_prenormalization.csv")
 
 SEEN_PRENORM = set()
 

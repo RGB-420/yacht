@@ -6,7 +6,7 @@ from pathlib import Path
 from domain.mappings.type_class_mapping import type_class_mapping
 from domain.mappings.class_mapping import class_mapping
 
-PRENORM_PATH = Path("domain/mappings/class_type_prenormalization.csv")
+PRENORM_PATH = Path("data/prenormalization/class_type_prenormalization.csv")
 
 SEEN_PRENORM = set()
 
