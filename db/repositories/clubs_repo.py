@@ -19,15 +19,18 @@ def upsert_club(conn, name, short_name=None, estimated_numbers=None, location_id
 
     return result[0], result[1]
 
-def get_club_id(conn, name):
+def get_all_clubs_with_location(conn):
     query = text("""
-        SELECT id_club FROM yacht_db.clubs
-        WHERE name = :name
+        SELECT c.name, c.short_name, c.estimated_numbers, l.city, l.region, l.country
+        FROM yacht_db.clubs c
+
+        LEFT JOIN yacht_db.locations l 
+            ON c.id_location = l.id_location
     """)
+    
+    result = conn.execute(query).fetchall()
 
-    result = conn.execute(query, {"name": name}).fetchone()
-
-    return result[0] if result else None
+    return result
 
 def get_clubs(conn):
     query = text("""    

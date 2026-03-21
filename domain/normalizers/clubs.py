@@ -11,7 +11,7 @@ Club normalizer
 ⚠️ Depends on 'Name' column for inference
 """
 
-PRENORM_PATH = Path("domain/mappings/club_prenormalization.csv")
+PRENORM_PATH = Path("data/prenormalization/club_prenormalization.csv")
 SEEN_PRENORM = set()
 
 # ------ Main function ------
