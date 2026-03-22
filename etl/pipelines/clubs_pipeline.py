@@ -2,14 +2,14 @@ from pathlib import Path
 import pandas as pd
 
 from db.connection import get_engine
-from db.repositories.clubs_repo import upsert_club, get_all_clubs_with_location
+from db.repositories.clubs_repo import upsert_club
 from db.repositories.locations_repo import get_or_create_location
 
 from domain.masters.master_clubs import generate_master_clubs
 
 from utils.clubs_sync import sync_clubs_csv_with_db
 
-CLUBS_FILE = Path("data/clubs_master.csv")
+CLUBS_FILE = Path("data/master/clubs_master.csv")
 RAW_CLUBS_FILE = Path("data/raw/clubs_master_raw.csv")
 
 def run_clubs_pipeline():

@@ -81,14 +81,19 @@ def map_or_collect_club(norm_name, raw_name):
     if pd.isna(norm_name):
         return None
 
-    canonical = club_mapping.get(norm_name)
+    canonical = club_mapping.get(raw_name)
 
     if canonical:
         return canonical
 
+    canonical = club_mapping.get(norm_name)
+
+    if canonical:
+        return canonical
+    
     save_club_prenorm(raw_name)
 
-    return raw_name
+    return norm_name
 
 def split_club(cell):
     if pd.isna(cell):
@@ -118,15 +123,15 @@ def save_club_prenorm(raw_name):
     if pd.isna(raw_name) or str(raw_name).strip() == "":
         return
 
-    key = str(raw_name).lower()
+    norm = normalize_club(raw_name)
 
-    if key in SEEN_PRENORM:
+    if norm in SEEN_PRENORM:
         return
 
-    SEEN_PRENORM.add(key)
+    SEEN_PRENORM.add(norm)
 
     row = {
-        "raw_name": raw_name,
+        "raw_name": norm,
         "canonical_name": "",
         "status": "pending",
         "confidence": "",
@@ -138,7 +143,7 @@ def save_club_prenorm(raw_name):
     if PRENORM_PATH.exists():
         df_existing = pd.read_csv(PRENORM_PATH)
 
-        if key in df_existing["raw_name"].str.lower().values:
+        if norm in df_existing["raw_name"].values:
             return
 
         df_final = pd.concat([df_existing, df_new], ignore_index=True)

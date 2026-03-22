@@ -1,8 +1,11 @@
 import pandas as pd
 from pathlib import Path
 
+mapping_path = "data/mapping"
+
 def load_simple_mapping(filename, key_col, value_col):
-    path = Path(__file__).parent / filename
+    path = f"{mapping_path}/{filename}"
+    print(path)
     df = pd.read_csv(path)
 
     df[key_col] = df[key_col].astype(str).str.strip()
@@ -11,7 +14,7 @@ def load_simple_mapping(filename, key_col, value_col):
     return dict(zip(df[key_col], df[value_col]))
 
 def load_regex_mapping(filename, pattern, value_col):
-    path = Path(__file__).parent / filename
+    path = f"{mapping_path}/{filename}"
     df = pd.read_csv(path)
 
     df[value_col] = df[value_col].astype(str).str.strip()
@@ -21,7 +24,7 @@ def load_regex_mapping(filename, pattern, value_col):
     return list(zip(df[pattern], df[value_col]))
 
 def load_regex_grouped_mapping(filename, pattern, value_col):
-    path = Path(__file__).parent / filename
+    path = f"{mapping_path}/{filename}"
     df = pd.read_csv(path)
 
     df[value_col] = df[value_col].astype(str).str.strip()
@@ -45,7 +48,7 @@ def load_dual_mapping(filename, raw_cols, canonical_cols):
     if len(raw_cols) != len(canonical_cols):
         raise ValueError("raw_cols and canonical_cols must have the same length")
 
-    path = Path(__file__).parent / filename
+    path = f"{mapping_path}/{filename}"
     df = pd.read_csv(path)
 
     for col in raw_cols + canonical_cols:
