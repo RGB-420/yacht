@@ -36,9 +36,7 @@ def final_type_class_columns(df):
         lambda row: pd.Series(
             map_or_collect_class_type(
                 row["Class_norm"],
-                row["Type_norm"],
-                row["Class_raw"],
-                row["Type_raw"]
+                row["Type_norm"]
             )
         ),
         axis=1
@@ -170,7 +168,7 @@ def normalize_x_boat(value):
     
     return model
 
-def map_or_collect_class_type(class_norm, type_norm, raw_class, raw_type):
+def map_or_collect_class_type(class_norm, type_norm):
     if pd.isna(class_norm) and pd.isna(type_norm):
         return None, None
 
@@ -181,10 +179,9 @@ def map_or_collect_class_type(class_norm, type_norm, raw_class, raw_type):
     if mapping:
         return mapping["canonical_class"], mapping["canonical_type"]
 
-    # ❌ no mapeado
-    save_class_type_prenorm(raw_class, raw_type)
+    save_class_type_prenorm(class_norm, type_norm)
 
-    return raw_class, raw_type
+    return class_norm, type_norm
 
 def save_class_type_prenorm(raw_class, raw_type):
     if pd.isna(raw_class) and pd.isna(raw_type):

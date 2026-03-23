@@ -91,7 +91,7 @@ def map_or_collect_club(norm_name, raw_name):
     if canonical:
         return canonical
     
-    save_club_prenorm(raw_name)
+    save_club_prenorm(norm_name)
 
     return norm_name
 
