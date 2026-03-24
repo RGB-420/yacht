@@ -145,8 +145,8 @@ CREATE TABLE IF NOT EXISTS yacht_db.regatta_schedule
 (
     id_schedule integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     id_edition integer NOT NULL,
-    start_date date[],
-    end_date date[],
+    start_date date,
+    end_date date,
     created_at timestamp with time zone DEFAULT NOW(),
     PRIMARY KEY (id_schedule),
     UNIQUE (id_edition)
