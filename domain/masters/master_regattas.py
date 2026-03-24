@@ -5,6 +5,7 @@ REQUIRED_COLUMNS = [
     "type",
     "year",
     "link",
+    "status",
     "city",
     "region",
     "country"

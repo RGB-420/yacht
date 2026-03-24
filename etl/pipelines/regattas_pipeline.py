@@ -5,11 +5,15 @@ from db.repositories.regattas_repo import upsert_regatta
 from db.repositories.editions_repo import upsert_edition
 from db.repositories.regatta_links_repo import upsert_regatta_link
 from db.repositories.locations_repo import get_or_create_location
+from db.repositories.schedule_repo import upsert_regatta_schedule
 
 from domain.masters.master_regattas import generate_master_regattas
 
+from utils.schedule_sync import sync_schedule_csv_with_db
 
-REGATTAS_FILE = Path("data/regattas_master.csv")
+
+REGATTAS_FILE = Path("data/master/regattas_master.csv")
+SCHEDULE_FILE = Path("data/master/schedule_master.csv")
 
 
 def run_regattas_pipeline():
@@ -18,7 +22,7 @@ def run_regattas_pipeline():
     if not REGATTAS_FILE.exists():
         print("regattas_master.csv not found.")
         return
-
+    
     df = generate_master_regattas(REGATTAS_FILE)
 
     engine = get_engine()
@@ -39,7 +43,7 @@ def run_regattas_pipeline():
             if created_regatta:
                 inserted_regattas += 1
 
-            edition_id, created_edition = upsert_edition(conn, regatta_id, row.year)
+            edition_id, created_edition = upsert_edition(conn, regatta_id, row.year, row.status)
 
             if created_edition:
                 inserted_editions += 1
@@ -49,6 +53,11 @@ def run_regattas_pipeline():
 
                 if created_link:
                     inserted_links += 1
+            
+            if row.status == "future":
+                scheduled_id = upsert_regatta_schedule(conn, edition_id)
+
+        sync_schedule_csv_with_db(conn, SCHEDULE_FILE)
 
     print(f"Regattas inserted: {inserted_regattas}")
     print(f"Editions inserted: {inserted_editions}")

@@ -2,18 +2,18 @@ from sqlalchemy import text
 
 from utils.db_utils import row_to_dict, rows_to_dict
 
-def upsert_edition(conn, regatta_id, year):
+def upsert_edition(conn, regatta_id, year, status):
     insert_query = text("""
-        INSERT INTO yacht_db.regatta_editions (id_regatta, year)
-        VALUES (:regatta_id, :year)
+        INSERT INTO yacht_db.regatta_editions (id_regatta, year, status)
+        VALUES (:regatta_id, :year, :status)
         
         ON CONFLICT (year, id_regatta)       
-        DO NOTHING
+        DO UPDATE SET status = EXCLUDED.status
                  
         RETURNING id_edition
     """)
 
-    result = conn.execute(insert_query, {"regatta_id": regatta_id, "year": year}).fetchone()
+    result = conn.execute(insert_query, {"regatta_id": regatta_id, "year": year, "status": status}).fetchone()
 
     if result:
         return result[0], True

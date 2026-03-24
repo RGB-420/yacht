@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS yacht_db.regatta_editions
     id_edition integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     id_regatta integer NOT NULL,
     year integer NOT NULL,
+    status text NOT NULL DEFAULT unknown,
     created_at timestamp with time zone DEFAULT NOW(),
     PRIMARY KEY (id_edition),
     UNIQUE (year, id_regatta)
@@ -140,6 +141,17 @@ CREATE TABLE IF NOT EXISTS yacht_raw.raw_regatta_results
     PRIMARY KEY (id_raw_result)
 );
 
+CREATE TABLE IF NOT EXISTS yacht_db.regatta_schedule
+(
+    id_schedule integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    id_edition integer NOT NULL,
+    start_date date[],
+    end_date date[],
+    created_at timestamp with time zone DEFAULT NOW(),
+    PRIMARY KEY (id_schedule),
+    UNIQUE (id_edition)
+);
+
 ALTER TABLE IF EXISTS yacht_db.regattas
     ADD FOREIGN KEY (id_location)
     REFERENCES yacht_db.locations (id_location) MATCH SIMPLE
@@ -255,6 +267,14 @@ ALTER TABLE IF EXISTS yacht_db.boat_clubs
 ALTER TABLE IF EXISTS yacht_db.boat_clubs
     ADD FOREIGN KEY (id_club)
     REFERENCES yacht_db.clubs (id_club) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS yacht_db.regatta_schedule
+    ADD FOREIGN KEY (id_edition)
+    REFERENCES yacht_db.regatta_editions (id_edition) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
     NOT VALID;
