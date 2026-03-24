@@ -1,4 +1,5 @@
 import pandas as pd
+from datetime import datetime, timedelta
 
 from db.connection import get_engine
 from db.repositories.report_repo import get_monday_report
@@ -19,10 +20,18 @@ def main():
     columns = ["regatta", "owner", "boat", "results_link"]
     df = pd.DataFrame(rows, columns=columns)
 
-    df.to_csv("data/report/monday_report.csv", index=False)
+    monday = get_monday()
+
+    df.to_csv(f"data/report/monday_report_week_{monday}.csv", index=False)
 
     print("Monday report generado correctamente")
 
+def get_monday():
+    today = datetime.today()
+
+    monday = today - timedelta(days=today.weekday())
+
+    return monday.strftime('%Y-%m-%d')
 
 if __name__ == "__main__":
     main()
