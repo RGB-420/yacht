@@ -1,5 +1,7 @@
 from sqlalchemy import text
 
+from utils.db_utils import rows_to_dict
+
 def upsert_regatta_schedule(conn, edition_id):
     query = text("""
         INSERT INTO yacht_db.regatta_schedule (id_edition)
@@ -35,10 +37,29 @@ def get_all_schedule_with_regatta(conn):
                rs.start_date,
                rs.end_date
         FROM yacht_db.regatta_schedule rs
-        JOIN yacht_db.regatta_editions e ON e.id_edition = rs.id_edition
-        JOIN yacht_db.regattas r ON r.id_regatta = e.id_regatta
+        JOIN yacht_db.regatta_editions e 
+            ON e.id_edition = rs.id_edition
+        JOIN yacht_db.regattas r 
+            ON r.id_regatta = e.id_regatta
     """)
 
     result = conn.execute(query).fetchall()
 
     return result
+
+def get_schedule_with_dates(conn):
+    query = text("""
+        SELECT r.name, e.year, rs.start_date, rs.end_date, rl.url
+        FROM yacht_db.regatta_schedule rs
+        JOIN yacht_db.regatta_editions e 
+            ON e.id_edition = rs.id_edition
+        JOIN yacht_db.regattas r 
+            ON r.id_regatta = e.id_regatta
+        JOIN yacht_db.regatta_links rl
+            ON rl.id_edition = e.id_edition
+        WHERE rs.start_date IS NOT NULL
+    """)
+
+    result = conn.execute(query)
+
+    return rows_to_dict(result)

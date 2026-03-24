@@ -3,9 +3,11 @@ import pandas as pd
 
 from db.connection import get_engine
 from db.repositories.editions_repo import get_edition_id
-from db.repositories.schedule_repo import upsert_regatta_schedule_dates
+from db.repositories.schedule_repo import upsert_regatta_schedule_dates, get_schedule_with_dates
 
 from domain.masters.master_schedule import generate_master_schedule
+
+from utils.calendar_utils import generate_ics
 
 SCHEDULE_FILE = Path("data/master/schedule_master.csv")
 
@@ -43,4 +45,11 @@ def run_scheduled_pipeline():
     print(f"Schedules updated: {updated}")
     print(f"Skipped (no dates): {skipped_no_dates}")
     print(f"Skipped (not found): {skipped_not_found}")
-    print("Scheduled pipeline finsihed")
+    
+    with engine.begin() as conn:
+        events = get_schedule_with_dates(conn)
+
+    generate_ics(events)
+
+    print("Calendar .ics generated")
+    print("Scheduled pipeline finished")
