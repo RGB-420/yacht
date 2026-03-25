@@ -4,7 +4,6 @@ from pathlib import Path
 CALENDAR_FILE_PATH = Path("data/regattas_calendar.ics")
 
 def generate_ics(events):
-    print(events)
     with open(CALENDAR_FILE_PATH, "w", encoding="utf-8") as f:
         f.write("BEGIN:VCALENDAR\n")
         f.write("VERSION:2.0\n")
