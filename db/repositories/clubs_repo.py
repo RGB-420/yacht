@@ -69,3 +69,18 @@ def get_club_by_id(conn, club_id):
     result = conn.execute(query, {"club_id": club_id}).fetchone()
 
     return row_to_dict(result)
+
+def get_clubs_scorecard(conn, week_ago):
+    query = text("""
+                SELECT 
+                    COUNT(*) as total_active,
+                    SUM(CASE 
+                        WHEN created_at >= :week_ago THEN 1 
+                        ELSE 0 
+                    END) as new_sourced
+                FROM yacht_db.clubs
+            """)
+    
+    result = conn.execute(query, {"week_ago": week_ago}).fetchone()
+
+    return {"total_active": result[0], "new_sourced":result[1]}

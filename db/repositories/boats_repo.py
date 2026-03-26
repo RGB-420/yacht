@@ -97,3 +97,18 @@ def get_class_boats(conn, class_id):
     result = conn.execute(query, {"class_id": class_id})
 
     return rows_to_dict(result)
+
+def get_boats_scorecard(conn, week_ago):
+    query = text("""
+                SELECT 
+                    COUNT(*) as total_active,
+                    SUM(CASE 
+                        WHEN created_at >= :week_ago THEN 1 
+                        ELSE 0 
+                    END) as new_sourced
+                FROM yacht_db.boats
+            """)
+    
+    result = conn.execute(query, {"week_ago": week_ago}).fetchone()
+
+    return {"total_active": result[0], "new_sourced": result[1]}
