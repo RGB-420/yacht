@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # Architectural Decisions
 
 This section contains the **Architecture Decision Records (ADRs)** for the project.

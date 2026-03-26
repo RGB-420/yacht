@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # ADR-002: Separate Raw and Canonical Data Layers
 
 **Status:** Accepted

@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # ADR-001: Adopt a Database-First Architecture Using PostgreSQL
 
 **Status:** Accepted

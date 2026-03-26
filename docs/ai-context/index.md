@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # AI Development Context
 
 This section contains documentation intended to support AI-assisted development within the project.

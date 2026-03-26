@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # Project Roadmap
 
 This roadmap outlines the expected evolution of the Regatta Data Platform.

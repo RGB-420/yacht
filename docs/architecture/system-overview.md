@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # System Overview
 
 ## Architectural Philosophy

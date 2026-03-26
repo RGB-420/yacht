@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # Regatta Data Platform Documentation
 
 This documentation describes the architecture, governance and development context of the Regatta Data Platform.

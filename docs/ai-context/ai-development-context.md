@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # AI Development Context
 
 This document provides guidance for AI-assisted development tool working within this repository.

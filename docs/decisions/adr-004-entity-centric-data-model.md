@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # ADR-004: Adopt an Entity-Centric Data Model Focused on Boats
 
 **Status:** Accepted

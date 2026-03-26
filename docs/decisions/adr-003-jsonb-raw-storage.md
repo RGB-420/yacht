@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # ADR-003: Store Raw Scraped Data Using JSONB
 
 **Status:** Accepted
