@@ -2,7 +2,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 from db.connection import get_engine
-from db.repositories.report_repo import get_monday_report
+from app.repositories.report_repo import get_monday_report
 
 
 def main():

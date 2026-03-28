@@ -1,14 +1,14 @@
 import argparse
 import time
 
-from etl.pipelines.scrape_pipelines import run_scrape_pipeline
-from etl.pipelines.boats_pipeline import run_boats_pipeline
-from etl.pipelines.classes_pipeline import run_classes_pipeline
-from etl.pipelines.clubs_pipeline import run_clubs_pipeline
-from etl.pipelines.regattas_pipeline import run_regattas_pipeline
-from etl.pipelines.schedule_pipeline import run_scheduled_pipeline
+from pipelines.scraping.scrape_pipelines import run_scrape_pipeline
+from pipelines.boats.boats_pipeline import run_boats_pipeline
+from pipelines.classes.classes_pipeline import run_classes_pipeline
+from pipelines.clubs.clubs_pipeline import run_clubs_pipeline
+from pipelines.regattas.regattas_pipeline import run_regattas_pipeline
+from pipelines.schedule.schedule_pipeline import run_scheduled_pipeline
 
-from etl.orchestrator import run_full_pipeline
+from pipelines.orchestrator import run_full_pipeline
 
 
 PIPELINES = {

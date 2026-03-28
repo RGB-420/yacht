@@ -4,10 +4,10 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from db.connection import get_engine
-from db.repositories.boats_repo import get_boats_scorecard
-from db.repositories.clubs_repo import get_clubs_scorecard
-from db.repositories.owners_repo import get_owners_scorecard
-from db.repositories.regattas_repo import get_regattas_scorecard
+from app.repositories.boats_repo import get_boats_scorecard
+from app.repositories.clubs_repo import get_clubs_scorecard
+from app.repositories.owners_repo import get_owners_scorecard
+from app.repositories.regattas_repo import get_regattas_scorecard
 
 BASE_PATH = Path("data")
 
