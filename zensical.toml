@@ -46,6 +46,8 @@ name = "material"
 
 custom_dir = "overrides"
 
+favicon = "images/sailboat.png"
+
 features = [
   "navigation.instant",
   "navigation.expand",
