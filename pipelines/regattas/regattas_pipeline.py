@@ -10,26 +10,36 @@ from app.repositories.schedule_repo import upsert_regatta_schedule
 from app.services.masters.master_regattas import generate_master_regattas
 
 from pipelines.schedule.schedule_sync import sync_schedule_csv_with_db
+from pipelines.common.logger import get_logger
 
+logger = get_logger(__name__)
 
 REGATTAS_FILE = Path("data/master/regattas_master.csv")
 SCHEDULE_FILE = Path("data/master/schedule_master.csv")
 
 
 def run_regattas_pipeline():
-    print("Running regattas pipeline...")
+    logger.info("===== START REGATTAS PIPELINE =====")
 
     if not REGATTAS_FILE.exists():
-        print("regattas_master.csv not found.")
+        logger.error("regattas_master.csv not found")
         return
     
+    logger.info(f"Reading file: {REGATTAS_FILE}")
+    
     df = generate_master_regattas(REGATTAS_FILE)
+    logger.info(f"Rows loaded: {len(df)}")
+
+    if df.empty:
+        logger.warning("Generated regattas dataframe is empty")
 
     engine = get_engine()
 
     inserted_regattas = 0
     inserted_editions = 0
     inserted_links = 0
+
+    logger.info("Starting database insertion")
 
     with engine.begin() as conn:
         for _, row in df.iterrows():
@@ -59,7 +69,8 @@ def run_regattas_pipeline():
 
         sync_schedule_csv_with_db(conn, SCHEDULE_FILE)
 
-    print(f"Regattas inserted: {inserted_regattas}")
-    print(f"Editions inserted: {inserted_editions}")
-    print(f"Links inserted: {inserted_links}")
-    print("Regattas pipeline finished.")
+    logger.info(f"Regattas inserted: {inserted_regattas}")
+    logger.info(f"Editions inserted: {inserted_editions}")
+    logger.info(f"Links inserted: {inserted_links}")
+
+    logger.info("===== END REGATTAS PIPELINE =====")

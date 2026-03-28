@@ -9,22 +9,36 @@ from app.services.masters.master_schedule import generate_master_schedule
 
 from app.core.calendar_utils import generate_ics
 
+from pipelines.common.logger import get_logger
+
+logger = get_logger(__name__)
+
 SCHEDULE_FILE = Path("data/master/schedule_master.csv")
 
 def run_scheduled_pipeline():
-    print("Running schedule pipeline...")
+    logger.info("===== START SCHEDULE PIPELINE =====")
 
+    # Check file
     if not SCHEDULE_FILE.exists():
-        print("schedule_master.csv not found")
+        logger.error("schedule_master.csv not found")
         return
     
+    logger.info(f"Reading file: {SCHEDULE_FILE}")
+
+    # Generate data
     df = generate_master_schedule(SCHEDULE_FILE)
+    logger.info(f"Rows loaded: {len(df)}")
+
+    if df.empty:
+        logger.warning("Generated schedule dataframe is empty")
 
     engine = get_engine()
 
     updated = 0
     skipped_no_dates = 0
     skipped_not_found = 0
+
+    logger.info("Starting schedule update in DB")
 
     with engine.begin() as conn:
         for _,row in df.iterrows():
@@ -35,21 +49,27 @@ def run_scheduled_pipeline():
             edition_id = get_edition_id(conn, row.regatta_name, row.year)
 
             if not edition_id:
-                print(f"[WARNING] Edition not found: {row.regatta_name} ({row.year})")
+                logger.warning(f"Edition not found: {row.regatta_name} ({row.year})")
                 skipped_not_found += 1
                 continue
 
             schedule_id = upsert_regatta_schedule_dates(conn, edition_id, row.start_date, row.end_date)
             updated += 1
 
-    print(f"Schedules updated: {updated}")
-    print(f"Skipped (no dates): {skipped_no_dates}")
-    print(f"Skipped (not found): {skipped_not_found}")
-    
+    logger.info(f"Schedules updated: {updated}")
+    logger.info(f"Skipped (no dates): {skipped_no_dates}")
+    logger.info(f"Skipped (not found): {skipped_not_found}")
+
+    # Generate calendar
+    logger.info("Generating calendar (.ics)")
+
     with engine.begin() as conn:
         events = get_schedule_with_dates(conn)
 
+    logger.info(f"Events fetched for calendar: {len(events)}")
+
     generate_ics(events)
 
-    print("Calendar .ics generated")
-    print("Scheduled pipeline finished")
+    logger.info("Calendar .ics generated")
+
+    logger.info("===== END SCHEDULE PIPELINE =====")

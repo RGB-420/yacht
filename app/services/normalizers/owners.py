@@ -19,10 +19,12 @@ SEEN_PRENORM = set()
 
 # ------ Main function ------
 def finalize_owner_column(df):
+    df = df.copy()
+    
     if "Owner" not in df.columns:
         return df
 
-    df["Owner"] = df["Owner"].apply(split_and_dedupe)
+    df.loc[:, "Owner"] = df["Owner"].apply(split_and_dedupe)
     df = df.explode("Owner").reset_index(drop=True)
 
     df["Owner"] = (df["Owner"].astype("string").str.replace(r"\s+", " ", regex=True).str.strip())

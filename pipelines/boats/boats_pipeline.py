@@ -21,19 +21,25 @@ from app.services.normalizers.columns import normalize_columns
 
 from app.services.aggregation.boats_transformation import explode_boats_for_db
 
+from pipelines.common.logger import get_logger
+
+logger = get_logger(__name__)
+
 def run_boats_pipeline():
-    print("Running boats pipeline...")
+    logger.info("===== START BOATS PIPELINE =====")
 
     engine = get_engine()
 
     with engine.connect() as conn:
         df_raw = get_all_raw_results(conn)
+        logger.info(f"Raw rows: {len(df_raw)}")
 
     if df_raw.empty:
-        print("No raw results")
+        logger.warning("No raw results found")
         return
     
     df_normalized = normalize_columns(df_raw)
+    logger.info(f"Normalized rows: {len(df_normalized)}")
 
     df_master = generate_master_boats(df_normalized)
 
@@ -56,6 +62,7 @@ def run_boats_pipeline():
             source = row["Source"]
 
             if "-" not in source:
+                logger.error(f"Invalid source format: {source}")
                 raise ValueError(f"Invalid source format: {source}")
             
             regatta_name, year = source.rsplit("-", 1)
@@ -63,6 +70,7 @@ def run_boats_pipeline():
 
             edition_id = get_edition_id(conn, regatta_name, year)
             if not edition_id:
+                logger.error(f"Edition not found: {regatta_name} {year}")
                 raise ValueError(f"Edition not found: {regatta_name} {year}")
 
             # Get class
@@ -72,8 +80,8 @@ def run_boats_pipeline():
                 class_id = get_class_id(conn, class_name)
                 
                 if not class_id:
-                    print(f"[WARNING] Class not found: {class_name}")
                     prenorm["class"].add(class_name)
+                    logger.warning(f"Classes not found: {prenorm['class']}")
             
             # Get club
             club_name = row["Club"]
@@ -126,8 +134,9 @@ def run_boats_pipeline():
             if class_id:
                 insert_edition_class(conn, edition_id, class_id)
 
-    print(f"Boats inserted: {inserted_boats}")
-    print(f"Owners inserted: {inserted_owners}")
-    print(f"Types inserted: {inserted_types}")
-    print(f"Clubs inserted: {inserted_clubs}")
-    print("Boats DB pipeline finished")           
+    logger.info(f"Boats inserted: {inserted_boats}")
+    logger.info(f"Owners inserted: {inserted_owners}")
+    logger.info(f"Types inserted: {inserted_types}")
+    logger.info(f"Clubs inserted: {inserted_clubs}")
+
+    logger.info("===== END BOATS PIPELINE =====")  

@@ -9,22 +9,34 @@ from app.services.masters.master_clubs import generate_master_clubs
 
 from pipelines.clubs.clubs_sync import sync_clubs_csv_with_db
 
+from pipelines.common.logger import get_logger
+
+logger = get_logger(__name__)
+
 CLUBS_FILE = Path("data/master/clubs_master.csv")
 RAW_CLUBS_FILE = Path("data/raw/clubs_master_raw.csv")
 
 def run_clubs_pipeline():
-    print("Running clubs pipeline...")
+    logger.info("===== START CLUBS PIPELINE =====")
 
     if not CLUBS_FILE.exists():
-        print("clubs_master.csv not found")
+        logger.info("===== START CLUBS PIPELINE =====")
         return
     
+    logger.info(f"Reading file: {CLUBS_FILE}")
+
     df = generate_master_clubs(CLUBS_FILE)
+    logger.info(f"Rows loaded: {len(df)}")
+
+    if df.empty:
+        logger.warning("Generated clubs dataframe is empty")
 
     engine = get_engine()
 
     inserted_clubs = 0
     inserted_locations = 0
+
+    logger.info("Starting database insertion")
 
     with engine.begin() as conn:
         for _, row in df.iterrows():
@@ -40,6 +52,8 @@ def run_clubs_pipeline():
 
         sync_clubs_csv_with_db(conn, df, RAW_CLUBS_FILE)
 
-    print(f"Locations inserted: {inserted_locations}")
-    print(f"Clubs inserted: {inserted_clubs}")
-    print("Clubs pipeline finished")
+
+    logger.info(f"Locations inserted: {inserted_locations}")
+    logger.info(f"Clubs inserted: {inserted_clubs}")
+
+    logger.info("===== END CLUBS PIPELINE =====")
