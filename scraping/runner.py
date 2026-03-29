@@ -9,12 +9,14 @@ from app.repositories.raw_results_repo import insert_raw_result
 from scraping import events2, burnhamweek, cape31, cowesclassic, flying15, j70, halsail, archive_halsail, falmouthclassics, sailracehq, sailwave, yachtscoring, racing_islands, rtyc, ryyc, sailevent, sailworld, yachtsandyachting, racing_rules, cowesweek
 from scraping import sailwave_pdf, royalsolent_pdf, wlyc_pdf
 
+from app.core.config import DATA_RAW, BASE_DIR
+
 from pipelines.common.logger import get_logger
 
 logger = get_logger(__name__)
 
-BASE_OUTPUT = Path("data/raw/regattas")
-CONFIG_FILE = Path("infrastructure/config/ToScrape.xlsx")
+BASE_OUTPUT = DATA_RAW / "regattas"
+CONFIG_FILE = BASE_DIR / "infrastructure/config/ToScrape.xlsx"
 
 SCRAPERS = {
     "events2": events2.scrape,
@@ -135,7 +137,7 @@ def scrape_pdfs():
                 pagina,
                 "PDF"
             )
-            
+
             logger.info(f"{pagina} | {row['Regatta Name']} OK")
 
         except Exception as e:

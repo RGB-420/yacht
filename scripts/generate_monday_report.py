@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 from db.connection import get_engine
 from app.repositories.report_repo import get_monday_report
 
+from app.core.config import DATA_REPORT
+
 
 def main():
     engine = get_engine()
@@ -22,7 +24,9 @@ def main():
 
     monday = get_monday()
 
-    df.to_csv(f"data/report/monday_report_week_{monday}.csv", index=False)
+    output_path = DATA_REPORT / f"monday_week_report_{monday}.csv"
+    
+    df.to_csv(output_path, index=False)
 
     print("Monday report generado correctamente")
 

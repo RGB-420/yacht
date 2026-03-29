@@ -9,16 +9,12 @@ from app.repositories.clubs_repo import get_clubs_scorecard
 from app.repositories.owners_repo import get_owners_scorecard
 from app.repositories.regattas_repo import get_regattas_scorecard
 
-BASE_PATH = Path("data")
-
-prenorm_path = BASE_PATH / "prenormalization"
-mapping_path = BASE_PATH / "mapping"
-scorecards_path = BASE_PATH / "scorecards"
+from app.core.config import DATA_PRENORM, DATA_MAPPING, DATA_SCORECARD
 
 today = datetime.now().strftime("%Y-%m-%d")
 
-txt_path = scorecards_path / f"scorecard_weekly_{today}.txt"
-csv_path = scorecards_path / f"scorecard_weekly_{today}.csv"
+txt_path = DATA_SCORECARD / f"scorecard_weekly_{today}.txt"
+csv_path = DATA_SCORECARD / f"scorecard_weekly_{today}.csv"
 
 ENTITIES = ['boat', 'club', 'owner', 'regatta']
 
@@ -31,8 +27,8 @@ REPO_FUNCTIONS = {
 
 def main():
     # CSVs
-    prenorm_counts = load_counts_from_folder(prenorm_path)
-    mapping_counts = load_counts_from_folder(mapping_path)
+    prenorm_counts = load_counts_from_folder(DATA_PRENORM)
+    mapping_counts = load_counts_from_folder(DATA_MAPPING)
 
     # DB
     engine = get_engine()
@@ -40,8 +36,6 @@ def main():
 
     with engine.begin() as conn:
         db_results = get_db_metrics(conn, REPO_FUNCTIONS, ENTITIES, week_ago)
-
-    scorecards_path.mkdir(parents=True, exist_ok=True)
 
     # Scorecard
     scorecard = build_scorecard(db_results, prenorm_counts, mapping_counts)

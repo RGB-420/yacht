@@ -1,25 +1,23 @@
 import logging
-import os
 
-LOG_DIR = "logs"
-os.makedirs(LOG_DIR, exist_ok=True)
+from app.core.config import LOG_PATH
 
 
 def get_logger(name):
     logger = logging.getLogger(name)
 
-    # Evitar duplicados correctamente
+    # Evitar duplicados
     if not logger.handlers:
 
         logger.setLevel(logging.INFO)
-        logger.propagate = False 
+        logger.propagate = False
 
         formatter = logging.Formatter(
             "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
         )
 
         # File handler
-        file_handler = logging.FileHandler(f"{LOG_DIR}/pipeline.log")
+        file_handler = logging.FileHandler(LOG_PATH / "pipeline.log")
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(formatter)
 

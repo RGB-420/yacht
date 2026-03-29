@@ -8,13 +8,14 @@ from app.repositories.locations_repo import get_or_create_location
 from app.services.masters.master_clubs import generate_master_clubs
 
 from pipelines.clubs.clubs_sync import sync_clubs_csv_with_db
+from app.core.config import DATA_MASTER, DATA_RAW
 
 from pipelines.common.logger import get_logger
 
 logger = get_logger(__name__)
 
-CLUBS_FILE = Path("data/master/clubs_master.csv")
-RAW_CLUBS_FILE = Path("data/raw/clubs_master_raw.csv")
+CLUBS_FILE = DATA_MASTER / "clubs_master.csv"
+RAW_CLUBS_FILE = DATA_RAW / "clubs_master_raw.csv"
 
 def run_clubs_pipeline():
     logger.info("===== START CLUBS PIPELINE =====")

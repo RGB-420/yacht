@@ -8,12 +8,13 @@ from app.repositories.schedule_repo import upsert_regatta_schedule_dates, get_sc
 from app.services.masters.master_schedule import generate_master_schedule
 
 from app.core.calendar_utils import generate_ics
+from app.core.config import DATA_MASTER
 
 from pipelines.common.logger import get_logger
 
 logger = get_logger(__name__)
 
-SCHEDULE_FILE = Path("data/master/schedule_master.csv")
+SCHEDULE_FILE = DATA_MASTER / "schedule_master.csv"
 
 def run_scheduled_pipeline():
     logger.info("===== START SCHEDULE PIPELINE =====")

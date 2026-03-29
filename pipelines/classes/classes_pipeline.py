@@ -5,12 +5,13 @@ from db.connection import get_engine
 from app.repositories.boat_classes_repo import upsert_boat_classes
 
 from app.services.masters.master_classes import generate_master_classes
+from app.core.config import DATA_MASTER
 
 from pipelines.common.logger import get_logger
 
 logger = get_logger(__name__)
 
-CLASSES_FILE = Path("data/master/classes_master.csv")
+CLASSES_FILE = DATA_MASTER / "classes_master.csv"
 
 def run_classes_pipeline():
     logger.info("===== START CLASSES PIPELINE =====")

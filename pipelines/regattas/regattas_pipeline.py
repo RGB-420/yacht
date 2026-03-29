@@ -8,15 +8,15 @@ from app.repositories.locations_repo import get_or_create_location
 from app.repositories.schedule_repo import upsert_regatta_schedule
 
 from app.services.masters.master_regattas import generate_master_regattas
+from app.core.config import DATA_MASTER
 
 from pipelines.schedule.schedule_sync import sync_schedule_csv_with_db
 from pipelines.common.logger import get_logger
 
 logger = get_logger(__name__)
 
-REGATTAS_FILE = Path("data/master/regattas_master.csv")
-SCHEDULE_FILE = Path("data/master/schedule_master.csv")
-
+REGATTAS_FILE = DATA_MASTER / "regattas_master.csv"
+SCHEDULE_FILE = DATA_MASTER / "schedule_master.csv"
 
 def run_regattas_pipeline():
     logger.info("===== START REGATTAS PIPELINE =====")
