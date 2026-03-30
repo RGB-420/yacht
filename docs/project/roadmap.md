@@ -12,11 +12,11 @@ The goal of the roadmap is to ensure the system evolves in a **structured and sc
 
 ---
 
-# Phase 0 – Architecture Stabilisation (Current Phase)
+# Phase 0 – Architecture Stabilisation (Completed)
 
 ### Objective
 
-Transform the existing CSV-based workflows into a structured, database-driven prototype.
+Transform CSV-based workflows into a structured, database-driven system with operational pipelines and API access.
 
 This phase focuses on establishing a **robust technical foundation** before expanding the platform.
 
@@ -43,12 +43,6 @@ This phase focuses on establishing a **robust technical foundation** before expa
 * Create structured ingestion pipelines
 * Introduce batch identifiers for traceability
 
-**Containerisation**
-
-* Dockerise PostgreSQL
-* Dockerise ingestion pipelines
-* Configure Docker Compose environment
-
 **API Layer (Initial)**
 
 * Establish FastAPI project structure
@@ -71,12 +65,18 @@ Activities include:
 
 * 2025 dataset stored in PostgreSQL
 * Raw → canonical traceability operational
-* Docker environment reproducible locally
 * API capable of querying structured data
 
+### Achieved Outcomes
+
+* Fully operational ETL pipelines
+* Canonical PostgreSQL database in use
+* FastAPI backend implemented
+* Structured logging system in place
+* CLI-based pipeline execution
 ---
 
-# Phase 1 – Private Pilot
+# Phase 1 – Private Pilot (Current phase)
 
 ### Objective
 
@@ -107,6 +107,24 @@ Create a functional internal prototype usable by Raul and David.
 * Maintain regatta calendar
 * Introduce URL-based ingestion workflow
 * Allow predefined ingestion workflows to be executed by junior contributors
+
+**API & Product Layer**
+
+* Improve endpoint design and performance
+* Introduce pagination and filtering
+* Enhance API documentation
+
+**Frontend Development**
+
+* Build initial React-based interface
+* Enable data exploration (regattas, boats)
+* Connect frontend to API endpoints
+
+### Additional Focus Areas
+
+* integration of frontend application
+* improving API usability for exploration
+* refining data quality and consistency
 
 ### Completion Criteria
 
@@ -190,3 +208,5 @@ Once the pilot phase is active, recurring operational tasks will include:
 * dependency updates
 * verifying backups
 * reviewing system performance as the dataset grows
+* monitoring API performance and usage
+* maintaining frontend-backend integration

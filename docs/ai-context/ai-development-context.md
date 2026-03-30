@@ -36,10 +36,17 @@ Regattas act primarily as **data sources for discovering boats and metadata**, r
 
 Current core technologies:
 
-* Python
-* PostgreSQL
-* Docker
-* FastAPI (planned API layer)
+* Python (data processing and backend)
+* PostgreSQL (canonical database)
+* FastAPI (API layer)
+* Playwright (web scraping)
+* Docker (containerisation)
+
+Additional components include:
+
+* CLI-based pipeline execution
+* structured logging system
+* centralised configuration management
 
 The development environment is containerised using Docker to ensure reproducibility across systems.
 
@@ -47,26 +54,44 @@ The development environment is containerised using Docker to ensure reproducibil
 
 # Repository Structure
 
-The repository is organised around a layered data architecture.
+The repository is organised around a layered architecture.
 
-Typical components include:
+Main components include:
 
-* **scrapers**
-  Responsible for extracting structured information from regatta result pages.
+* **scraping/**
+  Scrapers responsible for extracting structured data from external sources.
 
-* **ingestion pipelines**
-  Process scraped data and insert it into the raw database layer.
+* **pipelines/**
+  ETL pipelines that process and transform data into the canonical model.
 
-* **normalisation logic**
-  Resolves raw values into canonical entities such as boats, clubs and owners.
+* **app/**
+  Core application layer, including:
+  - API (FastAPI routes)
+  - services (business logic)
+  - repositories (database access)
 
-* **database schema**
-  Defines the canonical relational data model.
+* **scripts/**
+  CLI tools for executing pipelines and utilities.
 
-Future components will include:
+* **data/**
+  Local storage for intermediate and generated data.
 
-* an API layer
-* a user interface layer
+* **logs/**
+  Persistent logs for pipeline execution and debugging.
+
+---
+
+# Pipeline Execution Model
+
+Pipelines are executed through a CLI-based system, allowing individual pipelines to be run independently.
+
+This enables:
+
+* modular execution
+* easier debugging and monitoring
+* flexible development workflows
+
+Each pipeline is responsible for a specific domain (boats, classes, regattas, scraping, etc.).
 
 ---
 
@@ -100,6 +125,18 @@ Normalisation pipelines transform this data into structured relational entities.
 The canonical dataset focuses on boats and their relationships.
 
 Regattas act primarily as contextual sources of information.
+
+### Observability
+
+The system uses a structured logging system across pipelines and scraping modules.
+
+Logs provide:
+
+* execution tracking
+* warnings and error reporting
+* debugging support
+
+Logs are stored persistently and are used to monitor pipeline behaviour.
 
 ---
 

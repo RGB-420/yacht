@@ -14,11 +14,14 @@ The canonical dataset therefore focuses on **boats and their relationships**, in
 
 The model follows a layered structure:
 
-Raw Data → Normalisation → Canonical Entities
+Raw Data → ETL Pipelines → Canonical Entities
 
+The canonical dataset is exposed through a structured API, enabling exploration and integration with external applications.
 ---
 
 ## Raw Data Layer
+
+Raw data is populated through ingestion pipelines and serves as the entry point for all downstream transformations.
 
 Raw scraped data is stored in the `yacht_raw` schema.
 
@@ -49,6 +52,8 @@ Raw data is never modified or deleted.
 The canonical schema (`yacht_db`) represents the structured dataset used by the system.
 
 The model is centred around a set of core entities.
+
+The canonical dataset is actively used by the API layer to provide structured access to boats and their relationships.
 
 ### Boats
 
@@ -163,7 +168,7 @@ records the participation of boats in specific regatta editions.
 
 This information is used primarily as contextual metadata and as a discovery signal for identifying boats and their relationships.
 
-The system does not aim to store full race result analytics.
+The system does not aim to store full race result analytics at this stage, focusing instead on entity discovery and relationship mapping.
 
 ---
 
@@ -206,6 +211,21 @@ Normalisation currently follows a hybrid workflow:
 4. Canonical entities are inserted into the database.
 
 Mapping rules are currently stored in CSV lookup files but will eventually be migrated into database-managed mapping tables.
+
+Normalisation is integrated into the ETL pipeline layer, enabling consistent transformation and insertion into the canonical database.
+
+---
+
+## Data Usage
+
+The canonical data model is designed to support:
+
+* API-based exploration of boats and regattas
+* relationship analysis between entities
+* future frontend applications
+* incremental enrichment of the dataset over time
+
+The model prioritises flexibility and extensibility to support future analytical and product layers.
 
 ---
 

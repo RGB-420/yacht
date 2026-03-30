@@ -13,21 +13,35 @@ The goal of this project is to ingest these sources and transform them into a **
 
 This dataset is intended to support analysis, discovery, and future applications built on top of reliable structured data.
 
+The platform also exposes this data through a structured API, enabling exploration and integration with external applications.
+
 ## Current Phase
 
-The project is currently in a **prototype / private pilot phase**.
+The project is currently in an **early production-ready backend phase**, transitioning from prototype to application development.
 
 The primary focus is on building a solid architectural foundation rather than releasing a finished product.
 
 Current priorities include:
 
-* building a reliable ingestion pipeline
-* defining the canonical data model
-* validating the system architecture
-* establishing structured governance
+* maintaining and improving ingestion pipelines
+* refining the canonical data model
+* expanding API capabilities
+* ensuring data quality and consistency
+* preparing the system for frontend integration
 * experimenting with AI-assisted development workflows
 
 This stage prioritises **structural clarity and scalability** over feature completeness.
+
+## Current Capabilities
+
+The platform currently provides:
+
+* automated data ingestion from multiple web and PDF sources
+* ETL pipelines for data transformation and normalisation
+* a canonical relational database (PostgreSQL)
+* a fully implemented FastAPI backend
+* structured logging for pipeline execution and monitoring
+* an API for navigating regattas, boats and related entities
 
 ## Stakeholders
 
@@ -44,14 +58,15 @@ Supports data normalisation, validation and research of regatta data sources.
 
 Current stack:
 
-* Python
-* PostgreSQL
-* FastAPI
-* Docker
+* Python (data processing and backend)
+* PostgreSQL (canonical database)
+* FastAPI (API layer)
+* Playwright (web scraping)
+* Docker (deployment and portability)
 
 Development follows a layered model:
 
-Data Sources → Ingestion → Canonical Database → API → Future UX Layer
+Data Sources → Ingestion → ETL Pipelines → Canonical Database → API → Frontend (in progress)
 
 ## Governance Model
 

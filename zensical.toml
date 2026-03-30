@@ -22,12 +22,19 @@ nav = [
       { "Data Model" = "architecture/data-model.md" }
   ]},
 
+  { API = [
+      { "API Overview" = "api/overview.md" }
+  ]},
+
   { Decisions = [
       { Overview = "decisions/index.md" },
       { "ADR-001" = "decisions/adr-001-database-first-architecture.md" },
       { "ADR-002" = "decisions/adr-002-raw-vs-canonical-layer.md" },
       { "ADR-003" = "decisions/adr-003-jsonb-raw-storage.md" },
-      { "ADR-004" = "decisions/adr-004-entity-centric-data-model.md" }
+      { "ADR-004" = "decisions/adr-004-entity-centric-data-model.md" },
+      { "ADR-005" = "decisions/adr-005-pipeline-cli.md" },
+      { "ADR-006" = "decisions/adr-006-centralised-config.md" },
+      { "ADR-007" = "decisions/adr-007-logging.md" },
   ]},
 
   { "AI Context" = [

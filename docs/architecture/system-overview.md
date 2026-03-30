@@ -30,7 +30,7 @@ The platform evolves from an initial script-based workflow toward a structured m
 
 The system consists of several layered components:
 
-Sources → Ingestion → Raw Storage → Normalisation → Canonical Data → API → Future UX
+Sources → Ingestion → Raw Storage → ETL Pipelines → Canonical Data → API → Frontend (in progress)
 
 ---
 
@@ -61,7 +61,11 @@ Each ingestion run collects:
 
 The extracted information for each regatta is stored together as a **JSON object**.
 
-Ingestion pipelines are currently orchestrated through a Python execution entrypoint (`main.py`) which triggers the relevant scraping workflows.
+Ingestion pipelines are orchestrated through a CLI-based execution system, allowing individual pipelines to be triggered independently.
+
+This enables modular execution, better control over pipeline runs, and improved observability.
+
+Pipeline execution is monitored through a structured logging system, which records execution progress, warnings and errors for debugging and traceability.
 
 ---
 
@@ -100,6 +104,8 @@ These mappings will eventually migrate into database-managed mapping tables.
 
 Normalisation is designed to support a **human-in-the-loop workflow**, where edge cases and ambiguous values can be reviewed and corrected.
 
+Normalisation logic is implemented as part of the ETL pipeline layer, enabling consistent transformations and integration with database operations.
+
 ---
 
 ### 5. Canonical Database
@@ -123,6 +129,7 @@ Each canonical entity can be traced back to the raw data that generated it.
 ---
 
 ### 6. API Layer
+The API layer is fully implemented and actively used to explore and interact with the dataset.
 
 A FastAPI application provides structured access to the canonical dataset.
 
@@ -137,11 +144,13 @@ Typical responsibilities include:
 
 The API layer decouples data storage from data consumption.
 
+The API is designed to support frontend applications and external integrations.
+
 ---
 
-### 7. Future UX Layer
+### 7. Frontend Layer (In Progress)
 
-A web-based user interface will eventually sit on top of the API layer.
+A web-based frontend application is currently being developed on top of the API layer.
 
 This interface is intended to support:
 
@@ -157,7 +166,7 @@ The UX will consume the API rather than interacting directly with the database.
 
 ## Execution Environment
 
-The system is designed to run inside a containerised environment using Docker.
+The system is designed to support both local execution and future containerised deployment in cloud environments.
 
 Typical components include:
 
@@ -168,6 +177,17 @@ Typical components include:
 Containerisation ensures reproducibility and simplifies deployment to future environments such as a VPS or managed cloud infrastructure.
 
 ---
+## Pipeline Execution Model
+
+Pipelines are executed through a CLI-based system, allowing selective execution of ingestion and transformation processes.
+
+This approach provides:
+
+* modular pipeline execution
+* improved debugging and monitoring
+* flexibility in development and production workflows
+
+Each pipeline is responsible for a specific domain (boats, classes, regattas, etc.) and can be run independently.
 
 ## Architectural Principles
 
