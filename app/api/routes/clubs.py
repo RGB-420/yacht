@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
-from api.dependencies.database import get_db
+from app.api.dependencies.database import get_db
 from app.schemas.club import Club, ClubDetail
 from app.schemas.club_boat import ClubBoat
 from app.schemas.club_regatta import ClubRegatta

@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI
 
-from api.routes import regattas, editions, boats, classes, clubs, search,project
+from app.api.routes import regattas, editions, boats, classes, clubs, search,project
 
 docs_url = os.getenv("PROJECT_DOCS_URL")
 

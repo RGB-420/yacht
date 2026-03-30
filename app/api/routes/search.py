@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from api.dependencies.database import get_db
+from app.api.dependencies.database import get_db
 from app.schemas.search import SearchResult
 
 from app.repositories.search_repo import search_entities
