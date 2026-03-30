@@ -201,7 +201,7 @@ AI systems should prioritise **readable and explicit code** over overly complex 
 
 The backend will remain Python-based.
 
-A frontend layer will likely be introduced in the future using a JavaScript framework (such as React or a similar tool), but this has not yet been finalised.
+A frontend layer is currently under development using a JavaScript framework (React or similar).
 
 The API layer will expose structured access to the canonical dataset.
 
