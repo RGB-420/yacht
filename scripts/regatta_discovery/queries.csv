@@ -1,0 +1,23 @@
+query,type,language,priority,active,location,country
+sailing regatta 2026 results,results,en,1,1,London,United Kingdom
+yacht regatta results 2026,results,en,1,1,Southampton,United Kingdom
+yacht club regatta results 2026,results,en,1,1,Southampton,United Kingdom
+international sailing regatta results 2026,results,en,2,1,London,United Kingdom
+sailing competition results 2026,results,en,2,1,London,United Kingdom
+regata vela 2026 resultados,results,es,1,1,Barcelona,Spain
+regata vela club nautico resultados 2026,results,es,1,1,Palma,Spain
+club nautico regata resultados 2026,results,es,1,1,Valencia,Spain
+regatas vela calendario 2026,calendar,es,2,1,Valencia,Spain
+regata vela risultati 2026,results,it,1,1,Genoa,Italy
+regata velica risultati 2026,results,it,1,1,Portofino,Italy
+circolo velico regata risultati 2026,results,it,1,1,Genoa,Italy
+regate vela calendario 2026,calendar,it,2,1,Naples,Italy
+regate voile resultats 2026,results,fr,1,1,Marseille,France
+regate yacht resultats 2026,results,fr,1,1,Cannes,France
+club de voile regate resultats 2026,results,fr,1,1,Marseille,France
+regate voile calendrier 2026,calendar,fr,2,1,Nice,France
+yacht regatta Sydney 2026 results,results,en,1,1,Sydney,Australia
+sailing regatta Perth 2026 results,results,en,2,1,Perth,Australia
+regatta Barcelona 2026 sailing,location,en,2,1,Barcelona,Spain
+regatta Portofino sailing results 2026,location,en,2,1,Portofino,Italy
+regatta Marseille sailing results 2026,location,en,2,1,Marseille,France
