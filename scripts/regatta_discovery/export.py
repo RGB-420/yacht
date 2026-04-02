@@ -21,7 +21,7 @@ def save_results(results, query, location, filename):
             
         for r in results:
                     writer.writerow([
-                        datetime.now().isoformat(),
+                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         query,
                         location,
                         r["title"],
@@ -47,7 +47,7 @@ def save_query_performance(query, total, relevant, filename):
                 ])
             
             writer.writerow([
-                  datetime.now().isoformat(),
+                  datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                   query,
                   total,
                   relevant,

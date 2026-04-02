@@ -5,7 +5,7 @@ from export import save_results, save_query_performance
 
 QUERIES_PATH = "scripts/regatta_discovery/queries.csv"
 MAX_PRIORITY = 1
-LIMIT_QUERIES = 1
+LIMIT_QUERIES = 2
 
 RESULTS_PATH = "scripts/regatta_discovery/results.csv"
 
