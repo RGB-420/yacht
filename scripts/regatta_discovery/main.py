@@ -10,6 +10,7 @@ MAX_PRIORITY = 1
 LIMIT_QUERIES = 2
 
 RESULTS_PATH = "scripts/regatta_discovery/results.csv"
+RAW_RESULTS_PATH = "scripts/regatta_discovery/raw_results.csv"
 
 PERFORMANCE_PATH = "scripts/regatta_discovery/query_performance.csv"
 
@@ -39,6 +40,8 @@ def main():
             print("No relevant results found")
 
         save_results(filtered, q["query"], q["full_location"], RESULTS_PATH)
+
+        save_results(results, q["query"], q["full_location"], RAW_RESULTS_PATH)
 
         save_query_performance(q["query"], total=len(results), results=filtered, filename=PERFORMANCE_PATH)
 

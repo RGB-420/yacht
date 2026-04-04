@@ -4,6 +4,7 @@ def normalize_text(result):
 
 def score_result(result):
     text = normalize_text(result)
+    link = result.get("link", "").lower()
 
     score = 0
 
@@ -15,10 +16,28 @@ def score_result(result):
     if "cup" in text or "trophy" in text:
         score += 2
 
+    if "overall" in text:
+        score += 3
+    if "final results" in text:
+        score += 3
+    if "race results" in text:
+        score += 2
+    if "full results" in text:
+        score += 2
+    if "results -" in text:
+        score += 2
+
+    if "race 1" in text or "race 2" in text:
+        score += 2
+    if "series results" in text:
+        score += 2    
+        
     # 🟡 señales útiles
     if "results" in text or "resultados" in text or "risultati" in text:
         score += 1
-
+    if len(result.get("snippet", "")) > 120:
+        score += 1
+        
     # 🔴 penalizaciones
     if "archive" in text:
         score -= 2
@@ -29,42 +48,13 @@ def score_result(result):
     if "youtube" in text:
         score -= 3
 
+    position = result.get("position")
+
+    if position is not None:
+        score += max(0, 10 - (position / 2))
+
     return score
 
-def is_relevant_result(result):
-    text = normalize_text(result)
-
-    keywords = [
-        "regatta",
-        "sailing",
-        "vela",
-        "yacht",
-        "club",
-        "race",
-        "results",
-        "resultados",
-        "risultati",
-        "resultats"
-    ]
-
-    return any(k in text for k in keywords)
-
-def is_noise(result):
-    text = normalize_text(result)
-
-    noise_keywords = [
-        "weather",
-        "clothing",
-        "sale",
-        "shop",
-        "festival",
-        "history",
-        "what is",
-        "guide",
-        "tourism"
-    ]
-
-    return any(k in text for k in noise_keywords)
 
 def deduplicate_results(results):
     seen_links = set()

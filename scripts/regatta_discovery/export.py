@@ -17,7 +17,8 @@ def save_results(results, query, location, filename):
                 "title",
                 "link",
                 "snippet",
-                "score"
+                "score",
+                "position"
             ])
             
         for r in results:
@@ -28,7 +29,8 @@ def save_results(results, query, location, filename):
                         r["title"],
                         r["link"],
                         r["snippet"],
-                        r.get("score", 0)
+                        r.get("score", 0),
+                        r.get(("position", None))
                     ])
 
 def save_query_performance(query, total, results, filename):

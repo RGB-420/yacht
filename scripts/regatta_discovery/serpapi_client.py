@@ -45,7 +45,8 @@ def extract_organic_results(response_json):
         results.append({
             "title": r.get("title", ""),
             "link": r.get("link", ""),
-            "snippet":r.get("snippet", "")
+            "snippet":r.get("snippet", ""),
+            "position": r.get("position")
         })
 
     return results
