@@ -71,19 +71,13 @@ def filter_results(results):
     filtered = []
 
     for r in results:
-        print("\n---")
-        print("TITLE:", r["title"])
-
         score = score_result(r)
         r["score"] = score
 
         print(f"Score: {score}")
 
-        if score >= 2:
-            print("KEPT")
+        if score >= 6:
             filtered.append(r)
-        else:
-            print("REMOVED")
 
     filtered = deduplicate_results(filtered)
 
