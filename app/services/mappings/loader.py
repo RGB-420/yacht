@@ -3,15 +3,27 @@ from pathlib import Path
 
 from app.core.config import DATA_MAPPING
 
-def load_simple_mapping(filename, key_col, value_col):
+def load_simple_mapping(filename, raw_col, canonical_col):
     path = f"{DATA_MAPPING}/{filename}"
-    print(path)
     df = pd.read_csv(path)
 
-    df[key_col] = df[key_col].astype(str).str.strip()
-    df[value_col] = df[value_col].astype(str).str.strip()
+    df = df[df[raw_col].astype(str).str.strip() != ""]
 
-    return dict(zip(df[key_col], df[value_col]))
+    df[raw_col] = df[raw_col].astype(str).str.strip().str.upper()
+    df[canonical_col] = df[canonical_col].astype("string").str.strip()
+
+    mapping = {}
+
+    for _, row in df.iterrows():
+        key = row[raw_col]
+
+        mapping[key] = {
+            "canonical": row[canonical_col] if pd.notna(row[canonical_col]) else None,
+            "status": row["status"],
+            "confidence": row.get("confidence")
+        }
+
+    return mapping
 
 def load_regex_mapping(filename, pattern, value_col):
     path = f"{DATA_MAPPING}/{filename}"
@@ -59,6 +71,8 @@ def load_dual_mapping(filename, raw_cols, canonical_cols):
         df[col] = df[col].replace({"nan":None, "": None})
 
     df = df[df[raw_cols].notna().any(axis=1)]
+
+    df = df[df["status"] == 'resolved']
 
     mapping = {}
 

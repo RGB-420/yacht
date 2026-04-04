@@ -39,12 +39,13 @@ def run_boats_pipeline():
         return
     
     df_normalized = normalize_columns(df_raw)
-    logger.info(f"Normalized rows: {len(df_normalized)}")
 
     df_master = generate_master_boats(df_normalized)
 
     df_master = explode_boats_for_db(df_master)
 
+    logger.info(f"Normalized rows: {len(df_master)}")
+    
     inserted_boats = 0
     inserted_owners = 0
     inserted_types = 0

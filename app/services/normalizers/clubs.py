@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 
 from app.services.mappings.club_mapping import club_mapping
+from app.core.config import DATA_PRENORM
 
 """
 Club normalizer
@@ -11,7 +12,7 @@ Club normalizer
 ⚠️ Depends on 'Name' column for inference
 """
 
-PRENORM_PATH = Path("data/prenormalization/club_prenormalization.csv")
+PRENORM_PATH = DATA_PRENORM / "club_prenormalization.csv"
 SEEN_PRENORM = set()
 
 # ------ Main function ------
@@ -81,19 +82,28 @@ def map_or_collect_club(norm_name, raw_name):
     if pd.isna(norm_name):
         return None
 
-    canonical = club_mapping.get(raw_name)
+    raw_name = str(raw_name).strip().upper()
+    norm_name = str(norm_name).strip().upper()
 
-    if canonical:
-        return canonical
+    entry = club_mapping.get(raw_name)
 
-    canonical = club_mapping.get(norm_name)
+    if entry is not None:
+        if entry["status"] == "resolved":
+            return entry["canonical"]
+        else:
+            return None
+        
+    entry = club_mapping.get(norm_name)
 
-    if canonical:
-        return canonical
-    
+    if entry is not None:
+        if entry["status"] == "resolved":
+            return entry["canonical"]
+        else:
+            return None
+
     save_club_prenorm(norm_name)
 
-    return norm_name
+    return None
 
 def split_club(cell):
     if pd.isna(cell):
@@ -119,20 +129,18 @@ def infer_club_from_boat_name(name, club):
 
     return club
 
-def save_club_prenorm(raw_name):
-    if pd.isna(raw_name) or str(raw_name).strip() == "":
+def save_club_prenorm(norm_name):
+    if pd.isna(norm_name) or str(norm_name).strip() == "":
         return
 
-    norm = normalize_club(raw_name)
-
-    if norm in SEEN_PRENORM:
+    if norm_name in SEEN_PRENORM:
         return
 
-    SEEN_PRENORM.add(norm)
+    SEEN_PRENORM.add(norm_name)
 
     row = {
-        "raw_name": norm,
-        "canonical_name": "",
+        "club_raw_name": norm_name,
+        "club_canonical_name": "",
         "status": "pending",
         "confidence": "",
         "notes": ""
@@ -141,13 +149,6 @@ def save_club_prenorm(raw_name):
     df_new = pd.DataFrame([row])
 
     if PRENORM_PATH.exists():
-        df_existing = pd.read_csv(PRENORM_PATH)
-
-        if norm in df_existing["raw_name"].values:
-            return
-
-        df_final = pd.concat([df_existing, df_new], ignore_index=True)
+        df_new.to_csv(PRENORM_PATH, mode="a", header=False, index=False)
     else:
-        df_final = df_new
-
-    df_final.to_csv(PRENORM_PATH, index=False)
+        df_new.to_csv(PRENORM_PATH, index=False)
