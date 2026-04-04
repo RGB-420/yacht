@@ -1,18 +1,18 @@
 import random
 
-from queries import get_queries_to_run
-from serpapi_client import search_google, extract_organic_results
-from processor import filter_results
-from export import save_results, save_query_performance
+from regatta_discovery.queries import get_queries_to_run
+from regatta_discovery.serpapi_client import search_google, extract_organic_results
+from regatta_discovery.processor import filter_results
+from regatta_discovery.export import save_results, save_query_performance
 
-QUERIES_PATH = "scripts/regatta_discovery/queries.csv"
+QUERIES_PATH = "data/regatta_discovery/queries.csv"
 MAX_PRIORITY = 1
 LIMIT_QUERIES = 2
 
-RESULTS_PATH = "scripts/regatta_discovery/results.csv"
-RAW_RESULTS_PATH = "scripts/regatta_discovery/raw_results.csv"
+RESULTS_PATH = "data/regatta_discovery/results.csv"
+RAW_RESULTS_PATH = "data/regatta_discovery/raw_results.csv"
 
-PERFORMANCE_PATH = "scripts/regatta_discovery/query_performance.csv"
+PERFORMANCE_PATH = "data/regatta_discovery/query_performance.csv"
 
 def main():
     all_queries = get_queries_to_run(QUERIES_PATH, MAX_PRIORITY)

@@ -4,7 +4,6 @@ def normalize_text(result):
 
 def score_result(result):
     text = normalize_text(result)
-    link = result.get("link", "").lower()
 
     score = 0
 
