@@ -37,7 +37,7 @@ def score_result(result):
         score += 1
     if len(result.get("snippet", "")) > 120:
         score += 1
-        
+
     # 🔴 penalizaciones
     if "archive" in text:
         score -= 2
@@ -51,7 +51,7 @@ def score_result(result):
     position = result.get("position")
 
     if position is not None:
-        score += max(0, 10 - (position / 2))
+        score += max(0, 5 - (position / 4))
 
     return score
 
