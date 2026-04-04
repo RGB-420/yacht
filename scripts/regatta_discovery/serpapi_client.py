@@ -17,7 +17,7 @@ def search_google(query, location):
         "engine": "google",
         "q": query,
         "api_key": API_KEY,
-        "num": 10
+        "num": 20
     }
 
     if location:

@@ -16,7 +16,8 @@ def save_results(results, query, location, filename):
                 "location",
                 "title",
                 "link",
-                "snippet"
+                "snippet",
+                "score"
             ])
             
         for r in results:
@@ -26,30 +27,40 @@ def save_results(results, query, location, filename):
                         location,
                         r["title"],
                         r["link"],
-                        r["snippet"]
+                        r["snippet"],
+                        r.get("score", 0)
                     ])
 
-def save_query_performance(query, total, relevant, filename):
-      file_exists = os.path.isfile(filename)
+def save_query_performance(query, total, results, filename):
+    file_exists = os.path.isfile(filename)
 
-      precision = relevant / total if total > 0 else 0
+    relevant = len(results)
 
-      with open(filename, mode="a", newline="", encoding="utf-8") as f:
-            writer = csv.writer(f)
+    precision = relevant / total if total > 0 else 0
 
-            if not file_exists:
-                writer.writerow([
-                    "timestamp",
-                    "query",
-                    "total_results",
-                    "relevant_results",
-                    "precision"
-                ])
-            
+    avg_score = sum(r["score"] for r in results) / relevant if relevant > 0 else 0
+    max_score = max((r["score"] for r in results), default=0)
+
+    with open(filename, mode="a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+
+        if not file_exists:
             writer.writerow([
-                  datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                  query,
-                  total,
-                  relevant,
-                  round(precision, 2)
+                "timestamp",
+                "query",
+                "total_results",
+                "kept_results",
+                "precision",
+                "avg_score",
+                "max_score"
             ])
+        
+        writer.writerow([
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                query,
+                total,
+                relevant,
+                round(precision, 2),
+                round(avg_score, 2),
+                max_score
+        ])

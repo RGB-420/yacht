@@ -1,3 +1,5 @@
+import random
+
 from queries import get_queries_to_run
 from serpapi_client import search_google, extract_organic_results
 from processor import filter_results
@@ -12,12 +14,14 @@ RESULTS_PATH = "scripts/regatta_discovery/results.csv"
 PERFORMANCE_PATH = "scripts/regatta_discovery/query_performance.csv"
 
 def main():
-    queries = get_queries_to_run(QUERIES_PATH, MAX_PRIORITY, LIMIT_QUERIES)
+    all_queries = get_queries_to_run(QUERIES_PATH, MAX_PRIORITY)
 
-    if not queries:
+    if not all_queries:
         print("No queries found")
         return
     
+    queries = random.sample(all_queries, min(LIMIT_QUERIES, len(all_queries)))
+
     for q in queries:
         print(f" Query: {q['query']}")
         print(f" Location: {q['full_location']}")
@@ -36,7 +40,7 @@ def main():
 
         save_results(filtered, q["query"], q["full_location"], RESULTS_PATH)
 
-        save_query_performance(q["query"], total=len(results), relevant=len(filtered), filename=PERFORMANCE_PATH)
+        save_query_performance(q["query"], total=len(results), results=filtered, filename=PERFORMANCE_PATH)
 
 
 if __name__ == "__main__":
