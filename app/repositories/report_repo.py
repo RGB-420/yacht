@@ -1,6 +1,6 @@
 from sqlalchemy import text, bindparam
 
-def get_monday_report(conn, clubs, regattas):
+def get_monday_report(conn, clubs, regatta, year):
     query = text("""
         SELECT DISTINCT
             r.name AS regatta,
@@ -31,11 +31,12 @@ def get_monday_report(conn, clubs, regattas):
             ON re.id_edition = rl.id_edition
 
         WHERE c.name IN :clubs
-        AND r.name IN :regattas
+        AND r.name = :regattas
+        AND re.year = :year
     """)
 
-    query = query.bindparams(bindparam("clubs", expanding=True), bindparam("regattas", expanding=True))
+    query = query.bindparams(bindparam("clubs", expanding=True))
 
-    result = conn.execute(query, {"clubs": clubs, "regattas": regattas}).fetchall()
+    result = conn.execute(query, {"clubs": clubs, "regattas": regatta, "year": year}).fetchall()
 
     return result 

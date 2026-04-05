@@ -12,15 +12,21 @@ def main():
 
     clubs = ["RTYC", "ROYAL THAMES YC", "ROYAL THAMES YACHT CLUB"]
     regattas = [
-        "British Classic Week",
-        "Cowes Week"
+        "RORC Easter Regatta - 2026"
     ]
 
+    all_rows = []
+
     with engine.connect() as conn:
-        rows = get_monday_report(conn, clubs, regattas)
+        for regatta in regattas:
+            regatta_name, year = [x.strip() for x in regatta.split("-")]
+
+            rows = get_monday_report(conn, clubs, regatta_name, year)
+
+            all_rows.extend(rows)
 
     columns = ["regatta", "owner", "boat", "results_link"]
-    df = pd.DataFrame(rows, columns=columns)
+    df = pd.DataFrame(all_rows, columns=columns)
 
     monday = get_monday()
 
