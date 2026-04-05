@@ -10,7 +10,6 @@ from pipelines.schedule.schedule_pipeline import run_scheduled_pipeline
 
 from pipelines.orchestrator import run_full_pipeline
 
-
 PIPELINES = {
     "scrape": run_scrape_pipeline,
     "boats": run_boats_pipeline,
