@@ -46,6 +46,9 @@ def finalize_club_column(df):
         axis=1
     )
 
+    df["Club"] = df["Club"].apply(split_mapped_club)
+    df = df.explode("Club").reset_index(drop=True)
+
     df = df.drop(columns=["Club_raw", "Club_norm"])
 
     return df
@@ -152,3 +155,11 @@ def save_club_prenorm(norm_name):
         df_new.to_csv(PRENORM_PATH, mode="a", header=False, index=False)
     else:
         df_new.to_csv(PRENORM_PATH, index=False)
+
+def split_mapped_club(cell):
+    if pd.isna(cell):
+        return []
+    
+    parts = [p.strip() for p in str(cell).split("//") if p.strip()]
+
+    return list(dict.fromkeys(parts))
