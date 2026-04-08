@@ -6,8 +6,9 @@ from pathlib import Path
 from db.connection import get_engine
 from app.repositories.raw_results_repo import insert_raw_result
 
-from scraping import events2, burnhamweek, cape31, cowesclassic, clubspot, flying15, j70, halsail, archive_halsail, falmouthclassics, sailracehq, sailwave, yachtscoring, racing_islands, rtyc, ryyc, sailevent, sailworld, yachtsandyachting, racing_rules, cowesweek, manage2sail
-from scraping import sailwave_pdf, royalsolent_pdf, wlyc_pdf
+
+from scraping.webs import archive_halsail, burnhamweek, cape31, clubspot, cowesclassic, cowesweek, events2, falmouthclassics, flying15, halsail, j70, manage2sail, racing_islands, racing_rules, rtyc, ryyc, sailevent, sailracehq, sailwave, sailworld, yachtsandyachting, yachtscoring, sailti
+from scraping.pdfs import royalsolent_pdf, sailwave_pdf, wlyc_pdf
 
 from app.core.config import DATA_RAW, BASE_DIR
 
@@ -41,6 +42,7 @@ SCRAPERS = {
     "ryyc": ryyc.scrape,
     "clubspot": clubspot.scrape,
     "manage2sail": manage2sail.scrape,
+    "sailti": sailti.scrape,
 
     "sailwave_pdf": sailwave_pdf.scrape,
     "royalsolent_pdf": royalsolent_pdf.scrape,
