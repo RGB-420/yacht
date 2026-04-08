@@ -16,6 +16,8 @@ DATA_REPORT = DATA_PATH / "report"
 DATA_PRENORM = DATA_PATH / "prenormalization"
 DATA_SCORECARD = DATA_PATH / "scorecard"
 
+SCRAPERS_LOG_PATH = LOG_PATH / "scrapers"
+
 # Crear carpetas si no existen
 DATA_PATH.mkdir(parents=True, exist_ok=True)
 LOG_PATH.mkdir(parents=True, exist_ok=True)

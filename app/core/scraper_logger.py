@@ -1,5 +1,5 @@
 import logging
-from app.core.config import LOG_PATH
+from app.core.config import SCRAPERS_LOG_PATH
 
 
 def get_scraper_logger(name: str):
@@ -14,12 +14,10 @@ def get_scraper_logger(name: str):
             "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
         )
 
-        # 📁 Archivo específico por scraper
-        file_handler = logging.FileHandler(LOG_PATH / f"{name}.log")
+        file_handler = logging.FileHandler(SCRAPERS_LOG_PATH / f"{name}.log")
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(formatter)
 
-        # 📺 Consola
         stream_handler = logging.StreamHandler()
         stream_handler.setLevel(logging.INFO)
         stream_handler.setFormatter(formatter)
