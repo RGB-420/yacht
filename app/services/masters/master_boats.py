@@ -16,4 +16,5 @@ def generate_master_boats(df):
 
     df = aggregate_boat_groups(df, final_columns)
 
+    df[final_columns].to_csv("data/processed/boats_normalized.csv")
     return df[final_columns]

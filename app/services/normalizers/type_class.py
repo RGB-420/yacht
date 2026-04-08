@@ -183,6 +183,17 @@ def map_or_collect_class_type(class_norm, type_norm):
 
     return class_norm, type_norm
 
+def fill_type_from_class(row):
+    class_val = row["Class"]
+    type_val = row["Boat Type"]
+
+    if pd.isna(type_val) or str(type_val).strip() in {"", "nan", "None"}:
+        if not (pd.isna(class_val) or str(class_val).strip() in {"", "nan", "None"}):
+            return class_val
+    
+    return type_val
+
+
 def save_class_type_prenorm(raw_class, raw_type):
     if pd.isna(raw_class) and pd.isna(raw_type):
         return

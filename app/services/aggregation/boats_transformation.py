@@ -13,6 +13,8 @@ def explode_boats_for_db(df):
         owners = split_and_clean(row["Owner"])
         clubs = split_and_clean(row["Club"])
         sources = split_and_clean(row["Source"])
+        classes = split_and_clean(row["Class"])
+        types = split_and_clean(row["Boat Type"])
 
 
         if not owners:
@@ -24,14 +26,21 @@ def explode_boats_for_db(df):
         if not sources:
             sources = [None]
 
+        if not classes:
+            classes = [None]
+
         for owner in owners:
             for club in clubs:
                 for source in sources:
-                    new_row = row.copy()
-                    new_row["Owner"] = owner
-                    new_row["Club"] = club
-                    new_row["Source"] = source
+                    for class_ in classes:
+                        for type in types:
+                            new_row = row.copy()
+                            new_row["Owner"] = owner
+                            new_row["Club"] = club
+                            new_row["Source"] = source
+                            new_row["Class"] = class_
+                            new_row["Boat Type"] = type
 
-                    rows.append(new_row)
+                            rows.append(new_row)
 
     return pd.DataFrame(rows)

@@ -3,29 +3,51 @@ from sqlalchemy import text
 from app.core.db import rows_to_dict
 
 def upsert_boat_type(conn, name, class_id):
-    insert_query = text("""
-        INSERT INTO yacht_db.boat_type (name, id_class)
-        VALUES (:name, :class_id)
+    if class_id is not None:
+        insert_query = text("""
+            INSERT INTO yacht_db.boat_type (name, id_class)
+            VALUES (:name, :class_id)
+            
+            ON CONFLICT (name, id_class) DO NOTHING
+                            
+            RETURNING id_type
+        """)
+
+        result = conn.execute(insert_query, {"name": name, "class_id": class_id}).fetchone()
+
+        if result:
+            return result[0], True
         
-        ON CONFLICT (name, id_class) DO NOTHING
-                        
-        RETURNING id_type
-    """)
+        select_query = text("""
+            SELECT id_type FROM yacht_db.boat_type
+            WHERE name = :name
+                AND id_class = :class_id
+        """)
 
-    result = conn.execute(insert_query, {"name": name, "class_id": class_id}).fetchone()
+        existing = conn.execute(select_query, {"name": name, "class_id": class_id}).fetchone()
 
-    if result:
-        return result[0], True
+        return existing[0], False
     
-    select_query = text("""
-        SELECT id_type FROM yacht_db.boat_type
-        WHERE name = :name
-            AND id_class = :class_id
-    """)
+    else:
+        select_query = text("""
+            SELECT id_type FROM yacht_db.boat_type
+            WHERE name = :name AND id_class IS NULL
+        """)
 
-    existing = conn.execute(select_query, {"name": name, "class_id": class_id}).fetchone()
+        existing = conn.execute(select_query, {"name": name}).fetchone()
 
-    return existing[0], False
+        if existing:
+            return existing[0], False
+
+        insert_query = text("""
+            INSERT INTO yacht_db.boat_type (name, id_class)
+            VALUES (:name, NULL)
+            RETURNING id_type
+        """)
+
+        result = conn.execute(insert_query, {"name": name}).fetchone()
+
+        return result[0], True
 
 def get_class_types(conn, class_id):
     query = text("""
