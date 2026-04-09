@@ -7,7 +7,7 @@ from db.connection import get_engine
 from app.repositories.raw_results_repo import insert_raw_result
 
 
-from scraping.webs import archive_halsail, burnhamweek, cape31, clubspot, cowesclassic, cowesweek, events2, falmouthclassics, flying15, halsail, j70, manage2sail, racing_islands, racing_rules, rtyc, ryyc, sailevent, sailracehq, sailwave, sailworld, yachtsandyachting, yachtscoring, sailti
+from scraping.webs import archive_halsail, burnhamweek, cape31, clubspot, cowesclassic, cowesweek, events2, falmouthclassics, flying15, halsail, j70, manage2sail, racing_islands, racing_rules, rtyc, ryyc, sailevent, sailracehq, sailwave, sailworld, yachtsandyachting, yachtscoring, sailti, sportspage
 from scraping.pdfs import royalsolent_pdf, sailwave_pdf, wlyc_pdf
 
 from app.core.config import DATA_RAW, BASE_DIR
@@ -43,6 +43,7 @@ SCRAPERS = {
     "clubspot": clubspot.scrape,
     "manage2sail": manage2sail.scrape,
     "sailti": sailti.scrape,
+    "sportspage": sportspage.scrape,
 
     "sailwave_pdf": sailwave_pdf.scrape,
     "royalsolent_pdf": royalsolent_pdf.scrape,
