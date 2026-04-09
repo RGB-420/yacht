@@ -217,8 +217,14 @@ def save_class_type_prenorm(raw_class, raw_type):
 
     df_new = pd.DataFrame([row])
 
-    if PRENORM_PATH.exists():
-        df_existing = pd.read_csv(PRENORM_PATH)
+    if PRENORM_PATH.exists() and PRENORM_PATH.stat().st_size > 0:
+        try:
+            df_existing = pd.read_csv(PRENORM_PATH)
+        except Exception:
+            df_existing = pd.DataFrame(columns=[
+                "raw_class", "raw_type", "canonical_type",
+                "canonical_class", "status", "confidence", "notes"
+            ])
 
         existing_keys = (
             df_existing["raw_class"].fillna("").str.lower() + "|" +
@@ -230,6 +236,10 @@ def save_class_type_prenorm(raw_class, raw_type):
 
         df_final = pd.concat([df_existing, df_new], ignore_index=True)
     else:
-        df_final = df_new
+        df_existing = pd.DataFrame(columns=[
+            "raw_class", "raw_type", "canonical_type",
+            "canonical_class", "status", "confidence", "notes"
+        ])
+        df_final = pd.concat([df_existing, df_new], ignore_index=True)
 
     df_final.to_csv(PRENORM_PATH, index=False)
