@@ -1,8 +1,8 @@
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from paddleocr import PaddleOCR
 import tempfile
+import os
 
 from app.core.base_scraper import BaseScraper
 
@@ -16,7 +16,16 @@ columnas_fijas = [
     "helm_name",
 ]
 
-ocr = PaddleOCR(use_angle_cls=True, lang='en')
+ocr = None
+
+def get_ocr():
+    global ocr
+    if ocr is None:
+        if os.getenv("DISABLE_OCR") == "1":
+            raise RuntimeError("OCR disabled")
+        from paddleocr import PaddleOCR
+        ocr = PaddleOCR(use_angle_cls=True, lang='en')
+    return ocr
 
 
 class RacingRulesScraper(BaseScraper):
@@ -88,6 +97,10 @@ class RacingRulesScraper(BaseScraper):
     def extraer_tabla_desde_imagen(self, url_imagen):
         self.logger.info(f"[STEP] OCR processing image: {url_imagen}")
 
+        ocr_model = get_ocr()
+
+        image_path = None
+
         headers = {"User-Agent": "Mozilla/5.0"}
         response = requests.get(url_imagen, headers=headers, timeout=15)
 
@@ -100,7 +113,7 @@ class RacingRulesScraper(BaseScraper):
             img_path = f.name
 
         try:
-            result = ocr.predict(img_path)
+            result = ocr_model.predict(img_path)
 
             bloque = result[0]
             texts = bloque["rec_texts"]
@@ -138,6 +151,10 @@ class RacingRulesScraper(BaseScraper):
         except Exception as e:
             self.logger.error(f"[FAIL] OCR failed: {e}", exc_info=True)
             return pd.DataFrame()
+        
+        finally:
+            if image_path and os.path.exists(img_path):
+                os.remove(img_path)
 
 
     def obtener_partidos(self, html):
