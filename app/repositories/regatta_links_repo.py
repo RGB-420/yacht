@@ -13,9 +13,9 @@ def upsert_regatta_link(conn, edition_id, url):
         RETURNING id_link;
     """)
 
-    result = conn.execute(query, {"edition_id": edition_id, "url": url})
+    result = conn.execute(query, {"edition_id": edition_id, "url": url}).fetchone()
 
-    return bool(result)
+    return result is not None
 
 def get_regatta_links(conn, regatta_id):
     query = text("""

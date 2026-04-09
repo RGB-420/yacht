@@ -10,24 +10,16 @@ def upsert_edition(conn, regatta_id, year, status):
         ON CONFLICT (year, id_regatta)       
         DO UPDATE SET status = EXCLUDED.status
                  
-        RETURNING id_edition
+        RETURNING id_edition, (xmax = 0) AS inserted
     """)
 
-    result = conn.execute(insert_query, {"regatta_id": regatta_id, "year": year, "status": status}).fetchone()
+    result = conn.execute(insert_query, {
+        "regatta_id": regatta_id,
+        "year": year,
+        "status": status
+    }).fetchone()
 
-    if result:
-        return result[0], True
-    
-    select_query = text("""
-        SELECT id_edition
-        FROM yacht_db.regatta_editions
-            WHERE id_regatta = :regatta_id
-                AND year = :year;
-    """)
-
-    existing = conn.execute(select_query, {"regatta_id": regatta_id, "year": year}).fetchone()
-
-    return existing[0], False
+    return result[0], result[1]
 
 def get_edition_id(conn, regatta_name, year):
     query = text("""
