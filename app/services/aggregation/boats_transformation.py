@@ -29,6 +29,9 @@ def explode_boats_for_db(df):
         if not classes:
             classes = [None]
 
+        if not types:
+            types = [None]
+
         for owner in owners:
             for club in clubs:
                 for source in sources:
