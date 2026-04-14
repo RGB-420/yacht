@@ -36,7 +36,7 @@ def get_edition_id(conn, regatta_name, year):
 
 def get_regatta_editions(conn, regatta_id):
     query = text("""
-        SELECT e.id_edition, e.year, r.name AS regatta_name
+        SELECT e.id_edition, e.year, e.status, r.name AS regatta_name
         FROM yacht_db.regatta_editions e
         
         LEFT JOIN yacht_db.regattas r
@@ -52,7 +52,7 @@ def get_regatta_editions(conn, regatta_id):
 
 def get_edition_by_id(conn, edition_id):
     query = text("""
-        SELECT e.id_edition, e.year, r.name AS regatta_name, r.id_regatta,
+        SELECT e.id_edition, e.year, e.status, r.name AS regatta_name, r.id_regatta,
             COUNT(DISTINCT(be.id_boat)) AS number_of_boats,
             COUNT(DISTINCT(ec.id_class)) AS number_of_classes
         FROM yacht_db.regatta_editions e
