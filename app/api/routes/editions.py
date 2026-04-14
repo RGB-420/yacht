@@ -16,7 +16,7 @@ router = APIRouter(
         tags = ["editions"]
     )
 
-@router.get("/{edition_id}", response_model=List[Edition])
+@router.get("/{edition_id}", response_model=Edition)
 def get_edition(edition_id: int, db: Session = Depends(get_db)):
     edition = get_edition_by_id(db, edition_id)
 

@@ -66,7 +66,7 @@ def get_edition_by_id(conn, edition_id):
         
         WHERE e.id_edition = :edition_id
                  
-        GROUP BY e.id_edition, e.year, r.name
+        GROUP BY e.id_edition, e.year, regatta_name, r.id_regatta
     """)
 
     result = conn.execute(query, {"edition_id": edition_id}).fetchone()
