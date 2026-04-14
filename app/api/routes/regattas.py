@@ -22,7 +22,7 @@ def list_regattas(db: Session = Depends(get_db)):
 
     return regattas
 
-@router.get("/{regatta_id}", response_model=List[Regatta])
+@router.get("/{regatta_id}", response_model=Regatta)
 def get_regatta(regatta_id: int, db: Session = Depends(get_db)):
     regatta = get_regatta_by_id(db, regatta_id)
 
