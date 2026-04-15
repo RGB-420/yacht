@@ -24,7 +24,7 @@ def list_boats(db: Session = Depends(get_db)):
 
     return boats
 
-@router.get("/{boat_id}", response_model=List[Boat])
+@router.get("/{boat_id}", response_model=Boat)
 def get_boat(boat_id: int, db: Session = Depends(get_db)):
     boat = get_boat_by_id(db, boat_id)
 

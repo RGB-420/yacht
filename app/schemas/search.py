@@ -4,6 +4,7 @@ from typing import List
 class SearchItem(BaseModel):
     id: int
     name: str
+    type: str
 
 class SearchResult(BaseModel):
     boats: List[SearchItem]

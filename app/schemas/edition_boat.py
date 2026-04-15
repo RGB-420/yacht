@@ -6,6 +6,6 @@ class EditionBoat(BaseModel):
     name: str
     boat_identifier: Optional[str]
 
-    id_class: int
+    id_class: Optional[int]
     class_name: Optional[str]
     
