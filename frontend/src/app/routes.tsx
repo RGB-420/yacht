@@ -5,10 +5,14 @@ import { RegattaDetailPage } from "../features/regattas/pages/RegattaDetailPage"
 import { EditionDetailPage } from "../features/editions/pages/EditionDetailPage"
 import { BoatDetailPage } from "../features/boats/pages/BoatDetailPage"
 import { BoatsPage } from "../features/boats/pages/BoatsPage"
+import { Navbar } from "../shared/components/Navbar"
 
 export const AppRoutes = () => {
     return (
         <BrowserRouter>
+
+            <Navbar />
+
             <Routes>
                 <Route path="/" element={<HomePage />} />
 
