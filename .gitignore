@@ -1,9 +1,6 @@
 # Output Folder
 data/
 esquema.pgerd
-prueba.py
-api_map.md
-frontend
 
 # -------------------------------------------------
 # Docker (eliminar cuando este bien hecho)
