@@ -1,31 +1,25 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { Routes, Route } from "react-router-dom"
 import { HomePage } from "../features/home/pages/HomePage"
 import { RegattasPage } from "../features/regattas/pages/RegattasPage"
 import { RegattaDetailPage } from "../features/regattas/pages/RegattaDetailPage"
 import { EditionDetailPage } from "../features/editions/pages/EditionDetailPage"
 import { BoatDetailPage } from "../features/boats/pages/BoatDetailPage"
 import { BoatsPage } from "../features/boats/pages/BoatsPage"
-import { Navbar } from "../shared/components/Navbar"
 
 export const AppRoutes = () => {
     return (
-        <BrowserRouter>
+        <Routes>
+            <Route path="/" element={<HomePage />} />
 
-            <Navbar />
+            <Route path="/boats" element={<BoatsPage />} />
+            
+            <Route path="/regattas" element={<RegattasPage />} />
 
-            <Routes>
-                <Route path="/" element={<HomePage />} />
+            <Route path="/regattas/:id" element={<RegattaDetailPage />} />
 
-                <Route path="/boats" element={<BoatsPage />} />
-                
-                <Route path="/regattas" element={<RegattasPage />} />
+            <Route path="/editions/:id" element={<EditionDetailPage />} />
 
-                <Route path="/regattas/:id" element={<RegattaDetailPage />} />
-
-                <Route path="/editions/:id" element={<EditionDetailPage />} />
-
-                <Route path="/boats/:id" element={<BoatDetailPage />} />
-            </Routes>
-        </BrowserRouter>
+            <Route path="/boats/:id" element={<BoatDetailPage />} />
+        </Routes>
     )
 }

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import { useSearch } from "../../search/hooks/useSearch"
 import { SearchInput } from "../components/SearchInput"
 import { SearchDropdown } from "../components/SearchDropdown"
+import { Sailboat, Flag } from "lucide-react"
 
 export const HomePage = () => {
     const [query, setQuery] = useState("")
@@ -48,22 +49,21 @@ export const HomePage = () => {
                 />
             )}
 
-            <div className="flex gap-4">
+            <div className="flex justify-center gap-6 mt-6">
                 <Link
                     to="/regattas"
-                    className="flex-1 text-center p-4 border rounded-lg hover:bg-gray-100"
+                    className="flex flex-col items-center justify-center p-4 w-24 border rounded-xl hover:bg-gray-100 transition"
                     >
-                    View Regattas
+                    <Flag size={20}/>
                 </Link>
 
                 <Link
                     to="/boats"
-                    className="flex-1 text-center p-4 border rounded-lg hover:bg-gray-100"
+                    className="flex flex-col items-center justify-center p-4 w-24 border rounded-xl hover:bg-gray-100 transition"
                     >
-                    View Boats
+                    <Sailboat size={20}/>
                 </Link>
             </div>
-
         </div>
     )
 }
