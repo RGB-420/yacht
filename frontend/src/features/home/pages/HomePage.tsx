@@ -26,42 +26,47 @@ export const HomePage = () => {
     }, [])
 
     return (
-        <div ref={ref} className="p-6 max-w-2xl mx-auto space-y-8 relative">
+        <div ref={ref} className="min-h-[80vh] flex flex-col items-center justify-center space-y-8">
         
-            <h1 className="text-3xl font-bold text-center">
+            <h1 className="text-5xl font-bold text-center">
                 Regatta Explorer
             </h1>
 
-            <SearchInput
-                query={query}
-                setQuery={setQuery}
-                setIsOpen={setIsOpen}
-            />
+            <p className="text-gray-500 text-center max-w-md">
+            Explore boats, regattas and editions in one place
+            </p>
 
-            {loading && <p>Searching...</p>}
-
-            {results && (
-                <SearchDropdown
-                    results={results}
+            <div className="relative w-full max-w-xl">
+                <SearchInput
                     query={query}
-                    isOpen={isOpen}
+                    setQuery={setQuery}
                     setIsOpen={setIsOpen}
                 />
-            )}
 
-            <div className="flex justify-center gap-6 mt-6">
+                {loading && <p>Searching...</p>}
+
+                {results && (
+                    <SearchDropdown
+                        results={results}
+                        query={query}
+                        isOpen={isOpen}
+                        setIsOpen={setIsOpen}
+                    />
+                )}
+            </div>
+            <div className="flex justify-center gap-10 mt-4">
                 <Link
                     to="/regattas"
                     className="flex flex-col items-center justify-center p-4 w-24 border rounded-xl hover:bg-gray-100 transition"
                     >
-                    <Flag size={20}/>
+                    <Flag size={28}/>
                 </Link>
 
                 <Link
                     to="/boats"
                     className="flex flex-col items-center justify-center p-4 w-24 border rounded-xl hover:bg-gray-100 transition"
                     >
-                    <Sailboat size={20}/>
+                    <Sailboat size={28}/>
                 </Link>
             </div>
         </div>
