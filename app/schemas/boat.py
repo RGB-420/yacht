@@ -14,3 +14,9 @@ class Boat(BaseModel):
 
     owners: List[str]
     clubs: List[str]
+
+class PaginatedBoats(BaseModel):
+    data: List[Boat]
+    total: int
+    limit: int
+    offset: int

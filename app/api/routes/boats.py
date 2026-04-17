@@ -1,14 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
 
 from app.api.dependencies.database import get_db
-from app.schemas.boat import Boat
+from app.schemas.boat import Boat, PaginatedBoats
 from app.schemas.boat_owner import BoatOwner
 from app.schemas.boat_club import BoatClub
 from app.schemas.boat_edition import BoatEdition
 
-from app.repositories.boats_repo import get_boats, get_boat_by_id
+from app.repositories.boats_repo import get_boats, get_boat_by_id, count_boats
 from app.repositories.boats_owner_repo import get_boat_owners
 from app.repositories.boat_clubs_repo import get_boat_clubs
 from app.repositories.boat_editions_repo import get_boats_edition
@@ -18,11 +18,21 @@ router = APIRouter(
         tags=["boats"]
     )
 
-@router.get("/", response_model=List[Boat])
-def list_boats(db: Session = Depends(get_db)):
-    boats = get_boats(db)
+@router.get("/", response_model=PaginatedBoats)
+def list_boats(
+    limit: int = Query(20, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
+    ):
+    boats = get_boats(db, limit=limit, offset=offset)
+    total = count_boats(db)
 
-    return boats
+    return {
+        "data": boats,
+        "total": total,
+        "limit": limit,
+        "offset": offset
+    }
 
 @router.get("/{boat_id}", response_model=Boat)
 def get_boat(boat_id: int, db: Session = Depends(get_db)):

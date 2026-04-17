@@ -20,7 +20,7 @@ def upsert_regatta(conn, name, type=None, club_id=None, location_id=None):
 
     return result[0], result[1]
 
-def get_regattas(conn):
+def get_regattas(conn, limit: int, offset: int):
     query = text("""
         SELECT r.id_regatta, r.name, r.type, c.name AS club_name, l.city, l.region, l.country,
             COUNT(re.id_edition) AS number_of_editions
@@ -36,11 +36,22 @@ def get_regattas(conn):
         GROUP BY r.id_regatta, r.name, r.type, c.name, l.city, l.region, l.country
                                 
         ORDER BY r.name
+        LIMIT :limit
+        OFFSET :offset
+    """)
+
+    result = conn.execute(query, {"limit": limit, "offset": offset})
+
+    return rows_to_dict(result)
+
+def count_regattas(conn):
+    query = text("""
+        SELECT COUNT(*)
+        FROM yacht_db.regattas
     """)
 
     result = conn.execute(query)
-
-    return rows_to_dict(result)
+    return result.scalar()
 
 def get_regatta_by_id(conn, regatta_id):
     query = text("""

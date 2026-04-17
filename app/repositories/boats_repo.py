@@ -17,7 +17,7 @@ def upsert_boat(conn, name, boat_identifier, type_id=None):
 
     return result[0], result[1]
 
-def get_boats(conn):
+def get_boats(conn, limit, offset):
     query = text("""
         SELECT b.id_boat, b.name, b.boat_identifier, bc.id_class, bc.name AS class_name, bt.id_type, bt.name AS type_name,
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT o.name), NULL) AS owners,
@@ -39,12 +39,23 @@ def get_boats(conn):
                  
         GROUP BY b.id_boat, b.name, b.boat_identifier, bc.id_class, bc.name, bt.id_type, bt.name
                  
-        ORDER BY b.name
+        ORDER BY b.name, b.boat_identifier
+        LIMIT :limit
+        OFFSET :offset
+    """)
+
+    result = conn.execute(query, {"limit": limit, "offset": offset})
+
+    return rows_to_dict(result)
+
+def count_boats(conn):
+    query = text("""
+        SELECT COUNT(*)
+        FROM yacht_db.boats
     """)
 
     result = conn.execute(query)
-
-    return rows_to_dict(result)
+    return result.scalar()
 
 def get_boat_by_id(conn, boat_id):
     query = text("""

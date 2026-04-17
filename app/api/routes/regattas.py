@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
 
 from app.api.dependencies.database import get_db
-from app.schemas.regatta import Regatta
+from app.schemas.regatta import Regatta, PaginatedRegattas
 from app.schemas.regatta_edition import RegattaEdition
 from app.schemas.regatta_link import RegattaLink
 
-from app.repositories.regattas_repo import get_regattas, get_regatta_by_id
+from app.repositories.regattas_repo import get_regattas, get_regatta_by_id, count_regattas
 from app.repositories.editions_repo import get_regatta_editions
 from app.repositories.regatta_links_repo import get_regatta_links
 
@@ -16,11 +16,21 @@ router = APIRouter(
         tags=["regattas"]
     )
 
-@router.get("/", response_model=List[Regatta])
-def list_regattas(db: Session = Depends(get_db)):
-    regattas = get_regattas(db)
+@router.get("/", response_model=PaginatedRegattas)
+def list_regattas(
+    limit: int = Query(20, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
+):
+    regattas = get_regattas(db, limit=limit, offset=offset)
+    total = count_regattas(db)
 
-    return regattas
+    return {
+        "data": regattas,
+        "total": total,
+        "limit": limit,
+        "offset": offset
+    }
 
 @router.get("/{regatta_id}", response_model=Regatta)
 def get_regatta(regatta_id: int, db: Session = Depends(get_db)):
