@@ -26,6 +26,7 @@ export interface BoatEdition {
     year: number
     id_regatta: number
     regatta_name: string
+    status: "past" | "future"
 
     city?: string | null
     region?: string | null

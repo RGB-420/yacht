@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import { useEdition } from "../hooks/useEdition"
 import { useEditionBoats } from "../hooks/useEditionBoats"
 import { BoatItem } from "../../boats/components/BoatItem"
+import { Calendar, Flag } from "lucide-react"
 
 export const EditionDetailPage = () => {
     const { id } = useParams()
@@ -16,15 +17,29 @@ export const EditionDetailPage = () => {
 
     return (
         <div className="p-4 space-y-4">
-            <h1 className="text-2xl font-bold">
-                <Link
-                    to={`/regattas/${edition.id_regatta}`}
-                    className="hover:underline"
-                >
+            <div className="flex items-center">
+                <h1 className="text-2xl font-bold">
                     {edition.regatta_name}
-                </Link>{" "}    
-                {edition.year}
-            </h1>
+                </h1>
+
+                <div
+                    className="ml-auto"
+                    >
+                    <Link
+                        to={`/regattas/${edition.id_regatta}`}
+                        className="inline-flex items-center gap-2 px-3 py-2 border-2 border-border dark:border-borderDark rounded-xl text-text dark:text-textDark hover:bg-primary dark:hover:bg-primaryDark hover:text-white transition-colors"
+                        >
+                        <Flag size={20}/>
+                        <span className="text-sm font-medium">
+                            Go to Regatta
+                        </span>
+                    </Link>
+                </div>
+            </div>
+            <div className="flex items-center gap-2 mt-1 text-sm">
+                <Calendar size={20} />
+                <span className="text-xl font-semibold"> {edition.year}</span>
+            </div>
 
             <div className="space-y-1">
                 <p><strong>Boats:</strong> {edition.number_of_boats}</p>

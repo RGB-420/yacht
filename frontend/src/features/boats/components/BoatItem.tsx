@@ -11,18 +11,16 @@ export const BoatItem = ({ boat }: Props) => {
     <li>
       <Link
         to={`/boats/${boat.id_boat}`}
-        className="block p-4 border rounded-xl hover:shadow-md hover:bg-gray-50 transition"
+        className="block p-4 border rounded-xl hover:shadow-md hover:bg-primary dark:hover:bg-primaryDark transition"
       >
         
-        {/* 🔹 Nombre */}
         <p className="font-semibold text-lg">
           {boat.name}
         </p>
 
-        {/* 🔹 ID debajo */}
         {boat.boat_identifier && (
-          <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
-            <Sailboat size={14} />
+          <div className="flex items-center gap-2 mt-1 text-sm">
+            <Sailboat size={16} />
             <span>{boat.boat_identifier}</span>
           </div>
         )}

@@ -10,21 +10,21 @@ export const RegattaItem = ({ regatta }: { regatta: Regatta }) => {
 
     return (
         <Link to={`/regattas/${regatta.id_regatta}`}>
-            <div className="p-4 border rounded-xl shadow-sm hover:shadow-md hover:bg-gray-50 transition">
+            <div className="p-4 border rounded-xl shadow-sm hover:shadow-md hover:bg-primary dark:hover:bg-primaryDark transition">
 
                 <h2 className="text-lg font-semibold">
                     {regatta.name}
                 </h2>
 
                 {regatta.type && (
-                    <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
+                    <div className="flex items-center gap-2 mt-1 text-sm">
                         <Flag size={12} />
                         <span>{regatta.type}</span>
                     </div>
                 )}
 
                 {location && (
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <div className="flex items-center gap-2 text-sm">
                         <MapPin size={12} />
                         <span>{location}</span>
                     </div>
