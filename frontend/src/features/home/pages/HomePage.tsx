@@ -26,7 +26,7 @@ export const HomePage = () => {
     }, [])
 
     return (
-        <div ref={ref} className="min-h-[80vh] flex flex-col items-center justify-center space-y-8">
+        <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-8">
         
             <h1 className="text-5xl font-bold text-center">
                 Regatta Explorer
@@ -36,7 +36,7 @@ export const HomePage = () => {
             Explore boats, regattas and editions in one place
             </p>
 
-            <div className="relative w-full max-w-xl">
+            <div ref={ref} className="relative w-full max-w-xl">
                 <SearchInput
                     query={query}
                     setQuery={setQuery}
@@ -60,6 +60,9 @@ export const HomePage = () => {
                     className="flex flex-col items-center justify-center p-4 w-24 border rounded-xl hover:bg-gray-100 transition"
                     >
                     <Flag size={28}/>
+                    <span className="mt-2 text-sm font-medium">
+                        Regattas
+                    </span>
                 </Link>
 
                 <Link
@@ -67,6 +70,9 @@ export const HomePage = () => {
                     className="flex flex-col items-center justify-center p-4 w-24 border rounded-xl hover:bg-gray-100 transition"
                     >
                     <Sailboat size={28}/>
+                    <span className="mt-2 text-sm font-medium">
+                        Boats
+                    </span>
                 </Link>
             </div>
         </div>

@@ -1,21 +1,33 @@
 import { Link } from "react-router-dom"
+import { Sailboat } from "lucide-react"
 import type { BoatListItem } from "../types"
 
+interface Props {
+  boat: BoatListItem
+}
 
-export const BoatItem = ({ boat }: { boat: BoatListItem }) => {
-    return (
-    <li> 
-        <Link
+export const BoatItem = ({ boat }: Props) => {
+  return (
+    <li>
+      <Link
         to={`/boats/${boat.id_boat}`}
-        className="flex justify-between items-center p-3 border rounded-lg hover:bg-gray-50 transition"
-        >
-        <span className="font-medium">{boat.name}</span>
+        className="block p-4 border rounded-xl hover:shadow-md hover:bg-gray-50 transition"
+      >
+        
+        {/* 🔹 Nombre */}
+        <p className="font-semibold text-lg">
+          {boat.name}
+        </p>
 
+        {/* 🔹 ID debajo */}
         {boat.boat_identifier && (
-            <span className="text-sm text-gray-500">
-            {boat.boat_identifier}
-            </span>
+          <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
+            <Sailboat size={14} />
+            <span>{boat.boat_identifier}</span>
+          </div>
         )}
-        </Link>
-    </li>)
+
+      </Link>
+    </li>
+  )
 }
