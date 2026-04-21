@@ -1,6 +1,8 @@
 # Output Folder
 data/
 esquema.pgerd
+backup.sql
+raw_backup.sql
 
 # -------------------------------------------------
 # Docker (eliminar cuando este bien hecho)

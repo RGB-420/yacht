@@ -1,6 +1,9 @@
 BEGIN;
 
 
+CREATE SCHEMA IF NOT EXISTS yacht_db;
+CREATE SCHEMA IF NOT EXISTS yacht_raw;
+
 CREATE TABLE IF NOT EXISTS yacht_db.regattas
 (
     id_regatta integer NOT NULL GENERATED ALWAYS AS IDENTITY,
@@ -18,7 +21,7 @@ CREATE TABLE IF NOT EXISTS yacht_db.regatta_editions
     id_edition integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     id_regatta integer NOT NULL,
     year integer NOT NULL,
-    status text NOT NULL DEFAULT unknown,
+    status text NOT NULL DEFAULT 'unknown',
     created_at timestamp with time zone DEFAULT NOW(),
     PRIMARY KEY (id_edition),
     UNIQUE (year, id_regatta)

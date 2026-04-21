@@ -24,6 +24,6 @@ def get_engine():
             database=database,
         )
 
-    engine = create_engine(url, echo=False, future=True, pool_pre_ping=True)
+    engine = create_engine(url, echo=False, future=True, pool_pre_ping=True, connect_args={"sslmode": "require"})
 
     return engine

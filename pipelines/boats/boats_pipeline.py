@@ -50,7 +50,7 @@ def run_boats_pipeline():
     inserted_owners = 0
     inserted_types = 0
     inserted_clubs = 0
-
+    
     with engine.begin() as conn:
 
         prenorm = {
@@ -59,7 +59,10 @@ def run_boats_pipeline():
             "boat_type": set(),
         }
 
-        for _, row in df_master.iterrows():
+        for i, (_, row) in enumerate(df_master.iterrows()):
+
+            if i % 100 == 0:
+                logger.info(f"Processing row {i}/{len(df_master)}")
             source = row["Source"]
 
             if "-" not in source:
