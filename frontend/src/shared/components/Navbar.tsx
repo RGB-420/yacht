@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { House, Sailboat, Flag } from "lucide-react"
+import { House, Sailboat, Flag, Boxes, University } from "lucide-react"
 
 import { ThemeToggle } from "./ThemeToggle"
 
@@ -52,6 +52,34 @@ export const Navbar = () => {
 
           <span className="py-1 text-xs font-medium">
             Boats
+          </span>
+        </Link>
+
+        <Link
+          to="/classes"
+          className="flex flex-col items-center text-sm 
+          text-text dark:text-textDark
+          hover:opacity-70
+          transition"
+        >
+          <Boxes size={20} />
+
+          <span className="py-1 text-xs font-medium">
+            Classes
+          </span>
+        </Link>
+
+        <Link
+          to="/clubs"
+          className="flex flex-col items-center text-sm 
+          text-text dark:text-textDark
+          hover:opacity-70
+          transition"
+        >
+          <University size={20} />
+
+          <span className="py-1 text-xs font-medium">
+            Cubs
           </span>
         </Link>
 

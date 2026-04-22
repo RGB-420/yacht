@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom"
 import { useBoat } from "../hooks/useBoat"
 import { useBoatEditions } from "../hooks/useBoatsEditions"
 import { EditionBoatItem } from "../../editions/components/EditionBoatItem"
+import { ClipLoader } from "react-spinners"
 
 export const BoatDetailPage = () => {
     const { id } = useParams()
@@ -9,7 +10,12 @@ export const BoatDetailPage = () => {
     const { boat, loading, error } = useBoat(id)
     const { editions, loading: loadingEditions } = useBoatEditions(id)
 
-    if (loading) return <p className="p-4">Loading...</p>
+    if (loading) 
+      return (
+          <div className="flex justify-center items-center p-10">
+              <ClipLoader size={30} color={"#3b82f6"} />
+          </div>
+      )
     if (error) return <p className="p-4">{error}</p>
     if (!boat) return <p className="p-4">No data</p>
 

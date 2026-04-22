@@ -4,6 +4,7 @@ import { useEdition } from "../hooks/useEdition"
 import { useEditionBoats } from "../hooks/useEditionBoats"
 import { BoatItem } from "../../boats/components/BoatItem"
 import { Calendar, Flag } from "lucide-react"
+import { ClipLoader } from "react-spinners"
 
 export const EditionDetailPage = () => {
     const { id } = useParams()
@@ -11,7 +12,12 @@ export const EditionDetailPage = () => {
     const { edition, loading, error } = useEdition(id)
     const { boats, loading: loadingBoats } = useEditionBoats(id)
 
-    if (loading) return <p className="p-4">Loading...</p>
+    if (loading) 
+        return (
+            <div className="flex justify-center items-center p-10">
+                <ClipLoader size={30} color={"#3b82f6"} />
+            </div>
+        )
     if (error) return <p className="p-4">{error}</p>
     if (!edition) return <p className="p-4">No data</p>
 

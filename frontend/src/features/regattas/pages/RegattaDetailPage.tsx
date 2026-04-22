@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom"
 import { useRegatta } from "../hooks/useRegatta"
 import { useRegattaEditions } from "../hooks/useRegattaEditions"
 import { EditionRegattaItem } from "../../editions/components/EditionRegattaItem"
+import { ClipLoader } from "react-spinners"
 
 export const RegattaDetailPage = () => {
     const { id } = useParams()
@@ -9,7 +10,12 @@ export const RegattaDetailPage = () => {
     const { regatta, loading, error } = useRegatta(id)
     const { editions, loading: loadingEditions } = useRegattaEditions(id)
 
-    if (loading) return <p className="p-4">Loading...</p>
+    if (loading) 
+        return (
+            <div className="flex justify-center items-center p-10">
+                <ClipLoader size={30} color={"#3b82f6"} />
+            </div>
+        )
     if (error) return <p className="p-4">{error}</p>
 
     if (!regatta) return <p className="p-4">No data</p>

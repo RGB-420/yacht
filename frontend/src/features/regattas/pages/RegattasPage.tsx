@@ -2,14 +2,20 @@ import { useState } from "react"
 import { useRegattas } from "../hooks/useRegattas"
 import { RegattaItem } from "../components/RegattaItem"
 import { PaginationControls } from "../../../shared/components/PaginationControls"
+import { ClipLoader } from "react-spinners"
 
 export const RegattasPage = () => {
     const [page, setPage] = useState(1)
     const [limit, setLimit] = useState(50)
 
     const { regattas, total, loading, error } = useRegattas(page, limit)
-
-    if (loading) return <p className="p-4">Loading...</p>
+    
+    if (loading) 
+        return (
+            <div className="flex justify-center items-center p-10">
+                <ClipLoader size={30} color={"#3b82f6"} />
+            </div>
+        )
     if (error) return <p className="p-4">{error}</p>
 
     return (
