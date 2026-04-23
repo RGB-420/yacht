@@ -1,89 +1,72 @@
 import { Link } from "react-router-dom"
-import { House, Sailboat, Flag, Boxes, University } from "lucide-react"
-
+import { House, Menu, X } from "lucide-react"
+import { NavLinks } from "./NavLinks"
 import { ThemeToggle } from "./ThemeToggle"
+import { useState } from "react"
 
 export const Navbar = () => {
-  return (
-    <div className="relative px-6 py-4 flex items-center 
-      bg-surface dark:bg-surfaceDark 
-      border-b border-border dark:border-borderDark 
-      transition-colors"
-    >
-      <ThemeToggle />
+  const [open, setOpen] = useState(false)
 
+  return (
+    <div className="
+      relative px-4 py-3 flex items-center
+      bg-surface dark:bg-surfaceDark
+      border-b border-border dark:border-borderDark
+    ">
+
+      {/* LEFT */}
+      <div className="flex items-center gap-4">
+
+        {/* MÓVIL → HAMBURGER */}
+        <button
+          className="sm:hidden"
+          onClick={() => setOpen(!open)}
+        >
+          {open ? <X size={22} /> : <Menu size={22} />}
+        </button>
+
+        {/* DESKTOP → NAV LINKS */}
+        <div className="hidden sm:flex gap-6">
+          <NavLinks />
+        </div>
+
+      </div>
+
+      {/* LOGO CENTRO */}
       <Link
         to="/"
-        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 
-        text-text dark:text-textDark 
-        hover:opacity-70 transition"
+        className="
+          absolute left-1/2 -translate-x-1/2
+          flex items-center gap-2
+          text-text dark:text-textDark
+        "
       >
-        <House size={20} className="text-text dark:text-textDark" />
-
+        <House size={20} />
         <span className="font-semibold">
           Regatta Explorer
         </span>
       </Link>
-    
-      <div className="ml-auto flex items-center gap-6">
 
-        <Link
-          to="/regattas"
-          className="flex flex-col items-center text-sm 
-          text-text dark:text-textDark
-          hover:opacity-70
-          transition"
-        >
-          <Flag size={20} />
-
-          <span className="py-1 text-xs font-medium">
-            Regattas
-          </span>
-        </Link>
-
-        <Link
-          to="/boats"
-          className="flex flex-col items-center text-sm 
-          text-text dark:text-textDark
-          hover:opacity-70
-          transition"
-        >
-          <Sailboat size={20} />
-
-          <span className="py-1 text-xs font-medium">
-            Boats
-          </span>
-        </Link>
-
-        <Link
-          to="/classes"
-          className="flex flex-col items-center text-sm 
-          text-text dark:text-textDark
-          hover:opacity-70
-          transition"
-        >
-          <Boxes size={20} />
-
-          <span className="py-1 text-xs font-medium">
-            Classes
-          </span>
-        </Link>
-
-        <Link
-          to="/clubs"
-          className="flex flex-col items-center text-sm 
-          text-text dark:text-textDark
-          hover:opacity-70
-          transition"
-        >
-          <University size={20} />
-
-          <span className="py-1 text-xs font-medium">
-            Cubs
-          </span>
-        </Link>
-
+      {/* RIGHT → SOLO THEME */}
+      <div className="ml-auto">
+        <ThemeToggle />
       </div>
+
+      {/* MOBILE MENU */}
+      {open && (
+        <div className="
+          absolute top-full left-0 w-full
+          bg-surface/90 dark:bg-surfaceDark/90
+          backdrop-blur-md
+          border-t border-border dark:border-borderDark
+          shadow-xl
+          flex flex-col items-center gap-4 py-4
+          sm:hidden
+          z-50
+        ">
+          <NavLinks onClick={() => setOpen(false)} />
+        </div>
+      )}
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { EditionDetailPage } from "../features/editions/pages/EditionDetailPage"
 import { BoatDetailPage } from "../features/boats/pages/BoatDetailPage"
 import { BoatsPage } from "../features/boats/pages/BoatsPage"
 import { ClassesPage } from "../features/classes/pages/ClassesPage"
+import { ClassDetailPage } from "../features/classes/pages/ClassDetailPage"
 import { ClubsPage } from "../features/clubs/pages/ClubsPage"
 
 export const AppRoutes = () => {
@@ -24,6 +25,8 @@ export const AppRoutes = () => {
             <Route path="/boats/:id" element={<BoatDetailPage />} />
 
             <Route path="/classes" element={<ClassesPage />} />
+
+            <Route path="/classes/:id" element={<ClassDetailPage />} />
 
             <Route path="/clubs" element={<ClubsPage />} />
         </Routes>

@@ -33,7 +33,7 @@ export const HomePage = () => {
                 <ThemeToggle />
             </div>
 
-            <h1 className="text-5xl font-bold text-center">
+            <h1 className="text-3xl sm:text-5xl font-bold text-center">
                 Regatta Explorer
             </h1>
 
@@ -59,10 +59,10 @@ export const HomePage = () => {
                     />
                 )}
             </div>
-            <div className="flex justify-center gap-10 mt-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <Link
                     to="/regattas"
-                    className="flex flex-col items-center justify-center p-4 w-24 border-2 border-border dark:border-borderDark rounded-xl hover:bg-primary dark:hover:bg-primaryDark transition-colors"
+                    className="flex flex-col items-center justify-center p-4 w-full border-2 border-border dark:border-borderDark rounded-xl hover:bg-primary dark:hover:bg-primaryDark transition-colors"
                     >
                     <Flag size={28}/>
                     <span className="mt-2 text-sm font-medium">
@@ -72,7 +72,7 @@ export const HomePage = () => {
 
                 <Link
                     to="/boats"
-                    className="flex flex-col items-center justify-center p-4 w-24 border-2 border-border dark:border-borderDark rounded-xl hover:bg-primary dark:hover:bg-primaryDark transition-colors"
+                    className="flex flex-col items-center justify-center p-4 w-full border-2 border-border dark:border-borderDark rounded-xl hover:bg-primary dark:hover:bg-primaryDark transition-colors"
                     >
                     <Sailboat size={28}/>
                     <span className="mt-2 text-sm font-medium">
@@ -82,7 +82,7 @@ export const HomePage = () => {
 
                 <Link
                     to="/classes"
-                    className="flex flex-col items-center justify-center p-4 w-24 border-2 border-border dark:border-borderDark rounded-xl hover:bg-primary dark:hover:bg-primaryDark transition-colors"
+                    className="flex flex-col items-center justify-center p-4 w-full border-2 border-border dark:border-borderDark rounded-xl hover:bg-primary dark:hover:bg-primaryDark transition-colors"
                     >
                     <Boxes size={28}/>
                     <span className="mt-2 text-sm font-medium">
@@ -92,7 +92,7 @@ export const HomePage = () => {
 
                 <Link
                     to="/clubs"
-                    className="flex flex-col items-center justify-center p-4 w-24 border-2 border-border dark:border-borderDark rounded-xl hover:bg-primary dark:hover:bg-primaryDark transition-colors"
+                    className="flex flex-col items-center justify-center p-4 w-full border-2 border-border dark:border-borderDark rounded-xl hover:bg-primary dark:hover:bg-primaryDark transition-colors"
                     >
                     <University size={28}/>
                     <span className="mt-2 text-sm font-medium">
