@@ -22,7 +22,7 @@ def list_club(db: Session = Depends(get_db)):
 
     return clubs
 
-@router.get("/{club_id}", response_model=List[ClubDetail])
+@router.get("/{club_id}", response_model=ClubDetail)
 def get_club(club_id: int, db: Session = Depends(get_db)):
     club = get_club_by_id(db, club_id)
 
