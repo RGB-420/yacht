@@ -22,7 +22,7 @@ def list_classes(db: Session = Depends(get_db)):
 
     return classes
 
-@router.get("/{class_id}", response_model=List[BoatClass])
+@router.get("/{class_id}", response_model=BoatClass)
 def get_class(class_id: int, db: Session = Depends(get_db)):
     boat_class = get_class_by_id(db, class_id)
 
