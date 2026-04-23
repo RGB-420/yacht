@@ -3,6 +3,7 @@ import { useRegatta } from "../hooks/useRegatta"
 import { useRegattaEditions } from "../hooks/useRegattaEditions"
 import { EditionRegattaItem } from "../../editions/components/EditionRegattaItem"
 import { ClipLoader } from "react-spinners"
+import { CollapsibleSection } from "../../../shared/components/CollapsibleSection"
 
 export const RegattaDetailPage = () => {
     const { id } = useParams()
@@ -30,10 +31,8 @@ export const RegattaDetailPage = () => {
                 {regatta.city && <p><strong>City:</strong> {regatta.city}</p>}
                 {regatta.region && <p><strong>Region:</strong> {regatta.region}</p>}
                 {regatta.country && <p><strong>Country:</strong> {regatta.country}</p>}
-                <p><strong>Editions:</strong> {regatta.number_of_editions}</p>
 
-                <div className="mt-6">
-                    <h2 className="text-xl font-semibold">Editions</h2>
+                <CollapsibleSection title="Editions" count={regatta.number_of_editions}>
 
                     {loadingEditions && <p>Loading editions...</p>}
 
@@ -46,7 +45,7 @@ export const RegattaDetailPage = () => {
                             <EditionRegattaItem key={edition.id_edition} edition={edition}/>
                         ))}
                     </ul>
-                </div>
+                </CollapsibleSection>
             </div>
         </div>
     )

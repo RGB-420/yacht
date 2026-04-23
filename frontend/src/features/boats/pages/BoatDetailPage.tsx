@@ -3,6 +3,7 @@ import { useBoat } from "../hooks/useBoat"
 import { useBoatEditions } from "../hooks/useBoatsEditions"
 import { EditionBoatItem } from "../../editions/components/EditionBoatItem"
 import { ClipLoader } from "react-spinners"
+import { CollapsibleSection } from "../../../shared/components/CollapsibleSection"
 
 export const BoatDetailPage = () => {
     const { id } = useParams()
@@ -59,8 +60,7 @@ export const BoatDetailPage = () => {
         </div>
       )}
 
-      <div className="mt-6">
-        <h2 className="text-xl font-semibold">Participations</h2>
+      <CollapsibleSection title="Participations" >
 
         {loadingEditions && <p>Loading...</p>}
 
@@ -73,7 +73,7 @@ export const BoatDetailPage = () => {
             <EditionBoatItem key={ed.id_edition} edition={ed} />
           ))}
         </ul>
-      </div>
+      </CollapsibleSection>
     </div>
   )
 }

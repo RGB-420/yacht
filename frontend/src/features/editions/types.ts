@@ -13,3 +13,10 @@ export interface EditionDetail {
     number_of_classes: number
     status: "past" | "future"
 }
+
+export interface EditionClasses {
+    id_class: number
+    name: string
+
+    number_of_boats: number
+}

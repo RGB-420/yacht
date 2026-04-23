@@ -5,12 +5,16 @@ import { useEditionBoats } from "../hooks/useEditionBoats"
 import { BoatItem } from "../../boats/components/BoatItem"
 import { Calendar, Flag } from "lucide-react"
 import { ClipLoader } from "react-spinners"
+import { CollapsibleSection } from "../../../shared/components/CollapsibleSection"
+import { useEditionClasses } from "../hooks/useEditionClasses"
+import { ClassItem } from "../../classes/components/ClassItem"
 
 export const EditionDetailPage = () => {
     const { id } = useParams()
 
     const { edition, loading, error } = useEdition(id)
     const { boats, loading: loadingBoats } = useEditionBoats(id)
+    const { classes, loading: loadingClasses } = useEditionClasses(id)
 
     if (loading) 
         return (
@@ -48,11 +52,10 @@ export const EditionDetailPage = () => {
             </div>
 
             <div className="space-y-1">
-                <p><strong>Boats:</strong> {edition.number_of_boats}</p>
                 <p><strong>Classes:</strong> {edition.number_of_classes}</p>
             </div>
-            <div className="mt-6">
-                <h2 className="text-xl font-semibold">Boats</h2>
+
+            <CollapsibleSection title="Boats" count={edition.number_of_boats}>
 
                 {loadingBoats && <p>Loading boats...</p>}
 
@@ -65,7 +68,22 @@ export const EditionDetailPage = () => {
                         <BoatItem key={boat.id_boat} boat={boat} />
                     ))}
                 </ul>
-            </div>
+            </CollapsibleSection>
+
+            <CollapsibleSection title="Classes" count={edition.number_of_classes}>
+
+                {loadingClasses && <p>Loading classes...</p>}
+
+                {!loadingClasses && classes.length === 0 && (
+                    <p>No classes found</p>
+                )}
+
+                <ul className="mt-2 space-y-2">
+                    {classes.map((class_) => (
+                        <ClassItem key={class_.id_class} cls={class_} />
+                    ))}
+                </ul>
+            </CollapsibleSection>
         </div>
     )
 }

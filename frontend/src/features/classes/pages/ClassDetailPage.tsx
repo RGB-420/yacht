@@ -3,6 +3,7 @@ import { useClass } from "../hooks/useClass"
 import { ClipLoader } from "react-spinners"
 import { useClassBoat } from "../hooks/useClassBoats"
 import { BoatItem } from "../../boats/components/BoatItem"
+import { CollapsibleSection } from "../../../shared/components/CollapsibleSection"
 
 export const ClassDetailPage = () => {
     const { id } = useParams()
@@ -39,8 +40,7 @@ export const ClassDetailPage = () => {
                 )}
                 {class_.length_m && <p><strong>Length:</strong> {class_.length_m} m</p>}
 
-                <div className="mt-6">
-                    <h2 className="text-xl font-semibold">Boats {class_.number_of_boats}</h2>
+                <CollapsibleSection title="Boats" count={class_.number_of_boats}>
 
                     {loadingBoats && <p>Loading boats...</p>}
 
@@ -53,10 +53,8 @@ export const ClassDetailPage = () => {
                             <BoatItem key={boat.id_boat} boat={boat}/>
                         ))}
                     </ul>
-                </div>
+                </CollapsibleSection>
             </div>
-
-
         </div>
     )
 }
