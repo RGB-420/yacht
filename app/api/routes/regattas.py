@@ -5,11 +5,9 @@ from typing import List
 from app.api.dependencies.database import get_db
 from app.schemas.regatta import Regatta, PaginatedRegattas
 from app.schemas.regatta_edition import RegattaEdition
-from app.schemas.regatta_link import RegattaLink
 
 from app.repositories.regattas_repo import get_regattas, get_regatta_by_id, count_regattas
 from app.repositories.editions_repo import get_regatta_editions
-from app.repositories.regatta_links_repo import get_regatta_links
 
 router = APIRouter(
         prefix="/regattas",
@@ -46,9 +44,3 @@ def list_regatta_editions(regatta_id: int, db: Session = Depends(get_db)):
     editions = get_regatta_editions(db, regatta_id)
 
     return editions
-
-@router.get("/{regatta_id}/links", response_model=List[RegattaLink])
-def list_regatta_links(regatta_id: int, db: Session = Depends(get_db)):
-    links = get_regatta_links(db, regatta_id)
-
-    return links

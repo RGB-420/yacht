@@ -6,10 +6,12 @@ from app.api.dependencies.database import get_db
 from app.schemas.edition import Edition
 from app.schemas.edition_boat import EditionBoat
 from app.schemas.edition_class import EditionClass
+from app.schemas.regatta_link import RegattaLink
 
 from app.repositories.editions_repo import get_edition_by_id
 from app.repositories.boat_editions_repo import get_edition_boats
 from app.repositories.edition_classes_repo import get_edition_classes
+from app.repositories.regatta_links_repo import get_edition_links
 
 router = APIRouter(
         prefix="/editions",
@@ -36,3 +38,9 @@ def list_edition_classes(edition_id: int, db: Session = Depends(get_db)):
     classes = get_edition_classes(db, edition_id)
 
     return classes
+
+@router.get("/{edition_id}/links", response_model=List[RegattaLink])
+def list_edition_links(edition_id: int, db: Session = Depends(get_db)):
+    links = get_edition_links(db, edition_id)
+
+    return links

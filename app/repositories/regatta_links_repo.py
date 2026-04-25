@@ -17,15 +17,15 @@ def upsert_regatta_link(conn, edition_id, url):
 
     return result is not None
 
-def get_regatta_links(conn, regatta_id):
+def get_edition_links(conn, edition_id):
     query = text("""
         SELECT rl.id_link, rl.url, re.year
         FROM yacht_db.regatta_links rl
         JOIN yacht_db.regatta_editions re ON rl.id_edition = re.id_edition
-        WHERE re.id_regatta = :regatta_id
+        WHERE re.id_edition = :edition_id
         ORDER BY re.year DESC
     """)
 
-    result = conn.execute(query, {"regatta_id": regatta_id})
+    result = conn.execute(query, {"edition_id": edition_id})
 
     return rows_to_dict(result)
