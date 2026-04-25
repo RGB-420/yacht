@@ -19,8 +19,8 @@ export const PageSizeSelector = ({ value, options, onChange }: Props) => {
             onClick={() => onChange(opt)}
             className={`px-2 py-1 text-sm ${
               value === opt
-                ? "bg-primary text-textDark dark:text-text"
-                : "bg-background dark:bg-backgroundDark text-text dark:text-textDark  hover:bg-border dark:hover:bg-borderDark"
+                ? "bg-primary text-textDark"
+                : "bg-background dark:bg-backgroundDark hover:bg-border dark:hover:bg-borderDark"
             }`}
           >
             {opt}

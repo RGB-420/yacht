@@ -60,7 +60,7 @@ export const Pagination = ({ page, total, limit, onPageChange }: Props) => {
                 onClick={() => onPageChange(p)}
                 className={`px-3 py-2 border border-border dark:border-borderDark ${
                 p === page
-                    ? "bg-primary text-white"
+                    ? "bg-primary text-textDark"
                     : "hover:bg-border dark:hover:bg-borderDark"
                 }`}
             >

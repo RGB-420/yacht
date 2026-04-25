@@ -3,11 +3,12 @@ import { Link } from "react-router-dom"
 import { useEdition } from "../hooks/useEdition"
 import { useEditionBoats } from "../hooks/useEditionBoats"
 import { BoatItem } from "../../boats/components/BoatItem"
-import { Calendar, Flag } from "lucide-react"
+import { Calendar, Flag, ExternalLink } from "lucide-react"
 import { ClipLoader } from "react-spinners"
 import { CollapsibleSection } from "../../../shared/components/CollapsibleSection"
 import { useEditionClasses } from "../hooks/useEditionClasses"
 import { ClassItem } from "../../classes/components/ClassItem"
+import { useEditionLinks } from "../hooks/useEditionLinks"
 
 export const EditionDetailPage = () => {
     const { id } = useParams()
@@ -15,6 +16,7 @@ export const EditionDetailPage = () => {
     const { edition, loading, error } = useEdition(id)
     const { boats, loading: loadingBoats } = useEditionBoats(id)
     const { classes, loading: loadingClasses } = useEditionClasses(id)
+    const { links, loading: loadingLinks } = useEditionLinks(id)
 
     if (loading) 
         return (
@@ -46,13 +48,10 @@ export const EditionDetailPage = () => {
                     </Link>
                 </div>
             </div>
+
             <div className="flex items-center gap-2 mt-1 text-sm">
                 <Calendar size={20} />
                 <span className="text-xl font-semibold"> {edition.year}</span>
-            </div>
-
-            <div className="space-y-1">
-                <p><strong>Classes:</strong> {edition.number_of_classes}</p>
             </div>
 
             <CollapsibleSection title="Boats" count={edition.number_of_boats}>
@@ -81,6 +80,36 @@ export const EditionDetailPage = () => {
                 <ul className="mt-2 space-y-2">
                     {classes.map((class_) => (
                         <ClassItem key={class_.id_class} cls={class_} />
+                    ))}
+                </ul>
+            </CollapsibleSection>
+
+            <CollapsibleSection title="Links" count={links.length}>
+
+                {loadingLinks && <p>Loading links...</p>}
+
+                {!loadingLinks && links.length === 0 && (
+                    <p>No links found</p>
+                )}
+
+                <ul className="mt-2 space-y-2">
+                    {links.map((link) => (
+                        <li key={link.id_link}>
+                            <a
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block px-3 py-2 border-2 border-border dark:border-borderDark rounded-xl hover:bg-primary dark:hover:bg-primaryDark hover:text-white transition-colors"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium">
+                                        View Official Results
+                                    </span>
+
+                                    <ExternalLink size={20} />
+                                </div>
+                            </a>
+                        </li>
                     ))}
                 </ul>
             </CollapsibleSection>

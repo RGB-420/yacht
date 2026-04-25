@@ -20,3 +20,9 @@ export interface EditionClasses {
 
     number_of_boats: number
 }
+
+export interface EditionLink {
+    id_link: number
+    url: string
+    year: number
+}
