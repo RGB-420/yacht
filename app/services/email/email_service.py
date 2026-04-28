@@ -6,7 +6,7 @@ resend.api_key = os.getenv("RESEND_API_KEY")
 def send_feedback_email(feedback: dict):
     try:
         resend.Emails.send({
-            "from": "onboarding@resned.dev",
+            "from": "onboarding@resend.dev",
             "to": "73raul7373@gmail.com",
             "subject": "New feedback received",
             "html": f"""
