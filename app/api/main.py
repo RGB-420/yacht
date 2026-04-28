@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import regattas, editions, boats, classes, clubs, search,project, feedbacks
+from app.api.routes import regattas, editions, boats, classes, clubs, search, project, feedbacks, schedule
 
 docs_url = os.getenv("PROJECT_DOCS_URL")
 
@@ -31,6 +31,7 @@ app.include_router(editions.router)
 app.include_router(boats.router)
 app.include_router(classes.router)
 app.include_router(clubs.router)
+app.include_router(schedule.router)
 
 app.include_router(search.router)
 

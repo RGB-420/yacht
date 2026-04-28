@@ -4,7 +4,7 @@ import { useSearch } from "../../search/hooks/useSearch"
 import { SearchInput } from "../components/SearchInput"
 import { SearchDropdown } from "../components/SearchDropdown"
 import { ThemeToggle } from "../../../shared/components/ThemeToggle"
-import { Sailboat, Flag, Boxes, University } from "lucide-react"
+import { Sailboat, Flag, Boxes, University, Calendar } from "lucide-react"
 
 export const HomePage = () => {
     const [query, setQuery] = useState("")
@@ -97,6 +97,16 @@ export const HomePage = () => {
                     <University size={28}/>
                     <span className="mt-2 text-sm font-medium">
                         Clubs
+                    </span>
+                </Link>
+
+                <Link
+                    to="/calendar"
+                    className="flex flex-col items-center justify-center p-4 w-full border-2 border-border dark:border-borderDark rounded-xl hover:bg-primary dark:hover:bg-primaryDark transition-colors"
+                    >
+                    <Calendar size={28}/>
+                    <span className="mt-2 text-sm font-medium">
+                        Calendar
                     </span>
                 </Link>
             </div>

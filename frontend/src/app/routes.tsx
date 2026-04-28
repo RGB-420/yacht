@@ -9,6 +9,7 @@ import { ClassesPage } from "../features/classes/pages/ClassesPage"
 import { ClassDetailPage } from "../features/classes/pages/ClassDetailPage"
 import { ClubsPage } from "../features/clubs/pages/ClubsPage"
 import { ClubDetailPage } from "../features/clubs/pages/ClubDetailPage"
+import { CalendarPage } from "../features/schedules/pages/CalendarPage"
 
 export const AppRoutes = () => {
     return (
@@ -32,6 +33,8 @@ export const AppRoutes = () => {
             <Route path="/clubs" element={<ClubsPage />} />
 
             <Route path="/clubs/:id" element={<ClubDetailPage />} />
+
+            <Route path="/calendar" element={<CalendarPage />} />
         </Routes>
     )
 }

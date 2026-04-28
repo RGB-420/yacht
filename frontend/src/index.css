@@ -1,3 +1,135 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --fc-bg: #f9fafb;           /* background */
+  --fc-text: #111827;         /* text */
+  --fc-border: #d1d5db;       /* border */
+  --fc-primary: #3b82f6;      /* primary */
+  --fc-primary-hover: #2563eb;
+
+  --fc-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.dark {
+  --fc-bg: #0f172a;           /* backgroundDark */
+  --fc-text: #f9fafb;         /* textDark */
+  --fc-border: #334155;       /* borderDark */
+  --fc-primary: #2563eb;      /* primaryDark */
+  --fc-primary-hover: #3b82f6;
+
+  --fc-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+.fc {
+  background-color: var(--fc-bg);
+  color: var(--fc-text);
+}
+
+/* Celdas del calendario */
+.fc-daygrid-day {
+  border: 1px solid var(--fc-border) !important;
+}
+
+.dark .fc-daygrid-day {
+  border: 1px solid var(--fc-border) !important;
+}
+
+/* Cabecera días (Sun, Mon...) */
+.fc-col-header {
+  background-color: var(--fc-bg) !important;
+}
+
+.fc-col-header-cell {
+  background-color: var(--fc-bg) !important;
+  color: var(--fc-text) !important;
+  border-color: var(--fc-border) !important;
+}
+
+/* Día actual */
+.fc-day-today {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+}
+
+.fc-event {
+  background-color: var(--fc-primary) !important;
+  border: none !important;
+  border-radius: 4px !important;
+  padding: 1px 4px !important;
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.fc-event:hover {
+  background-color: var(--fc-primary-hover) !important;
+  cursor: pointer;
+}
+
+.fc-popover {
+  background-color: var(--fc-bg) !important;
+  color: var(--fc-text) !important;
+  border: 1px solid var(--fc-border) !important;
+  box-shadow: var(--fc-shadow) !important;
+  border-radius: 12px !important;
+  padding: 8px;
+}
+
+/* Header del popover */
+.fc-popover-header {
+  background: transparent !important;
+  border-bottom: 1px solid var(--fc-border);
+  font-weight: 600;
+  padding: 6px 8px;
+}
+
+/* Botón cerrar */
+.fc-popover-close {
+  color: #9ca3af !important;
+}
+
+/* Body */
+.fc-popover-body {
+  padding: 4px;
+}
+
+/* Eventos dentro del popover */
+.fc-popover .fc-event {
+  background-color: var(--fc-primary) !important;
+  border-radius: 6px !important;
+  padding: 4px 6px;
+  margin-bottom: 4px;
+}
+
+.fc-popover .fc-event:hover {
+  background-color: var(--fc-primary-hover) !important;
+}
+
+.fc-button {
+  background-color: transparent !important;
+  border: 1px solid var(--fc-border) !important;
+  color: var(--fc-text) !important;
+  border-radius: 8px !important;
+  padding: 4px 10px !important;
+}
+
+.fc-button:hover {
+  background-color: var(--fc-border) !important;
+}
+
+.fc-button-active {
+  background-color: var(--fc-primary) !important;
+  color: var(--fc-primary) !important;
+  border: none !important;
+}
+
+.fc-daygrid-more-link {
+  color: var(--fc-primary);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.fc-daygrid-more-link:hover {
+  text-decoration: underline;
+}

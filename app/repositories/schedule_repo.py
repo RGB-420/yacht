@@ -49,15 +49,16 @@ def get_all_schedule_with_regatta(conn):
 
 def get_schedule_with_dates(conn):
     query = text("""
-        SELECT r.name, e.year, rs.start_date, rs.end_date, rl.url
+        SELECT r.id_regatta, r.name AS regatta_name, e.id_edition, e.year, rs.start_date, rs.end_date
         FROM yacht_db.regatta_schedule rs
         JOIN yacht_db.regatta_editions e 
             ON e.id_edition = rs.id_edition
         JOIN yacht_db.regattas r 
             ON r.id_regatta = e.id_regatta
-        JOIN yacht_db.regatta_links rl
-            ON rl.id_edition = e.id_edition
+
         WHERE rs.start_date IS NOT NULL
+        
+        ORDER BY rs.start_date ASC
     """)
 
     result = conn.execute(query)
