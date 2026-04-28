@@ -2,9 +2,13 @@ import os
 import resend
 
 resend.api_key = os.getenv("RESEND_API_KEY")
+BASE_URL = "https://regatta-explorer.vercel.app"
 
 def send_feedback_email(feedback: dict):
     try:
+        page = feedback.get("page")
+        page_url = f"{BASE_URL}{page}" if page else "No page provided"
+    
         resend.Emails.send({
             "from": "onboarding@resend.dev",
             "to": "73raul7373@gmail.com",
@@ -41,18 +45,15 @@ def send_feedback_email(feedback: dict):
                             </div>
                         </div>
 
-                        <div style="margin-bottom: 20px;">
-                            <strong>Page:</strong><br/>
-                            <a href="{feedback.get("page")}" style="color: #2563eb;">
-                                {feedback.get("page")}
-                            </a>
+                        <p><strong>Page:</strong></p>
+                        <a href="{page_url}">{page_url}</a>
+
+                        <div style="margin-top: 15px;">
+                        <a href="{page_url}" 
+                            style="display:inline-block;padding:10px 15px;background:#2563eb;color:white;border-radius:6px;text-decoration:none;">
+                            Open page
+                        </a>
                         </div>
-
-                        <hr style="margin: 20px 0;" />
-
-                        <p style="font-size: 12px; color: #888;">
-                            This email was generated automatically from your feedback system.
-                        </p>
 
                     </div>
                 </div>
