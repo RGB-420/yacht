@@ -8,13 +8,54 @@ def send_feedback_email(feedback: dict):
         resend.Emails.send({
             "from": "onboarding@resend.dev",
             "to": "73raul7373@gmail.com",
-            "subject": "New feedback received",
+            "subject": f"""[FEEDBACK] {feedback.get('type')} - {feedback.get('entity_type')}""",
             "html": f"""
-                <h3>New feedback</h3>
-                <p><strong>Entity:>/strong> {feedback.get("entity_type")}</p>
-                <p><strong>Type:</strong> {feedback.get("type")}</p>
-                <p><strong>Message:</strong> {feedback.get("message")}</p>
-                <p><strong>Page:</strong> {feedback.get("page")}</p>                
+                <div style="font-family: Arial, sans-serif; background-color: #f4f4f5; padding: 20px;">
+                    <div style="max-width: 600px; margin: auto; background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+
+                        <h2 style="margin-bottom: 10px;">New Feedback Received</h2>
+
+                        <p style="color: #555; margin-bottom: 20px;">
+                            A user has reported an issue in your app.
+                        </p>
+
+                        <div style="margin-bottom: 10px;">
+                            <strong>ID:</strong> {feedback.get("id")}
+                        </div>
+
+                        <div style="margin-bottom: 10px;">
+                            <strong>Entity:</strong> {feedback.get("entity_type")}
+                        </div>
+
+                        <div style="margin-bottom: 10px;">
+                            <strong>Type:</strong> 
+                            <span style="color: #ef4444; font-weight: bold;">
+                                {feedback.get("type")}
+                            </span>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <strong>Message:</strong>
+                            <div style="background: #f9fafb; padding: 10px; border-radius: 6px; margin-top: 5px;">
+                                {feedback.get("message") or "No message provided"}
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <strong>Page:</strong><br/>
+                            <a href="{feedback.get("page")}" style="color: #2563eb;">
+                                {feedback.get("page")}
+                            </a>
+                        </div>
+
+                        <hr style="margin: 20px 0;" />
+
+                        <p style="font-size: 12px; color: #888;">
+                            This email was generated automatically from your feedback system.
+                        </p>
+
+                    </div>
+                </div>
             """
         })
     
