@@ -1,5 +1,6 @@
 import { apiFetch } from "../../../shared/api/client"
+import type { Club } from "../types"
 
-export const getClubById = async (id: string) => {
-    return apiFetch(`/clubs/${id}`)
+export const getClubById = (id: string): Promise<Club> => {
+  return apiFetch<Club>(`/clubs/${id}`)
 }
