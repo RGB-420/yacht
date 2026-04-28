@@ -5,7 +5,7 @@ import { useClubBoats } from "../hooks/useClubBoats"
 import { BoatItem } from "../../boats/components/BoatItem"
 import { useClubRegattas } from "../hooks/useClubRegattas"
 import { RegattaItem } from "../../regattas/components/RegattaItem"
-
+import { FeedbackButton } from "../../feedback/components/FeedbackButton"
 import { CollapsibleSection } from "../../../shared/components/CollapsibleSection"
 
 export const ClubDetailPage = () => {
@@ -27,7 +27,18 @@ export const ClubDetailPage = () => {
 
     return (
         <div className="p-4 space-y-4">
-            <h1 className="text-2xl font-bold">{club.name}</h1>
+            <div className="flex items-center">
+                <h1 className="text-2xl font-bold">
+                    {club.name}
+                </h1>
+                <div className="ml-auto">
+                    <FeedbackButton
+                        entityType="club"
+                        entityId={Number(id)}
+                    />
+                </div>
+            </div>
+            
 
             <div className="space-y-1">
                 {club.short_name && <p><strong>Short name:</strong> {club.short_name}</p>}

@@ -9,6 +9,7 @@ import { CollapsibleSection } from "../../../shared/components/CollapsibleSectio
 import { useEditionClasses } from "../hooks/useEditionClasses"
 import { ClassItem } from "../../classes/components/ClassItem"
 import { useEditionLinks } from "../hooks/useEditionLinks"
+import { FeedbackButton } from "../../feedback/components/FeedbackButton"
 
 export const EditionDetailPage = () => {
     const { id } = useParams()
@@ -33,20 +34,26 @@ export const EditionDetailPage = () => {
                 <h1 className="text-2xl font-bold">
                     {edition.regatta_name}
                 </h1>
-
-                <div
-                    className="ml-auto"
-                    >
-                    <Link
-                        to={`/regattas/${edition.id_regatta}`}
-                        className="inline-flex items-center gap-2 px-3 py-2 border-2 border-border dark:border-borderDark rounded-xl text-text dark:text-textDark hover:bg-primary dark:hover:bg-primaryDark hover:text-white transition-colors"
-                        >
-                        <Flag size={20}/>
-                        <span className="text-sm font-medium">
-                            Go to Regatta
-                        </span>
-                    </Link>
+                <div className="ml-auto">
+                    <FeedbackButton
+                        entityType="edition"
+                        entityId={Number(id)}
+                    />
                 </div>
+            </div>
+
+            <div
+                className="ml-auto"
+                >
+                <Link
+                    to={`/regattas/${edition.id_regatta}`}
+                    className="inline-flex items-center gap-2 px-3 py-2 border-2 border-border dark:border-borderDark rounded-xl text-text dark:text-textDark hover:bg-primary dark:hover:bg-primaryDark hover:text-white transition-colors"
+                    >
+                    <Flag size={20}/>
+                    <span className="text-sm font-medium">
+                        Regatta
+                    </span>
+                </Link>
             </div>
 
             <div className="flex items-center gap-2 mt-1 text-sm">

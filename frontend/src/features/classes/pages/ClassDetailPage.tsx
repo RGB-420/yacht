@@ -4,6 +4,7 @@ import { ClipLoader } from "react-spinners"
 import { useClassBoat } from "../hooks/useClassBoats"
 import { BoatItem } from "../../boats/components/BoatItem"
 import { CollapsibleSection } from "../../../shared/components/CollapsibleSection"
+import { FeedbackButton } from "../../feedback/components/FeedbackButton"
 
 export const ClassDetailPage = () => {
     const { id } = useParams()
@@ -23,7 +24,18 @@ export const ClassDetailPage = () => {
 
     return (
         <div className="p-4 space-y-4">
-            <h1 className="text-2xl font-bold">{class_.name}</h1>
+            <div className="flex items-center">
+                <h1 className="text-2xl font-bold">
+                    {class_.name}
+                </h1>
+                <div className="ml-auto">
+                    <FeedbackButton
+                        entityType="class"
+                        entityId={Number(id)}
+                    />
+                </div>
+            </div>
+            
 
             <div className="space-y-1">
                 {class_.category && <p><strong>Category:</strong> {class_.category}</p>}

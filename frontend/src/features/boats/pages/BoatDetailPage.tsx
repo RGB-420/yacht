@@ -4,6 +4,7 @@ import { useBoatEditions } from "../hooks/useBoatsEditions"
 import { EditionBoatItem } from "../../editions/components/EditionBoatItem"
 import { ClipLoader } from "react-spinners"
 import { CollapsibleSection } from "../../../shared/components/CollapsibleSection"
+import { FeedbackButton } from "../../feedback/components/FeedbackButton"
 
 export const BoatDetailPage = () => {
     const { id } = useParams()
@@ -22,7 +23,18 @@ export const BoatDetailPage = () => {
 
     return (
     <div className="p-4 space-y-4">
-      <h1 className="text-2xl font-bold">{boat.name}</h1>
+        <div className="flex items-center">
+            <h1 className="text-2xl font-bold">
+                {boat.name}
+            </h1>
+            <div className="ml-auto">
+                <FeedbackButton
+                    entityType="edition"
+                    entityId={Number(id)}
+                />
+            </div>
+        </div>
+
 
       <div className="space-y-1">
         {boat.boat_identifier && (

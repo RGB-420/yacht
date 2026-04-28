@@ -1,9 +1,6 @@
 BEGIN;
 
 
-CREATE SCHEMA IF NOT EXISTS yacht_db;
-CREATE SCHEMA IF NOT EXISTS yacht_raw;
-
 CREATE TABLE IF NOT EXISTS yacht_db.regattas
 (
     id_regatta integer NOT NULL GENERATED ALWAYS AS IDENTITY,
@@ -21,7 +18,7 @@ CREATE TABLE IF NOT EXISTS yacht_db.regatta_editions
     id_edition integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     id_regatta integer NOT NULL,
     year integer NOT NULL,
-    status text NOT NULL DEFAULT 'unknown',
+    status text NOT NULL DEFAULT unknown,
     created_at timestamp with time zone DEFAULT NOW(),
     PRIMARY KEY (id_edition),
     UNIQUE (year, id_regatta)
@@ -154,6 +151,39 @@ CREATE TABLE IF NOT EXISTS yacht_db.regatta_schedule
     PRIMARY KEY (id_schedule),
     UNIQUE (id_edition)
 );
+
+CREATE TABLE IF NOT EXISTS yacht_db.feedback
+(
+    id_feedback integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    entity_type text NOT NULL,
+    entity_id integer,
+    type text NOT NULL,
+    message text,
+    page text,
+    status text NOT NULL DEFAULT 'pending',
+    created_at timestamp with time zone DEFAULT NOW(),
+    PRIMARY KEY (id_feedback)
+);
+
+ALTER TABLE IF EXISTS yacht_db.feedback
+ADD CONSTRAINT feedback_type_check
+CHECK (type IN (
+    'wrong_data',
+    'missing_data',
+    'duplicate',
+    'wrong_relation',
+    'broken_link',
+    'other'
+));
+
+ALTER TABLE IF EXISTS yacht_db.feedback
+ADD CONSTRAINT feedback_status_check
+CHECK (status IN (
+    'pending',
+    'reviewed',
+    'fixed',
+    'ignored'
+));
 
 ALTER TABLE IF EXISTS yacht_db.regattas
     ADD FOREIGN KEY (id_location)

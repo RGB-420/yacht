@@ -4,6 +4,7 @@ import { useRegattaEditions } from "../hooks/useRegattaEditions"
 import { EditionRegattaItem } from "../../editions/components/EditionRegattaItem"
 import { ClipLoader } from "react-spinners"
 import { CollapsibleSection } from "../../../shared/components/CollapsibleSection"
+import { FeedbackButton } from "../../feedback/components/FeedbackButton"
 
 export const RegattaDetailPage = () => {
     const { id } = useParams()
@@ -23,7 +24,17 @@ export const RegattaDetailPage = () => {
 
     return (
         <div className="p-4 space-y-4">
-            <h1 className="text-2xl font-bold">{regatta.name}</h1>
+            <div className="flex items-center">
+                <h1 className="text-2xl font-bold">
+                    {regatta.name}
+                </h1>
+                <div className="ml-auto">
+                    <FeedbackButton
+                        entityType="regatta"
+                        entityId={Number(id)}
+                    />
+                </div>
+            </div>
 
             <div className="space-y-1">
                 {regatta.type && <p><strong>Type:</strong> {regatta.type}</p>}
