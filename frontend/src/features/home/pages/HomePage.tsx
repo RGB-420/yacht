@@ -5,6 +5,7 @@ import { SearchInput } from "../components/SearchInput"
 import { SearchDropdown } from "../components/SearchDropdown"
 import { ThemeToggle } from "../../../shared/components/ThemeToggle"
 import { Sailboat, Flag, Boxes, University, Calendar } from "lucide-react"
+import { AdminAccess } from "../../admin/components/AdminAccess"
 
 export const HomePage = () => {
     const [query, setQuery] = useState("")
@@ -109,6 +110,10 @@ export const HomePage = () => {
                         Calendar
                     </span>
                 </Link>
+            </div>
+
+            <div className="absolute bottom-4 right-4 opacity-20 hover:opacity-100 transition">
+                <AdminAccess />
             </div>
         </div>
     )

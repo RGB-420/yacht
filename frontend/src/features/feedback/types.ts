@@ -13,7 +13,7 @@ export type FeedbackStatus =
 | "fixed"
 | "ignored"
 
-export interface FeedbackCreate {
+export type FeedbackBase = {
     entity_type: string
     entity_id?: number
     type: FeedbackType
@@ -22,6 +22,18 @@ export interface FeedbackCreate {
     link?: string
 }
 
+export interface FeedbackCreate extends FeedbackBase {}
+
+export interface Feedback extends FeedbackBase {
+    id_feedback: number
+    status: FeedbackStatus
+    created_at: string
+}
+
 export interface FeedbackResponse {
     id_feedback: number
+}
+
+export interface UpdateFeedbackStatus {
+    status: FeedbackStatus
 }
