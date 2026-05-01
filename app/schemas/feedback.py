@@ -7,6 +7,7 @@ class FeedbackCreate(BaseModel):
     type: str
     message: Optional[str]
     page: Optional[str]
+    link: Optional[str]
 
 class FeedbackResponse(BaseModel):
     id_feedback: int

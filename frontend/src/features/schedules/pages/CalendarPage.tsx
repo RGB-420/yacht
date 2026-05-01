@@ -1,7 +1,7 @@
 import { useSchedule } from "../hooks/useSchedule"
 import { ClipLoader } from "react-spinners"
 import { ScheduleCalendar } from "../components/ScheduleCalendar"
-
+import { SuggestRegattaButton } from "../../feedback/components/SuggestRegattaButton"
 export const CalendarPage = () => {
     const { events, loading, error } = useSchedule()
 
@@ -24,7 +24,14 @@ export const CalendarPage = () => {
             shadow-lg
             border border-border dark:border-borderDark
         ">
-            <h1 className="text-2xl font-bold">Calendar</h1>
+            <div className="flex items-center">
+                <h1 className="text-2xl font-bold">
+                    Calendar
+                </h1>
+                <div className="ml-auto">
+                    < SuggestRegattaButton />
+                </div>
+            </div>
 
             <ScheduleCalendar events={events} />
         </div>

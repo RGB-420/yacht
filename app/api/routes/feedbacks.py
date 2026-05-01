@@ -17,7 +17,7 @@ router = APIRouter(
 @router.post("/", response_model=FeedbackResponse)
 def create_feedback_route(feedback: FeedbackCreate, db: Session = Depends(get_db), background_tasks: BackgroundTasks = None):
     try:
-        new_id = create_feedback(db, feedback.entity_type, feedback.entity_id, feedback.type, feedback.message, feedback.page)
+        new_id = create_feedback(db, feedback.entity_type, feedback.entity_id, feedback.type, feedback.message, feedback.page, feedback.link)
 
         db.commit()
     
@@ -32,7 +32,8 @@ def create_feedback_route(feedback: FeedbackCreate, db: Session = Depends(get_db
             "entity_type": feedback.entity_type,
             "type": feedback.type,
             "message": feedback.message,
-            "page": feedback.page
+            "page": feedback.page,
+            "link": feedback.link
         }
     )
 

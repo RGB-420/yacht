@@ -157,13 +157,17 @@ CREATE TABLE IF NOT EXISTS yacht_db.feedback
     id_feedback integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     entity_type text NOT NULL,
     entity_id integer,
-    type text NOT NULL,
+    type text NOT NULL DEFAULT 'other',
     message text,
     page text,
     status text NOT NULL DEFAULT 'pending',
+    link text,
     created_at timestamp with time zone DEFAULT NOW(),
     PRIMARY KEY (id_feedback)
 );
+
+ALTER TABLE yacht_db.feedback
+DROP CONSTRAINT IF EXISTS feedback_type_check;
 
 ALTER TABLE IF EXISTS yacht_db.feedback
 ADD CONSTRAINT feedback_type_check
@@ -173,8 +177,12 @@ CHECK (type IN (
     'duplicate',
     'wrong_relation',
     'broken_link',
-    'other'
+    'other',
+    'regatta_suggestion'
 ));
+
+ALTER TABLE yacht_db.feedback
+DROP CONSTRAINT IF EXISTS feedback_status_check;
 
 ALTER TABLE IF EXISTS yacht_db.feedback
 ADD CONSTRAINT feedback_status_check

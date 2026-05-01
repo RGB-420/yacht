@@ -5,6 +5,7 @@ export type FeedbackType =
 | "wrong_relation"
 | "broken_link"
 | "other"
+| "regatta_suggestion"
 
 export type FeedbackStatus =
 | "pending"
@@ -18,6 +19,7 @@ export interface FeedbackCreate {
     type: FeedbackType
     message?: string
     page?: string
+    link?: string
 }
 
 export interface FeedbackResponse {
