@@ -4,8 +4,8 @@ import { useSearch } from "../../search/hooks/useSearch"
 import { SearchInput } from "../components/SearchInput"
 import { SearchDropdown } from "../components/SearchDropdown"
 import { ThemeToggle } from "../../../shared/components/ThemeToggle"
-import { Sailboat, Flag, Boxes, University, Calendar } from "lucide-react"
 import { AdminAccess } from "../../admin/components/AdminAccess"
+import { home_links } from "../../../shared/config/homeNavigation"
 
 export const HomePage = () => {
     const [query, setQuery] = useState("")
@@ -60,56 +60,34 @@ export const HomePage = () => {
                     />
                 )}
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <Link
-                    to="/regattas"
-                    className="flex flex-col items-center justify-center p-4 w-full border-2 border-border dark:border-borderDark rounded-xl hover:bg-primary dark:hover:bg-primaryDark transition-colors"
-                    >
-                    <Flag size={28}/>
-                    <span className="mt-2 text-sm font-medium">
-                        Regattas
-                    </span>
-                </Link>
 
-                <Link
-                    to="/boats"
-                    className="flex flex-col items-center justify-center p-4 w-full border-2 border-border dark:border-borderDark rounded-xl hover:bg-primary dark:hover:bg-primaryDark transition-colors"
-                    >
-                    <Sailboat size={28}/>
-                    <span className="mt-2 text-sm font-medium">
-                        Boats
-                    </span>
-                </Link>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 w-full max-w-3xl">
+                {home_links.map((item) => {
+                    const Icon = item.icon
 
-                <Link
-                    to="/classes"
-                    className="flex flex-col items-center justify-center p-4 w-full border-2 border-border dark:border-borderDark rounded-xl hover:bg-primary dark:hover:bg-primaryDark transition-colors"
-                    >
-                    <Boxes size={28}/>
-                    <span className="mt-2 text-sm font-medium">
-                        Classes
-                    </span>
-                </Link>
+                    return (
+                        <Link
+                            key={item.to}
+                            to={item.to}
+                            className="
+                                flex flex-col items-center justify-center
+                                p-4
+                                border border-border dark:border-borderDark
+                                rounded-xl
+                                hover:bg-primary dark:hover:bg-primaryDark
+                                hover:text-white
+                                transition-all duration-200
+                                group
+                            "
+                        >
+                            <Icon size={30} className="group-hover:scale-110 transition-transform" />
 
-                <Link
-                    to="/clubs"
-                    className="flex flex-col items-center justify-center p-4 w-full border-2 border-border dark:border-borderDark rounded-xl hover:bg-primary dark:hover:bg-primaryDark transition-colors"
-                    >
-                    <University size={28}/>
-                    <span className="mt-2 text-sm font-medium">
-                        Clubs
-                    </span>
-                </Link>
-
-                <Link
-                    to="/calendar"
-                    className="flex flex-col items-center justify-center p-4 w-full border-2 border-border dark:border-borderDark rounded-xl hover:bg-primary dark:hover:bg-primaryDark transition-colors"
-                    >
-                    <Calendar size={28}/>
-                    <span className="mt-2 text-sm font-medium">
-                        Calendar
-                    </span>
-                </Link>
+                            <span className="mt-2 text-sm font-medium">
+                                {item.label}
+                            </span>
+                        </Link>
+                    )
+                })}
             </div>
 
             <div className="absolute bottom-4 right-4 opacity-20 hover:opacity-100 transition">

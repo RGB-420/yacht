@@ -1,5 +1,4 @@
-import { Link } from "react-router-dom"
-import { House, Menu, X } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { NavLinks } from "./NavLinks"
 import { ThemeToggle } from "./ThemeToggle"
 import { useState } from "react"
@@ -9,7 +8,9 @@ export const Navbar = () => {
 
   return (
     <div className="
-      relative px-4 py-3 flex items-center
+      relative
+      px-4 py-3
+      flex items-center justify-between
       bg-surface dark:bg-surfaceDark
       border-b border-border dark:border-borderDark
     ">
@@ -31,21 +32,6 @@ export const Navbar = () => {
         </div>
 
       </div>
-
-      {/* LOGO CENTRO */}
-      <Link
-        to="/"
-        className="
-          absolute left-1/2 -translate-x-1/2
-          flex items-center gap-2
-          text-text dark:text-textDark
-        "
-      >
-        <House size={20} />
-        <span className="font-semibold">
-          Regatta Explorer
-        </span>
-      </Link>
 
       {/* RIGHT → SOLO THEME */}
       <div className="ml-auto">

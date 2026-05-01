@@ -1,6 +1,11 @@
-import { Flag, Sailboat, Boxes, University, Calendar } from "lucide-react"
+import { Flag, Sailboat, Boxes, University, Calendar, House } from "lucide-react"
 
 export const nav_links = [
+  {
+    to: "/",
+    label: "Home",
+    icon: House
+  },
   {
     to: "/regattas",
     label: "Regattas",
