@@ -1,4 +1,5 @@
 import pandas as pd
+import time
 
 from app.core.base_scraper import BaseScraper
 
@@ -17,6 +18,7 @@ class YachtScoringScraper(BaseScraper):
 
     def __init__(self):
         super().__init__("yachtscoring")
+        self.boat_cache = {}
 
 
     def scrape(self, url, browser):
@@ -37,7 +39,7 @@ class YachtScoringScraper(BaseScraper):
 
                     df = df.drop_duplicates()
 
-                    df = self.conseguir_owner_y_club(page, df)
+                    df = self.conseguir_detalles(page, df)
 
                 else:
                     self.logger.warning("[EMPTY] No boats found")
@@ -100,42 +102,57 @@ class YachtScoringScraper(BaseScraper):
 
     def obtener_datos(self, page, url: str):
         self.logger.info("[STEP] Loading main table")
+        selector = "table.ys-table tbody tr"
 
         page.goto(url)
-        page.wait_for_timeout(8000)
+        page.wait_for_selector(selector, timeout=10000)
+
+        rows_loaded = self.wait_for_table_load(page, selector, 10, 1.0)
 
         boats = []
 
-        table = page.locator("#main-table-container table")
+        table = page.locator("table.ys-table")
 
         col_index = self.build_column_index(table)
 
-        rows = table.locator("tbody tr")
+        tbodies = table.locator("tbody")
+        tbody_count = tbodies.count()
 
-        row_count = rows.count()
-        self.logger.info(f"[INFO] Rows found: {row_count}")
+        self.logger.info(f"[INFO] Tbodies found: {tbody_count}")
 
-        for i in range(row_count):
-            row = rows.nth(i)
-            cells = row.locator("td")
+        for t in range(tbody_count):
+            tbody = tbodies.nth(t)
+            rows = tbody.locator("tr")
 
-            fila_data = {
-                "sailno": self.get_cell_text(cells, col_index, "sailno"),
-                "boat": self.get_cell_text(cells, col_index, "boat"),
-                "class": self.get_cell_text(cells, col_index, "class"),
-                "club": self.get_cell_text(cells, col_index, "club"),
-                "owner": self.get_cell_text(cells, col_index, "owner"),
-                "boat_link": self.get_cell_link(cells, col_index, "boat"),
-            }
+            row_count = rows.count()
+            self.logger.info(f"[INFO] Rows in tbody {t}: {row_count}")
 
-            boats.append(fila_data)
+            for i in range(row_count):
+                row = rows.nth(i)
+                cells = row.locator("td")
+
+                try:
+                    fila_data = {
+                        "sailno": self.get_cell_text(cells, col_index, "sailno"),
+                        "boat": self.get_cell_text(cells, col_index, "boat"),
+                        "class": self.get_cell_text(cells, col_index, "class"),
+                        "club": self.get_cell_text(cells, col_index, "club"),
+                        "owner": self.get_cell_text(cells, col_index, "owner"),
+                        "boat_link": self.get_cell_link(cells, col_index, "boat"),
+                        "type": self.get_cell_text(cells, col_index, "type")
+                    }
+
+                    boats.append(fila_data)
+
+                except Exception as e:
+                    self.logger.warning(f"[ROW SKIP] Error parsong row: {e}")
 
         self.logger.info(f"[INFO] Boats extracted (base): {len(boats)}")
 
         return boats
 
 
-    def conseguir_owner_y_club(self, page, df):
+    def conseguir_detalles(self, page, df):
         BASE_URL = "https://yachtscoring.com"
 
         if "boat_url" not in df.columns:
@@ -146,45 +163,102 @@ class YachtScoringScraper(BaseScraper):
 
         for idx, row in df.iterrows():
             try:
+                key = (row["boat"], row["sailno"])
+
+                if key in self.boat_cache:
+                    cached = self.boat_cache[key]
+
+                    self.logger.info(f"[CACHE] Using cached data for {key}")
+
+                    if cached.get("owner"):
+                        df.loc[idx, "owner"] = cached["owner"]
+
+                    if cached.get("club"):
+                        df.loc[idx, "club"] = cached["club"]
+
+                    if cached.get("type"):
+                        df.loc[idx, "type"] = cached["type"]
+
+                    continue
+
                 boat_url = row["boat_url"]
 
                 self.logger.info(f"[DETAIL] {boat_url}")
 
-                page.goto(boat_url)
-                page.wait_for_timeout(2000)
+                page.goto(boat_url, wait_until="domcontentloaded")
+                page.wait_for_selector("div:has-text('Name:')")
+
+                self.wait_for_name_loaded(page)
 
                 owner = None
-                owner_locator = page.locator("div.font-bold", has_text="Name:")
-                if owner_locator.count():
-                    owner = (
-                        owner_locator.first
-                        .locator("..")
-                        .locator("div")
-                        .nth(1)
-                        .inner_text()
-                        .strip()
-                    )
-
                 club = None
-                club_locator = page.locator("div.font-bold", has_text="Yacht Club:")
-                if club_locator.count():
-                    club = (
-                        club_locator.first
-                        .locator("..")
-                        .locator("div")
-                        .nth(1)
-                        .inner_text()
-                        .strip()
-                    )
+                boat_type = None
 
-                df.loc[idx, "owner"] = owner
-                df.loc[idx, "club"] = club
+                owner = self.get_detail_value(page, "Name:")
+                club = self.get_detail_value(page, "Yacht Club:")
+                boat_type = self.get_detail_value(page, "Design:")
+
+                if owner:
+                    df.loc[idx, "owner"] = owner
+                
+                if club:
+                    df.loc[idx, "club"] = club
+
+                if boat_type:
+                    df.loc[idx, "type"] = boat_type
+
+                if owner or club or boat_type:
+                    self.boat_cache[key] = {
+                        "owner": owner,
+                        "club": club,
+                        "type": boat_type
+                    }
 
             except Exception as e:
                 self.logger.error(f"[FAIL] Error enriching {row.get('boat_link')}: {e}", exc_info=True)
 
         return df
 
+
+    def wait_for_name_loaded(self, page, retries=5, delay=0.3):
+        for _ in range(retries):
+            name = self.get_detail_value(page, "Name:")
+            if name and name.strip() != "":
+                return True
+            time.sleep(delay)
+        return False
+
+    def get_detail_value(self, page, label):
+        locator = page.locator("div.flex.flex-row").filter(has_text=label)
+
+        if locator.count() == 0:
+            return None
+
+        try:
+            return (
+                locator.first
+                .locator("div")
+                .nth(1)
+                .inner_text()
+                .strip()
+            )
+        except:
+            return None
+        
+    
+    def wait_for_table_load(self, page, selector, max_checks, delay):
+        prev_count = 0
+
+        for i in range(max_checks):
+            current_count = page.locator(selector).count()
+
+            if current_count == prev_count:
+                break
+
+            prev_count = current_count
+            time.sleep(delay)
+
+        return current_count
 
 def scrape(url, browser):
     scraper = YachtScoringScraper()

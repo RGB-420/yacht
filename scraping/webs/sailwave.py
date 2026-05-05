@@ -9,7 +9,7 @@ COLUMN_MAP = {
     "division": ["Fleet"],
     "sailno": ["SailNo", "Sail Number", "Sail number", "Sail_No"],
     "boat": ["Boat", "Boat Name"],
-    "type": ["Class", "Boat type"],
+    "type": ["Class", "Boat type", "Design Class"],
     "club": ["Club", "Yacht Club"],
     "owner": ["Owner", "Helm/Owner"],
     "mna": ["Boat MNA"],
