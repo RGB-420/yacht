@@ -13,109 +13,129 @@ class SailRaceHQScraper(BaseScraper):
 
     def __init__(self):
         super().__init__("sailracehq")
+        self.club_cache = {}
 
 
     def scrape(self, url, browser):
-        df = pd.DataFrame()
-        LINKS = []
+        try:
+            LINKS = []
 
-        page = browser.new_page()
+            page = browser.new_page()
 
-        self.logger.info(f"[STEP] Processing URL: {url}")
+            self.logger.info(f"[STEP] Processing URL: {url}")
 
-        link_type = self.get_link_type(url)
-        self.logger.info(f"[INFO] Link type: {link_type}")
+            link_type = self.get_link_type(url)
+            self.logger.info(f"[INFO] Link type: {link_type}")
 
-        if link_type == "race_results":
-            LINKS.append(url)
+            if link_type == "race_results":
+                LINKS.append(url)
 
-        elif link_type == "event_results":
-            race_links = self.get_race_results_from_event(page)
-            self.logger.info(f"[INFO] Race links found: {len(race_links)}")
-            LINKS.extend(race_links)
+            elif link_type == "event_results":
+                page.goto(url, wait_until="domcontentloaded")
+                race_links = self.get_race_results_from_event(page)
+                self.logger.info(f"[INFO] Race links found: {len(race_links)}")
+                LINKS.extend(race_links)
 
-        else:
-            self.logger.warning("[SKIP] Unknown link type")
-            return pd.DataFrame()
+            else:
+                self.logger.warning("[SKIP] Unknown link type")
+                return pd.DataFrame()
+            
+            rows = []
 
-        for LINK in LINKS:
-            try:
-                self.logger.info(f"[STEP] Processing race link: {LINK}")
+            for LINK in LINKS:
+                try:
+                    self.logger.info(f"[STEP] Processing race link: {LINK}")
 
-                page.close()
-                page = browser.new_page()
-                page.goto(LINK)
+                    page.close()
+                    page = browser.new_page()
+                    page.goto(LINK)
 
-                CLASSES = self.get_tabs_from_tablist(page, BASE_DOMAIN)
+                    CLASSES = self.get_tabs_from_tablist(page, BASE_DOMAIN)
 
-                for target in CLASSES:
-                    if target["division"] == "#Tags":
-                        continue
+                    for target in CLASSES:
+                        if target["division"] == "#Tags":
+                            continue
 
-                    division = target["division"]
-                    base_url = target["url"]
+                        if "Line Honours" in target["division"]:
+                            continue
 
-                    self.logger.info(f"[CLASS] Division: {division}")
+                        division = target["division"]
+                        base_url = target["url"]
 
-                    html = self.get_html_with_playwright(page, base_url)
-                    soup = BeautifulSoup(html, "html.parser")
+                        self.logger.info(f"[CLASS] Division: {division}")
 
-                    subclasses = self.get_subclasses_from_page(soup)
+                        html = self.get_html_with_playwright(page, base_url)
 
-                    irc_overall = [s for s in subclasses if s["subclass_name"] == "IRC Overall"]
+                        if not html:
+                            self.logger.warning(f"[SKIP] No HTML for {base_url}")
+                            continue
 
-                    if irc_overall:
-                        subclasses = irc_overall
-                    elif not subclasses:
-                        subclasses = [{"subclass_name": None, "url": base_url}]
-
-                    for sub in subclasses:
-                        subclass_name = sub["subclass_name"]
-                        sub_url = sub["url"]
-
-                        self.logger.info(f"[SUBCLASS] {subclass_name}")
-
-                        html = self.get_html_with_playwright(page, sub_url)
                         soup = BeautifulSoup(html, "html.parser")
 
-                        page_indices = self.get_page_indices(soup)
-                        self.logger.info(f"[INFO] Pages: {len(page_indices)}")
+                        subclasses = self.get_subclasses_from_page(soup)
 
-                        for page_index in page_indices:
-                            try:
-                                page_url = self.set_page_index(sub_url, page_index)
-                                self.logger.info(f"[STEP] Page {page_index}")
+                        irc_overall = [s for s in subclasses if s["subclass_name"] == "IRC Overall"]
 
-                                html = self.get_html_with_playwright(page, page_url)
-                                soup = BeautifulSoup(html, "html.parser")
+                        if irc_overall:
+                            subclasses = irc_overall
+                        elif not subclasses:
+                            subclasses = [{"subclass_name": None, "url": base_url}]
 
-                                accordion = soup.find("div", id="accordion")
-                                if not accordion:
-                                    self.logger.warning("[SKIP] No accordion found")
-                                    continue
+                        for sub in subclasses:
+                            subclass_name = sub["subclass_name"]
+                            sub_url = sub["url"]
 
-                                boats = accordion.find_all("ul", class_="rz-datalist-data")
-                                self.logger.info(f"[INFO] Boats found: {len(boats)}")
+                            self.logger.info(f"[SUBCLASS] {subclass_name}")
 
-                                for ul in boats:
-                                    boat_data = self.extract_boat_data(ul)
-                                    boat_data["class_name"] = division
-                                    boat_data = self.extract_club(boat_data, page)
+                            html = self.get_html_with_playwright(page, sub_url)
+                            soup = BeautifulSoup(html, "html.parser")
 
-                                    if boat_data:
-                                        df_temp = pd.DataFrame([boat_data])
-                                        df = pd.concat([df, df_temp], ignore_index=True)
+                            page_indices = self.get_page_indices(soup)
+                            self.logger.info(f"[INFO] Pages: {len(page_indices)}")
 
-                            except Exception as e:
-                                self.logger.error(f"[FAIL] Error in page {page_index}: {e}", exc_info=True)
+                            for page_index in page_indices:
+                                try:
+                                    page_url = self.set_page_index(sub_url, page_index)
+                                    self.logger.info(f"[STEP] Page {page_index}")
 
-            except Exception as e:
-                self.logger.error(f"[FAIL] Error processing race link {LINK}: {e}", exc_info=True)
+                                    html = self.get_html_with_playwright(page, page_url)
+                                    soup = BeautifulSoup(html, "html.parser")
 
-        df = df.drop_duplicates(subset=["boat_name", "sail_number"])
-        df = df[['boat_name', 'sail_number', 'owner', 'boat_type', 'class_name']]
+                                    accordion = soup.find("div", id="accordion")
+                                    if not accordion:
+                                        self.logger.warning("[SKIP] No accordion found")
+                                        continue
 
-        return df
+                                    boats = accordion.find_all("ul", class_="rz-datalist-data")
+                                    self.logger.info(f"[INFO] Boats found: {len(boats)}")
+                                    
+                                    for ul in boats:
+                                        boat_data = self.extract_boat_data(ul)
+                                        boat_data["class_name"] = division
+
+                                        if boat_data:
+                                            rows.append(boat_data)
+
+                                except Exception as e:
+                                    self.logger.error(f"[FAIL] Error in page {page_index}: {e}", exc_info=True)
+
+                except Exception as e:
+                    self.logger.error(f"[FAIL] Error processing race link {LINK}: {e}", exc_info=True)
+
+            self.logger.info(f"[ENRICH] Preparing club extraction")
+
+            club_map = self.build_club_map(rows, browser)
+            rows = self.apply_club_map(rows, club_map)
+
+            df = pd.DataFrame(rows)
+
+            df = df.drop_duplicates(subset=["boat_name", "sail_number"])
+            df = df[['boat_name', 'sail_number', 'owner', 'boat_type', 'class_name', 'club']]
+
+            return df
+        
+        finally:
+            page.close()
 
 
     def get_link_type(self, url):
@@ -161,13 +181,21 @@ class SailRaceHQScraper(BaseScraper):
         if not pagination:
             return [0]
 
-        indices = set()
+        indices = []
 
-        for a in pagination.find_all("a", href=True):
+        page_items = pagination.find_all("li", class_="page-item-number")
+
+        for li in page_items:
+            a = li.find("a", href=True)
+            if not a:
+                continue
+
             qs = parse_qs(urlparse(a["href"]).query)
+
             if "pageIndex" in qs:
                 try:
-                    indices.add(int(qs["pageIndex"][0]))
+                    idx = int(qs["pageIndex"][0])
+                    indices.append(idx)
                 except:
                     pass
 
@@ -181,10 +209,10 @@ class SailRaceHQScraper(BaseScraper):
         data["boat_name"] = name_tag.get_text(strip=True) if name_tag else None
         data["boat_link"] = name_tag.get("href") if name_tag else None
 
-        class_tag = ul.select_one("span[style*='font-size']")
-        data["sail_number"] = class_tag.get_text(strip=True) if class_tag else None
+        sail_tag = ul.select_one(".bow-number") or ul.select_one("span[style*='font-size']")
+        data["sail_number"] = sail_tag.get_text(strip=True) if sail_tag else None
 
-        details = ul.find("div", class_="li-row-2")
+        details = ul.select_one(".li-row-2")
 
         if details:
             def get_detail(label):
@@ -195,22 +223,38 @@ class SailRaceHQScraper(BaseScraper):
             data["owner"] = get_detail("Owner")
             data["boat_type"] = get_detail("Boat Type")
 
+        else:
+            data["owner"] = None
+            data["boat_type"] = None
+
         return data
 
 
     def extract_club(self, boat_data, page):
-        if not boat_data.get("boat_link"):
+        key = (boat_data.get("boat_name"), boat_data.get("sail_number"))
+        self.logger.info(f"[CLUB] Fetching club for {boat_data.get('boat_name')}")
+
+        if key in self.club_cache:
+            self.logger.info(f"[CACHE] Using cached club for {key}")
+            boat_data["club"] = self.club_cache[key]
+            return boat_data
+
+        link = boat_data.get("boat_link")
+
+        if not link:
             boat_data["club"] = None
             return boat_data
 
         try:
-            page.goto(BASE_DOMAIN + boat_data["boat_link"])
-            page.wait_for_load_state("domcontentloaded")
+            url = urljoin(BASE_DOMAIN, boat_data["boat_link"])
 
-            club_locator = page.locator("div.col-lg-4", has_text="club")
+            page.goto(url, wait_until="domcontentloaded", timeout=10000)
+            page.wait_for_selector("div.col-lg-4", timeout=5000)
+
+            club_locator = page.locator("div.col-lg-4", has_text=re.compile("club", re.I))
 
             if club_locator.count():
-                boat_data["club"] = (
+                club = (
                     club_locator
                     .locator("..")
                     .locator("div.col.font-weight-bold")
@@ -219,7 +263,11 @@ class SailRaceHQScraper(BaseScraper):
                     .strip()
                 )
             else:
-                boat_data["club"] = None
+                club = None
+
+            boat_data["club"] = club
+            if club:
+                self.club_cache[key] = club
 
         except Exception as e:
             self.logger.warning(f"[WARNING] Error extracting club: {e}")
@@ -230,7 +278,7 @@ class SailRaceHQScraper(BaseScraper):
 
     def get_html_with_playwright(self, page, url):
         try:
-            page.goto(url)
+            page.goto(url, wait_until="domcontentloaded", timeout=10000)
             page.wait_for_load_state("networkidle")
             return page.content()
         except Exception as e:
@@ -256,10 +304,15 @@ class SailRaceHQScraper(BaseScraper):
         classes = []
 
         for tab in tabs:
-            onclick = tab.get_attribute("onclick")
+            link = tab.query_selector("a.rz-tabview-nav-link")
             name_el = tab.query_selector("span.rz-tabview-title")
 
-            if not onclick or not name_el:
+            if not link or not name_el:
+                continue
+
+            onclick = link.get_attribute("onclick")
+
+            if not onclick:
                 continue
 
             match = re.search(r'window.location\s*=\s*"([^"]+)"', onclick)
@@ -272,6 +325,85 @@ class SailRaceHQScraper(BaseScraper):
             })
 
         return classes
+    
+    def deduplicate_boats(self, rows):
+        self.logger.info(f"[DEDUP] Reducing boats before club extraction")
+
+        unique_boats = {}
+
+        for row in rows:
+            key = (row["boat_name"], row["sail_number"])
+            if key not in unique_boats:
+                unique_boats[key] = row
+
+        unique_rows = list(unique_boats.values())
+
+        self.logger.info(f"[DEDUP] {len(rows)} -> {len(unique_rows)} unique boats")
+
+        return unique_rows
+    
+
+    def enrich_clubs_sequential(self, rows, browser):
+        self.logger.info(f"[ENRICH] Extracting clubs sequentially ({len(rows)} boats)")
+
+        club_page = browser.new_page()
+
+        for i, row in enumerate(rows):
+            if i % 50 == 0:
+                self.logger.info(f"[ENRICH] Progresss: {i}/{len(rows)}")
+
+            rows[i] = self.extract_club(row, club_page)
+
+        club_page.close()
+
+        return rows
+    
+    def map_clubs_back(self, original_rows, enriched_rows):
+        club_map = {
+            (row["boat_name"], row["sail_number"]): row.get("club")
+            for row in enriched_rows
+        }
+
+        for row in original_rows:
+            key = (row["boat_name"], row["sail_number"])
+            row["club"] = club_map.get(key)
+
+        return original_rows
+
+    def build_boat_key(self, row):
+        name = (row.get("boat_name") or "").strip().lower()
+        sail = (row.get("sail_number") or "").replace(" ", "").upper()
+        return (name, sail)
+    
+
+    def build_club_map(self, rows, browser):
+        self.logger.info(f"[ENRICH] Building club map from {len(rows)} rows")
+
+        club_page = browser.new_page()
+        club_map = {}
+
+        for i, row in enumerate(rows):
+            key = self.build_boat_key(row)
+
+            if key in club_map and club_map[key]:
+                continue
+
+            enriched = self.extract_club(row, club_page)
+            club = enriched.get("club")
+
+            if club:
+                club_map[key] = club
+
+        club_page.close()
+
+        return club_map
+    
+    def apply_club_map(self, rows, club_map):
+        for row in rows:
+            key = self.build_boat_key(row)
+            row["club"] = club_map.get(key)
+
+        return rows
 
 
 def scrape(url, browser):

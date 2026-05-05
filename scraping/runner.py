@@ -70,6 +70,7 @@ def run_scraper(scrape_fn, source, year, name, class_=None, source_page=None, so
         df["class"] = class_
 
     df = df.dropna(axis=1, how="all")
+    df = df.where(pd.notnull(df), None)
 
     engine = get_engine()
 
