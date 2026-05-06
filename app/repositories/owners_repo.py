@@ -1,5 +1,7 @@
 from sqlalchemy import text
 
+from app.core.db import rows_to_dict
+
 def upsert_owner(conn, name):
     insert_query = text("""
         INSERT INTO yacht_db.owners (name)
@@ -25,6 +27,21 @@ def upsert_owner(conn, name):
     existing = conn.execute(select_query, {"name": name}).fetchone()
 
     return existing[0], False
+
+def load_owner_cache(conn):
+    query = text("""
+        SELECT id_owner, name
+        FROM yacht_db.owners
+    """)
+
+    result = conn.execute(query)
+
+    rows = rows_to_dict(result)
+
+    return {
+        row["name"]: row["id_owner"]
+        for row in rows
+    }
 
 def get_owners_scorecard(conn, week_ago):
     query = text("""

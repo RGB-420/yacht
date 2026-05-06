@@ -49,6 +49,24 @@ def upsert_boat_type(conn, name, class_id):
 
         return result[0], True
 
+def load_type_cache(conn):
+    query = text("""
+        SELECT id_type, name, id_class
+        FROM yacht_db.boat_type
+    """)
+
+    result = conn.execute(query)
+
+    rows = rows_to_dict(result)
+
+    return {
+        (
+            row["name"],
+            row["id_class"]
+        ): row["id_type"]
+        for row in rows
+    }
+
 def get_class_types(conn, class_id):
     query = text("""
         SELECT id_type, name

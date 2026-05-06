@@ -69,8 +69,9 @@ def run_scheduled_pipeline():
 
     logger.info(f"Events fetched for calendar: {len(events)}")
 
-    generate_ics(events)
+    # NOT REQUIRED IS IN THE WEB PAGE
+    # generate_ics(events)
 
-    logger.info("Calendar .ics generated")
+    # logger.info("Calendar .ics generated")
 
     logger.info("===== END SCHEDULE PIPELINE =====")

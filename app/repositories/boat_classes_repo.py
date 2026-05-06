@@ -23,6 +23,21 @@ def upsert_boat_classes(conn, name, manufacturer=None, category=None, rating_rul
 
     return result[0], result[1]
 
+def load_class_cache(conn):
+    query = text("""
+        SELECT id_class, name
+        FROM yacht_db.boat_classes
+    """)
+
+    result = conn.execute(query)
+
+    rows = rows_to_dict(result)
+
+    return {
+        row["name"]: row["id_class"]
+        for row in rows
+    }
+
 def get_class_id(conn, name):
     query = text("""
         SELECT id_class FROM yacht_db.boat_classes

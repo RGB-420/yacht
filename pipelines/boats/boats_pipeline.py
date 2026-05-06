@@ -3,14 +3,14 @@ from pathlib import Path
 import pandas as pd
 
 from db.connection import get_engine
-from app.repositories.boat_classes_repo import get_class_id
-from app.repositories.clubs_repo import upsert_club
-from app.repositories.owners_repo import upsert_owner
-from app.repositories.boats_repo import upsert_boat
+from app.repositories.boat_classes_repo import load_class_cache
+from app.repositories.clubs_repo import upsert_club, load_club_cache
+from app.repositories.owners_repo import upsert_owner, load_owner_cache
+from app.repositories.boats_repo import upsert_boat, load_boat_cache
 from app.repositories.boats_owner_repo import insert_boat_owner
-from app.repositories.editions_repo import get_edition_id
+from app.repositories.editions_repo import load_edition_cache
 from app.repositories.edition_classes_repo import insert_edition_class
-from app.repositories.boat_type_repo import upsert_boat_type
+from app.repositories.boat_type_repo import upsert_boat_type, load_type_cache
 from app.repositories.boat_clubs_repo import insert_boat_club
 from app.repositories.boat_editions_repo import insert_boat_edition
 from app.repositories.raw_results_repo import get_all_raw_results
@@ -50,8 +50,26 @@ def run_boats_pipeline():
     inserted_owners = 0
     inserted_types = 0
     inserted_clubs = 0
-    
+
     with engine.begin() as conn:
+        edition_cache = load_edition_cache(conn)
+        class_cache = load_class_cache(conn)
+        club_cache = load_club_cache(conn)
+        type_cache = load_type_cache(conn)
+        owner_cache = load_owner_cache(conn)
+        boat_cache = load_boat_cache(conn)
+
+        logger.info(f"Edition cache: {len(edition_cache)}")
+        logger.info(f"Class cache: {len(class_cache)}")
+        logger.info(f"Club cache: {len(club_cache)}")
+        logger.info(f"Type cache: {len(type_cache)}")
+        logger.info(f"Owner cache: {len(owner_cache)}")
+        logger.info(f"Boat cache: {len(boat_cache)}")
+
+        boat_owner_rel_cache = set()
+        boat_club_rel_cache = set()
+        boat_edition_rel_cache = set()
+        edition_class_rel_cache = set()
 
         prenorm = {
             "class": set(),
@@ -59,11 +77,11 @@ def run_boats_pipeline():
             "boat_type": set(),
         }
 
-        for i, (_, row) in enumerate(df_master.iterrows()):
+        for i, row in enumerate(df_master.itertuples(index=False)):
 
             if i % 100 == 0:
                 logger.info(f"Processing row {i}/{len(df_master)}")
-            source = row["Source"]
+            source = row.Source
 
             if "-" not in source:
                 logger.error(f"Invalid source format: {source}")
@@ -72,71 +90,120 @@ def run_boats_pipeline():
             regatta_name, year = source.rsplit("-", 1)
             year = int(year)
 
-            edition_id = get_edition_id(conn, regatta_name, year)
+            edition_key = (regatta_name, year)
+
+            edition_id = edition_cache.get(edition_key)
+
             if not edition_id:
                 logger.error(f"Edition not found: {regatta_name} {year}")
                 raise ValueError(f"Edition not found: {regatta_name} {year}")
 
             # Get class
-            class_name = row["Class"]
+            class_name = row.Class
             class_id = None
+
             if pd.notna(class_name) and str(class_name).strip() != "":
-                class_id = get_class_id(conn, class_name)
+                class_id = class_cache.get(class_name)
                 
                 if not class_id:
                     prenorm["class"].add(class_name)
-                    logger.warning(f"Classes not found: {prenorm['class']}")
             
             # Get club
-            club_name = row["Club"]
+            club_name = row.Club
             club_id = None
 
             if pd.notna(club_name) and str(club_name).strip() != "":
-                club_id, created_club = upsert_club(conn, club_name)
+                if club_name in club_cache:
+                    club_id = club_cache[club_name]
 
-                if created_club:
-                    inserted_clubs += 1
+                else:
+                    club_id, created_club = upsert_club(conn, club_name)
+
+                    club_cache[club_name] = club_id
+
+                    if created_club:
+                        inserted_clubs += 1
 
             # Insert type
-            type_name = row["Boat Type"]
+            type_name = row.Boat_Type
             type_id = None
 
             if pd.notna(type_name) and str(type_name).strip() != "":
-                type_id, created_type = upsert_boat_type(conn, type_name, class_id)
+                type_key = (type_name, class_id)
 
-                if created_type:
-                    inserted_types += 1
+                if type_key in type_cache:
+                    type_id = type_cache[type_key]
+
+                else:
+                    type_id, created_type = upsert_boat_type(conn, type_name, class_id)
+                    type_cache[type_key] = type_id
+
+                    if created_type:
+                        inserted_types += 1
 
             # Insert owner
-            owner_name = row["Owner"]
+            owner_name = row.Owner
 
             if pd.isna(owner_name) or str(owner_name).strip() == "":
                 owner_id = None
             else:
-                owner_id, created_owner = upsert_owner(conn, owner_name)
+                if owner_name in owner_cache:
+                    owner_id = owner_cache[owner_name]
 
-                if created_owner:
-                    inserted_owners += 1
+                else:
+                    owner_id, created_owner = upsert_owner(conn, owner_name)
+
+                    owner_cache[owner_name] = owner_id
+
+                    if created_owner:
+                        inserted_owners += 1
 
             # Insert boat
-            boat_id_value = row["Boat Id"]
+            boat_id_value = row.Boat_Id
 
-            boat_id, created_boat = upsert_boat(conn, row["Name"], boat_id_value, type_id)
+            boat_key = (row.Name, boat_id_value)
 
-            if created_boat:
-                inserted_boats += 1
+            if boat_key in boat_cache:
+                boat_id = boat_cache[boat_key]
+                created_boat = False
+            else:
+                boat_id, created_boat = upsert_boat(conn, row.Name, boat_id_value, type_id)
+
+                boat_cache[boat_key] = boat_id
+
+                if created_boat:
+                    inserted_boats += 1
 
             # Relations
             if owner_id:
-                insert_boat_owner(conn, boat_id, owner_id)
-            
+                relation_key = (boat_id, owner_id)
+
+                if relation_key not in boat_owner_rel_cache:
+                    insert_boat_owner(conn, boat_id, owner_id)
+                    boat_owner_rel_cache.add(relation_key)
+
             if club_id:
-                insert_boat_club(conn, boat_id, club_id)
+                relation_key = (boat_id, club_id)
+
+                if relation_key not in boat_club_rel_cache:
+                    insert_boat_club(conn, boat_id, club_id)
+                    boat_club_rel_cache.add(relation_key)
                 
-            insert_boat_edition(conn, boat_id, edition_id)
+            relation_key = (boat_id, edition_id)
+
+            if relation_key not in boat_edition_rel_cache:    
+                insert_boat_edition(conn, boat_id, edition_id)
+                boat_edition_rel_cache.add(relation_key)
             
             if class_id:
-                insert_edition_class(conn, edition_id, class_id)
+                relation_key = (edition_id, class_id)
+
+                if relation_key not in edition_class_rel_cache:
+                    insert_edition_class(conn, edition_id, class_id)
+                    edition_class_rel_cache.add(relation_key)
+
+    if prenorm["class"]:
+        logger.warning(f"Classes not found: {prenorm["class"]}")
 
     logger.info(f"Boats inserted: {inserted_boats}")
     logger.info(f"Owners inserted: {inserted_owners}")

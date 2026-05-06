@@ -34,6 +34,27 @@ def get_edition_id(conn, regatta_name, year):
 
     return result[0] if result else None
 
+def load_edition_cache(conn):
+    query = text("""
+        SELECT e.id_edition, r.name AS regatta_name, e.year
+        FROM yacht_db.regatta_editions e
+        JOIN yacht_db.regattas r
+            ON r.id_regatta = e.id_regatta
+    """)
+
+    result = conn.execute(query)
+
+    rows = rows_to_dict(result)
+
+    return {
+        (
+            row["regatta_name"],
+            row["year"]
+        ): row["id_edition"]
+
+        for row in rows
+    }
+
 def get_regatta_editions(conn, regatta_id):
     query = text("""
         SELECT e.id_edition, e.year, e.status, r.name AS regatta_name

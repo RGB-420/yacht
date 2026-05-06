@@ -19,6 +19,21 @@ def upsert_club(conn, name, short_name=None, estimated_numbers=None, location_id
 
     return result[0], result[1]
 
+def load_club_cache(conn):
+    query = text("""
+        SELECT id_club, name
+        FROM yacht_db.clubs
+    """)
+
+    result = conn.execute(query).fetchall()
+
+    rows = rows_to_dict(result)
+
+    return {
+        row["name"]: row["id_club"]
+        for row in rows
+    }
+
 def get_all_clubs_with_location(conn):
     query = text("""
         SELECT c.name, c.short_name, c.estimated_numbers, l.city, l.region, l.country

@@ -17,6 +17,31 @@ def upsert_boat(conn, name, boat_identifier, type_id=None):
 
     return result[0], result[1]
 
+def load_boat_cache(conn):
+    query = text("""
+        SELECT id_boat, name, boat_identifier
+        FROM yacht_db.boats
+    """)
+
+    result = conn.execute(query)
+
+    rows = rows_to_dict(result)
+
+    return {
+        (
+            row["name"],
+
+            (
+                str(row["boat_identifier"])
+                if row["boat_identifier"] is not None
+                else None
+            )
+
+        ): row["id_boat"]
+
+        for row in rows
+    }
+
 def get_boats(conn, limit, offset):
     query = text("""
         SELECT b.id_boat, b.name, b.boat_identifier, bc.id_class, bc.name AS class_name, bt.id_type, bt.name AS type_name,
