@@ -6,6 +6,10 @@ from pathlib import Path
 from app.services.mappings.club_mapping import club_mapping
 from app.core.config import DATA_PRENORM
 
+from pipelines.common.logger import get_logger
+
+logger = get_logger(__name__)
+
 """
 Club normalizer
 
@@ -15,10 +19,18 @@ Club normalizer
 PRENORM_PATH = DATA_PRENORM / "club_prenormalization.csv"
 SEEN_PRENORM = set()
 
+SEEN_UNMAPPED_CLUBS = set()
+
 # ------ Main function ------
 def finalize_club_column(df):
     if "Club"  not in df.columns:
         return df
+    
+    global MAPPED_CLUBS
+    global UNMAPPED_CLUBS
+    
+    MAPPED_CLUBS = 0
+    UNMAPPED_CLUBS = 0
     
     df["Club"] = df["Club"].apply(split_club)
     df = df.explode("Club").reset_index(drop=True)
@@ -50,6 +62,9 @@ def finalize_club_column(df):
     df = df.explode("Club").reset_index(drop=True)
 
     df = df.drop(columns=["Club_raw", "Club_norm"])
+
+    logger.info(f"Mapped clubs: {MAPPED_CLUBS}")
+    logger.info(f"Unmapped clubs excluded: {UNMAPPED_CLUBS}")
 
     return df
 
@@ -90,8 +105,12 @@ def map_or_collect_club(norm_name, raw_name):
 
     entry = club_mapping.get(raw_name)
 
+    global MAPPED_CLUBS
+    global UNMAPPED_CLUBS
+
     if entry is not None:
         if entry["status"] == "resolved":
+            MAPPED_CLUBS += 1
             return entry["canonical"]
         else:
             return None
@@ -100,9 +119,17 @@ def map_or_collect_club(norm_name, raw_name):
 
     if entry is not None:
         if entry["status"] == "resolved":
+            MAPPED_CLUBS += 1
             return entry["canonical"]
         else:
             return None
+
+    UNMAPPED_CLUBS += 1
+
+    if norm_name not in SEEN_UNMAPPED_CLUBS:
+        logger.warning(f"Club not mapped and excluded from DB: {norm_name}")
+
+        SEEN_UNMAPPED_CLUBS.add(norm_name)
 
     save_club_prenorm(norm_name)
 
@@ -115,6 +142,11 @@ def split_club(cell):
     # 1) Split por separadores habituales
     parts = re.split(r"\s*/\s*|\s*&\s*|\band\b|,\s*", cell, flags=re.IGNORECASE)
     parts = [p.strip() for p in parts if p.strip()]
+    if len(parts) > 3:
+        logger.warning(
+            f"Suspicious club split: {cell}"
+        )
+
     return list(dict.fromkeys(parts))
 
 def infer_club_from_boat_name(name, club):
@@ -128,6 +160,8 @@ def infer_club_from_boat_name(name, club):
 
     for pattern, club_name in INFER_PATTERNS.items():
         if re.search(pattern, name_str, re.IGNORECASE):
+            logger.info(f"Inferred club from boat name: {name_str} -> {club_name}")
+
             return club_name
 
     return club

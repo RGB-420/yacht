@@ -42,10 +42,12 @@ def run_boats_pipeline():
 
     df_master = generate_master_boats(df_normalized)
 
+    logger.info(f"Master boat rows: {len(df_master)}")
+
     df_master = explode_boats_for_db(df_master)
 
-    logger.info(f"Normalized rows: {len(df_master)}")
-    
+    logger.info(f"Exploded rows: {len(df_master)}")
+
     inserted_boats = 0
     inserted_owners = 0
     inserted_types = 0
@@ -76,6 +78,8 @@ def run_boats_pipeline():
             "club": set(),
             "boat_type": set(),
         }
+
+        df_master.columns = [col.replace(" ", "_") for col in df_master.columns]
 
         for i, row in enumerate(df_master.itertuples(index=False)):
 
@@ -203,7 +207,7 @@ def run_boats_pipeline():
                     edition_class_rel_cache.add(relation_key)
 
     if prenorm["class"]:
-        logger.warning(f"Classes not found: {prenorm["class"]}")
+        logger.warning(f"Classes not found: {prenorm['class']}")
 
     logger.info(f"Boats inserted: {inserted_boats}")
     logger.info(f"Owners inserted: {inserted_owners}")

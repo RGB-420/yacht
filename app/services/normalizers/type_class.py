@@ -6,11 +6,37 @@ from pathlib import Path
 from app.services.mappings.type_class_mapping import type_class_mapping
 from app.services.mappings.class_mapping import class_mapping
 
+from pipelines.common.logger import get_logger
+
+logger = get_logger(__name__)
+
 PRENORM_PATH = Path("data/prenormalization/class_type_prenormalization.csv")
 
 SEEN_PRENORM = set()
 
+EXISTING_PRENORM = set()
+NEW_PRENORM_ROWS = []
+
+if PRENORM_PATH.exists() and PRENORM_PATH.stat().st_size > 0:
+
+    try:
+        df_existing = pd.read_csv(PRENORM_PATH)
+
+        EXISTING_PRENORM = set((df_existing["raw_class"].fillna("").str.lower() + "|" + df_existing["raw_type"].fillna("").str.lower()))
+
+    except Exception:
+        EXISTING_PRENORM = set()
+
+SEEN_UNKNOWN_CLASSES = set()
+
+
 def final_type_class_columns(df):
+    global MAPPED_CLASS_TYPES
+    global UNMAPPED_CLASS_TYPES
+
+    MAPPED_CLASS_TYPES = 0
+    UNMAPPED_CLASS_TYPES = 0
+
     if "Class" not in df.columns and "Boat Type" not in df.columns:
         return df
     
@@ -21,6 +47,9 @@ def final_type_class_columns(df):
 
     df["Class"] = df["Class"].apply(preprocess_class)
 
+    logger.info(f"Classes mapped: {df['Class'].notna().sum()}")
+    logger.info(f"Classes set to None: {df['Class'].isna().sum()}")
+
     df['Boat Type'] = df['Boat Type'].str.replace(r"\.$", "", regex=True)
 
     df["Boat Type"] = (df["Boat Type"].astype("string").str.strip().str.replace("\xa0", "", regex=False))
@@ -28,6 +57,10 @@ def final_type_class_columns(df):
     df["Boat Type"] = df["Boat Type"].str.replace(r"\s+\d\.\d+$", "", regex=True)
 
     df["Boat Type"] = df["Boat Type"].apply(preprocess_type)
+
+    changed_types = (df["Type_raw"].fillna("") != df["Boat Type"].fillna("")).sum()
+
+    logger.info(f"Boat types normalized: {changed_types}")
 
     df["Class_norm"] = df["Class"]
     df["Type_norm"] = df["Boat Type"]
@@ -43,6 +76,11 @@ def final_type_class_columns(df):
     )
 
     df = df.drop(columns=["Class_raw", "Type_raw", "Class_norm", "Type_norm"])
+
+    logger.info(f"Mapped class/type pairs: {MAPPED_CLASS_TYPES}")
+    logger.info(f"Unmapped class/type pairs: {UNMAPPED_CLASS_TYPES}")
+
+    flush_class_type_prenorm()
 
     return df
 
@@ -61,6 +99,10 @@ def preprocess_class(value):
             except re.error as e:
                 print(f"Regex invalido: {pattern}")
                 raise e
+    
+    if text not in SEEN_UNKNOWN_CLASSES:
+        logger.warning(f"Unknown class not mapped: {text}")
+        SEEN_UNKNOWN_CLASSES.add(text)
 
     return None
 
@@ -177,9 +219,14 @@ def map_or_collect_class_type(class_norm, type_norm):
     mapping = type_class_mapping.get(key)
 
     if mapping:
+        global MAPPED_CLASS_TYPES
+        MAPPED_CLASS_TYPES += 1
         return mapping["canonical_class"], mapping["canonical_type"]
 
     save_class_type_prenorm(class_norm, type_norm)
+
+    global UNMAPPED_CLASS_TYPES
+    UNMAPPED_CLASS_TYPES += 1
 
     return class_norm, type_norm
 
@@ -202,10 +249,14 @@ def save_class_type_prenorm(raw_class, raw_type):
 
     if key in SEEN_PRENORM:
         return
-
+    
+    if key in EXISTING_PRENORM:
+        return
+    
     SEEN_PRENORM.add(key)
+    EXISTING_PRENORM.add(key)
 
-    row = {
+    NEW_PRENORM_ROWS.append({
         "raw_class": raw_class,
         "raw_type": raw_type,
         "canonical_type": "",
@@ -213,33 +264,45 @@ def save_class_type_prenorm(raw_class, raw_type):
         "status": "pending",
         "confidence": "",
         "notes": ""
-    }
+    })
 
-    df_new = pd.DataFrame([row])
+def flush_class_type_prenorm():
+
+    if not NEW_PRENORM_ROWS:
+        return
+
+    df_new = pd.DataFrame(NEW_PRENORM_ROWS)
 
     if PRENORM_PATH.exists() and PRENORM_PATH.stat().st_size > 0:
+
         try:
             df_existing = pd.read_csv(PRENORM_PATH)
+
         except Exception:
+
             df_existing = pd.DataFrame(columns=[
-                "raw_class", "raw_type", "canonical_type",
-                "canonical_class", "status", "confidence", "notes"
+                "raw_class",
+                "raw_type",
+                "canonical_type",
+                "canonical_class",
+                "status",
+                "confidence",
+                "notes"
             ])
 
-        existing_keys = (
-            df_existing["raw_class"].fillna("").str.lower() + "|" +
-            df_existing["raw_type"].fillna("").str.lower()
+        df_final = pd.concat(
+            [df_existing, df_new],
+            ignore_index=True
         )
 
-        if key in existing_keys.values:
-            return
-
-        df_final = pd.concat([df_existing, df_new], ignore_index=True)
     else:
-        df_existing = pd.DataFrame(columns=[
-            "raw_class", "raw_type", "canonical_type",
-            "canonical_class", "status", "confidence", "notes"
-        ])
-        df_final = pd.concat([df_existing, df_new], ignore_index=True)
+
+        df_final = df_new
 
     df_final.to_csv(PRENORM_PATH, index=False)
+
+    logger.info(
+        f"Saved {len(df_new)} new class/type prenorm rows"
+    )
+
+    NEW_PRENORM_ROWS.clear()

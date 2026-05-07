@@ -6,6 +6,10 @@ from pathlib import Path
 
 from app.services.mappings.owner_mapping import owner_mapping
 
+from pipelines.common.logger import get_logger
+
+logger = get_logger(__name__)
+
 """
 Owner normalizer
 
@@ -16,6 +20,17 @@ are combined in the same cell (e.g. "John Smith - Royal Thames YC").
 PRENORM_PATH = Path("data/prenormalization/owner_prenormalization.csv")
 
 SEEN_PRENORM = set()
+
+EXISITNG_PRENORM = set()
+
+if PRENORM_PATH.exists():
+    df_existing = pd.read_csv(PRENORM_PATH)
+
+    EXISITNG_PRENORM = set(
+        df_existing["raw_name"]
+        .astype(str)
+        .str.lower()
+    )
 
 # ------ Main function ------
 def finalize_owner_column(df):
@@ -101,6 +116,10 @@ def split_and_dedupe(cell):
     parts = re.split(r"\s*/\s*|\s*&\s*|\s+and\s+|,\s*|\s+en\s+", cell)
     parts = [p.strip() for p in parts if p.strip()]
 
+    if len(parts) > 4:
+        logger.warning(f"Suspicious owner split: {cell}")
+
+
     # 2) Detectar apellido común
     surnames = []
     for p in parts:
@@ -140,9 +159,15 @@ def split_owner_and_club(owner, club):
                 owner_part = p.strip()
 
         if owner_part and club_part:
+            logger.warning(
+                f"Moved owner -> club: {owner_str}"
+            )
+
             if pd.isna(club) or str(club).strip() == "":
                 club = club_part
+
             owner = owner_part
+            
             return owner, club
 
     if (
@@ -150,7 +175,7 @@ def split_owner_and_club(owner, club):
         and (pd.isna(club) or str(club).strip() == "")
     ):
         return pd.NA, owner_str
-
+    
     return owner, club
 
 def save_owner_prenorm(raw_name):
@@ -161,8 +186,12 @@ def save_owner_prenorm(raw_name):
 
     if key in SEEN_PRENORM:
         return
-
+    
+    if key in EXISITNG_PRENORM:
+        return
+    
     SEEN_PRENORM.add(key)
+    EXISITNG_PRENORM.add(key)
 
     row = {
         "raw_name": raw_name,
@@ -175,10 +204,8 @@ def save_owner_prenorm(raw_name):
     df_new = pd.DataFrame([row])
 
     if PRENORM_PATH.exists():
-        df_existing = pd.read_csv(PRENORM_PATH)
 
-        if key in df_existing["raw_name"].str.lower().values:
-            return
+        df_existing = pd.read_csv(PRENORM_PATH)
 
         df_final = pd.concat([df_existing, df_new], ignore_index=True)
     else:
