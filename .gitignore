@@ -3,6 +3,7 @@ data/
 esquema.pgerd
 backup.sql
 raw_backup.sql
+ToScrape.xlsx
 
 # -------------------------------------------------
 # Docker (eliminar cuando este bien hecho)

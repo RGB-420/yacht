@@ -19,7 +19,7 @@ def log_df_stats(df, step):
         logger.info(f"[{step}] Boat Ids null: {df['Boat Id'].isna().sum()}")
 
 
-def generate_master_boats(df):
+def generate_master_boats(df, conn):
     log_df_stats(df, "INITIAL")
 
     df = owners.finalize_owner_column(df)
@@ -34,7 +34,7 @@ def generate_master_boats(df):
     df = type_class.final_type_class_columns(df)
     log_df_stats(df, "TYPE_CLASS")
     
-    df = clubs.finalize_club_column(df)
+    df = clubs.finalize_club_column(df, conn)
     log_df_stats(df, "CLUBS")
 
     df = group_boats(df)

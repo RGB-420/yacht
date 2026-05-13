@@ -15,6 +15,7 @@ DATA_MAPPING = DATA_PATH / "mapping"
 DATA_REPORT = DATA_PATH / "report"
 DATA_PRENORM = DATA_PATH / "prenormalization"
 DATA_SCORECARD = DATA_PATH / "scorecard"
+DATA_REVIEW = DATA_PATH / "review"
 
 SCRAPERS_LOG_PATH = LOG_PATH / "scrapers"
 

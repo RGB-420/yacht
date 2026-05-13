@@ -1,10 +1,8 @@
 import pandas as pd
 import re 
 
-from pathlib import Path
 
-from app.services.mappings.club_mapping import club_mapping
-from app.core.config import DATA_PRENORM
+from app.repositories.club_aliases_repo import find_club_alias_by_raw_name, find_club_alias_by_normalized_name, create_pending_club_alias
 
 from pipelines.common.logger import get_logger
 
@@ -16,21 +14,20 @@ Club normalizer
 ⚠️ Depends on 'Name' column for inference
 """
 
-PRENORM_PATH = DATA_PRENORM / "club_prenormalization.csv"
-SEEN_PRENORM = set()
-
 SEEN_UNMAPPED_CLUBS = set()
 
 # ------ Main function ------
-def finalize_club_column(df):
+def finalize_club_column(df, conn):
     if "Club"  not in df.columns:
         return df
     
     global MAPPED_CLUBS
     global UNMAPPED_CLUBS
-    
+
     MAPPED_CLUBS = 0
     UNMAPPED_CLUBS = 0
+
+    SEEN_UNMAPPED_CLUBS.clear()
     
     df["Club"] = df["Club"].apply(split_club)
     df = df.explode("Club").reset_index(drop=True)
@@ -54,7 +51,7 @@ def finalize_club_column(df):
 
     # Mapear o capturar prenormalization
     df["Club"] = df.apply(
-        lambda row: map_or_collect_club(row["Club_norm"], row["Club_raw"]),
+        lambda row: map_or_collect_club(conn, row["Club_norm"], row["Club_raw"]),
         axis=1
     )
 
@@ -96,32 +93,40 @@ def normalize_club(s):
 
     return s
 
-def map_or_collect_club(norm_name, raw_name):
+def map_or_collect_club(conn, norm_name, raw_name):
     if pd.isna(norm_name):
         return None
 
     raw_name = str(raw_name).strip().upper()
     norm_name = str(norm_name).strip().upper()
 
-    entry = club_mapping.get(raw_name)
+    entry = find_club_alias_by_raw_name(conn, raw_name)
 
     global MAPPED_CLUBS
     global UNMAPPED_CLUBS
 
     if entry is not None:
-        if entry["status"] == "resolved":
+        status = entry["status"]
+
+        if status == "resolved":
             MAPPED_CLUBS += 1
-            return entry["canonical"]
-        else:
+            #logger.info(f"Club matched by raw name: {raw_name} -> {entry['canonical_name']}")          
+            return entry["canonical_name"]
+        
+        elif status in ["pending", "unresolved", "ignored"]:
             return None
         
-    entry = club_mapping.get(norm_name)
+    entry = find_club_alias_by_normalized_name(conn, norm_name)
 
     if entry is not None:
-        if entry["status"] == "resolved":
+        status = entry["status"]        
+
+        if status == "resolved":
             MAPPED_CLUBS += 1
-            return entry["canonical"]
-        else:
+            #logger.info(f"Club matched by normalized name: {norm_name} -> {entry['canonical_name']}")
+            return entry["canonical_name"]
+        
+        elif status in ["pending",  "unresolved", "ignored"]:
             return None
 
     UNMAPPED_CLUBS += 1
@@ -130,8 +135,13 @@ def map_or_collect_club(norm_name, raw_name):
         logger.warning(f"Club not mapped and excluded from DB: {norm_name}")
 
         SEEN_UNMAPPED_CLUBS.add(norm_name)
+        
+    logger.info(
+        f"Creating pending club alias: "
+        f"{raw_name} ({norm_name})"
+    )
 
-    save_club_prenorm(norm_name)
+    create_pending_club_alias(conn, raw_name, norm_name)
 
     return None
 
@@ -166,29 +176,7 @@ def infer_club_from_boat_name(name, club):
 
     return club
 
-def save_club_prenorm(norm_name):
-    if pd.isna(norm_name) or str(norm_name).strip() == "":
-        return
 
-    if norm_name in SEEN_PRENORM:
-        return
-
-    SEEN_PRENORM.add(norm_name)
-
-    row = {
-        "club_raw_name": norm_name,
-        "club_canonical_name": "",
-        "status": "pending",
-        "confidence": "",
-        "notes": ""
-    }
-
-    df_new = pd.DataFrame([row])
-
-    if PRENORM_PATH.exists():
-        df_new.to_csv(PRENORM_PATH, mode="a", header=False, index=False)
-    else:
-        df_new.to_csv(PRENORM_PATH, index=False)
 
 def split_mapped_club(cell):
     if pd.isna(cell):

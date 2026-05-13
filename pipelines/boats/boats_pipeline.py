@@ -21,6 +21,10 @@ from app.services.normalizers.columns import normalize_columns
 
 from app.services.aggregation.boats_transformation import explode_boats_for_db
 
+from app.services.sync.run_club_sync_pipeline import run_club_sync_pipeline
+
+from app.services.export.pending_club_aliases_export import export_pending_club_aliases
+
 from pipelines.common.logger import get_logger
 
 logger = get_logger(__name__)
@@ -39,21 +43,25 @@ def run_boats_pipeline():
         return
     
     df_normalized = normalize_columns(df_raw)
-
-    df_master = generate_master_boats(df_normalized)
-
-    logger.info(f"Master boat rows: {len(df_master)}")
-
-    df_master = explode_boats_for_db(df_master)
-
-    logger.info(f"Exploded rows: {len(df_master)}")
-
-    inserted_boats = 0
-    inserted_owners = 0
-    inserted_types = 0
-    inserted_clubs = 0
-
+    
     with engine.begin() as conn:
+        run_club_sync_pipeline(conn)
+
+        df_master = generate_master_boats(df_normalized, conn)
+
+        logger.info(f"Master boat rows: {len(df_master)}")
+
+        df_master = explode_boats_for_db(df_master)
+
+        logger.info(f"Exploded rows: {len(df_master)}")
+
+        export_pending_club_aliases(conn)
+
+        inserted_boats = 0
+        inserted_owners = 0
+        inserted_types = 0
+        inserted_clubs = 0
+
         edition_cache = load_edition_cache(conn)
         class_cache = load_class_cache(conn)
         club_cache = load_club_cache(conn)
@@ -83,7 +91,7 @@ def run_boats_pipeline():
 
         for i, row in enumerate(df_master.itertuples(index=False)):
 
-            if i % 100 == 0:
+            if i % 1000 == 0:
                 logger.info(f"Processing row {i}/{len(df_master)}")
             source = row.Source
 

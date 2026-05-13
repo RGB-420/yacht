@@ -1,5 +1,8 @@
 BEGIN;
 
+CREATE SCHEMA IF NOT EXISTS yacht_db;
+CREATE SCHEMA IF NOT EXISTS yacht_raw;
+CREATE SCHEMA IF NOT EXISTS yacht_norm;
 
 CREATE TABLE IF NOT EXISTS yacht_db.regattas
 (
@@ -18,7 +21,7 @@ CREATE TABLE IF NOT EXISTS yacht_db.regatta_editions
     id_edition integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     id_regatta integer NOT NULL,
     year integer NOT NULL,
-    status text NOT NULL DEFAULT unknown,
+    status text NOT NULL DEFAULT 'unknown',
     created_at timestamp with time zone DEFAULT NOW(),
     PRIMARY KEY (id_edition),
     UNIQUE (year, id_regatta)
@@ -319,5 +322,54 @@ ALTER TABLE IF EXISTS yacht_db.regatta_schedule
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
     NOT VALID;
+
+CREATE TABLE yacht_norm.clubs (
+
+    id_club integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+
+    canonical_name TEXT NOT NULL UNIQUE,
+
+    country TEXT,
+    website TEXT,
+
+    entity_type TEXT,
+
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE yacht_norm.club_aliases (
+
+    id_alias integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    raw_name TEXT NOT NULL UNIQUE,
+
+    normalized_name TEXT,
+
+    id_club INTEGER,
+
+    status TEXT NOT NULL,
+
+    confidence TEXT,
+
+    alias_type TEXT,
+
+    notes TEXT,
+
+    reviewed_by TEXT,
+
+    reviewed_at TIMESTAMP,
+
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+ALTER TABLE IF EXISTS yacht_norm.club_aliases
+    ADD FOREIGN KEY (id_club)
+    REFERENCES yacht_norm.clubs (id_club) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE SET NULL
+    NOT VALID;
+
+ALTER TABLE yacht_norm.club_aliases
+ADD CONSTRAINT unique_raw_name
+UNIQUE (raw_name);
 
 END;
