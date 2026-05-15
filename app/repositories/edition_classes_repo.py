@@ -38,3 +38,16 @@ def get_edition_classes(conn, edition_id):
     result = conn.execute(query, {"edition_id": edition_id})
 
     return rows_to_dict(result)
+
+def load_edition_class_rel_cache(conn):
+    query = text("""
+        SELECT id_class, id_edition
+        FROM yacht_db.edition_classes
+    """)
+
+    rows = conn.execute(query).fetchall()
+
+    return {
+        (row.id_class, row.id_edition)
+        for row in rows
+    }

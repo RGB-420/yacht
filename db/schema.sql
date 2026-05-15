@@ -325,7 +325,7 @@ ALTER TABLE IF EXISTS yacht_db.regatta_schedule
 
 CREATE TABLE yacht_norm.clubs (
 
-    id_club integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    id_club integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
 
     canonical_name TEXT NOT NULL UNIQUE,
 
@@ -339,7 +339,7 @@ CREATE TABLE yacht_norm.clubs (
 
 CREATE TABLE yacht_norm.club_aliases (
 
-    id_alias integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    id_alias integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
     raw_name TEXT NOT NULL UNIQUE,
 
     normalized_name TEXT,

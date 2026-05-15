@@ -7,12 +7,12 @@ from app.repositories.boat_classes_repo import load_class_cache
 from app.repositories.clubs_repo import upsert_club, load_club_cache
 from app.repositories.owners_repo import upsert_owner, load_owner_cache
 from app.repositories.boats_repo import upsert_boat, load_boat_cache
-from app.repositories.boats_owner_repo import insert_boat_owner
+from app.repositories.boats_owner_repo import insert_boat_owner, load_boat_owner_rel_cache
 from app.repositories.editions_repo import load_edition_cache
-from app.repositories.edition_classes_repo import insert_edition_class
+from app.repositories.edition_classes_repo import insert_edition_class, load_edition_class_rel_cache
 from app.repositories.boat_type_repo import upsert_boat_type, load_type_cache
-from app.repositories.boat_clubs_repo import insert_boat_club
-from app.repositories.boat_editions_repo import insert_boat_edition
+from app.repositories.boat_clubs_repo import insert_boat_club, load_boat_clubs_rel_cache
+from app.repositories.boat_editions_repo import insert_boat_edition, load_boat_editions_rel_cache
 from app.repositories.raw_results_repo import get_all_raw_results
 
 from app.services.masters.master_boats import generate_master_boats
@@ -69,6 +69,11 @@ def run_boats_pipeline():
         owner_cache = load_owner_cache(conn)
         boat_cache = load_boat_cache(conn)
 
+        boat_owner_rel_cache = load_boat_owner_rel_cache(conn)
+        boat_club_rel_cache = load_boat_clubs_rel_cache(conn)
+        boat_edition_rel_cache = load_boat_editions_rel_cache(conn)
+        edition_class_rel_cache = load_edition_class_rel_cache(conn)
+
         logger.info(f"Edition cache: {len(edition_cache)}")
         logger.info(f"Class cache: {len(class_cache)}")
         logger.info(f"Club cache: {len(club_cache)}")
@@ -76,11 +81,11 @@ def run_boats_pipeline():
         logger.info(f"Owner cache: {len(owner_cache)}")
         logger.info(f"Boat cache: {len(boat_cache)}")
 
-        boat_owner_rel_cache = set()
-        boat_club_rel_cache = set()
-        boat_edition_rel_cache = set()
-        edition_class_rel_cache = set()
-
+        logger.info(f"Boat-Owner relation cache: {len(boat_owner_rel_cache)}")
+        logger.info(f"Boat-Club relation cache: {len(boat_club_rel_cache)}")
+        logger.info(f"Boat-Editions relations cache: {len(boat_edition_rel_cache)}")
+        logger.info(f"Edition-Class relation cache: {len(edition_class_rel_cache)}")
+        
         prenorm = {
             "class": set(),
             "club": set(),

@@ -2,7 +2,7 @@ import pandas as pd
 import re 
 
 
-from app.repositories.club_aliases_repo import find_club_alias_by_raw_name, find_club_alias_by_normalized_name, create_pending_club_alias
+from app.repositories.club_aliases_repo import create_pending_club_alias, load_club_alias_cache
 
 from pipelines.common.logger import get_logger
 
@@ -15,6 +15,9 @@ Club normalizer
 """
 
 SEEN_UNMAPPED_CLUBS = set()
+
+RAW_ALIAS_CACHE = {}
+NORMALIZED_ALIAS_CACHE = {}
 
 # ------ Main function ------
 def finalize_club_column(df, conn):
@@ -48,6 +51,11 @@ def finalize_club_column(df, conn):
         .str.replace(r"\s+", " ", regex=True)
         .str.strip()
     )
+
+    global RAW_ALIAS_CACHE
+    global NORMALIZED_ALIAS_CACHE
+
+    RAW_ALIAS_CACHE, NORMALIZED_ALIAS_CACHE = load_club_alias_cache(conn)
 
     # Mapear o capturar prenormalization
     df["Club"] = df.apply(
@@ -100,7 +108,7 @@ def map_or_collect_club(conn, norm_name, raw_name):
     raw_name = str(raw_name).strip().upper()
     norm_name = str(norm_name).strip().upper()
 
-    entry = find_club_alias_by_raw_name(conn, raw_name)
+    entry = RAW_ALIAS_CACHE.get(raw_name)
 
     global MAPPED_CLUBS
     global UNMAPPED_CLUBS
@@ -116,7 +124,7 @@ def map_or_collect_club(conn, norm_name, raw_name):
         elif status in ["pending", "unresolved", "ignored"]:
             return None
         
-    entry = find_club_alias_by_normalized_name(conn, norm_name)
+    entry = NORMALIZED_ALIAS_CACHE.get(norm_name)
 
     if entry is not None:
         status = entry["status"]        
@@ -150,7 +158,7 @@ def split_club(cell):
         return []
 
     # 1) Split por separadores habituales
-    parts = re.split(r"\s*/\s*|\s*&\s*|\band\b|,\s*", cell, flags=re.IGNORECASE)
+    parts = re.split(r"\s*/\s*|\s*&\s*|\s*et\s*|\band\b|,\s*", cell, flags=re.IGNORECASE)
     parts = [p.strip() for p in parts if p.strip()]
     if len(parts) > 3:
         logger.warning(

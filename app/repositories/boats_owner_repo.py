@@ -26,3 +26,16 @@ def get_boat_owners(conn, boat_id):
     result = conn.execute(query, {"boat_id": boat_id})
 
     return rows_to_dict(result)
+
+def load_boat_owner_rel_cache(conn):
+    query = text("""
+        SELECT id_boat, id_owner
+        FROM yacht_db.boats_owner
+    """)
+
+    rows = conn.execute(query).fetchall()
+
+    return {
+        (row.id_boat, row.id_owner)
+        for row in rows
+    }

@@ -3,7 +3,7 @@ import re
 
 from app.core.config import DATA_MAPPING
 
-from app.repositories.clubs_norm_repo import upsert_norm_club
+from app.repositories.clubs_norm_repo import bulk_upsert_norm_clubs, load_club_norm_sync_cache
 
 CLUBS_MAPPING_PATH = DATA_MAPPING / "club_mapping_review.csv"
 
@@ -63,22 +63,36 @@ def sync_club_norm(conn):
         "club_canonical_name"
     ).reset_index(drop=True)
 
-    synced = 0    
+    existing_club_cache = load_club_norm_sync_cache(conn)
+
+    logger.info(f"Exisitng club cache: {len(existing_club_cache)}")
+
+    payload = []  
 
     for row in clubs_df.itertuples(index=False):
+        website = (
+                None
+                if pd.isna(row.website)
+                else row.website
+            )
+        
+        existing = existing_club_cache.get(str(row.club_canonical_name).upper())
 
-        canonical_name = row.club_canonical_name
-        website = row.website
+        if existing:
+            existing_website = existing["website"]
 
-        upsert_norm_club(
-            conn=conn,
-            canonical_name=canonical_name,
-            website=website
-        )
+            if ((existing_website or None) == (website or None)):
+                continue
 
-        synced += 1
+        payload.append({
+            "canonical_name": row.club_canonical_name,
+            "website": website
+        })
+    
+    if payload:
+        bulk_upsert_norm_clubs(conn, payload)
 
-    logger.info(f"Canonical clubs synced: {synced}")
+    logger.info(f"Canonical clubs synced: {len(payload)}")
 
 
 def split_canonical(cell):

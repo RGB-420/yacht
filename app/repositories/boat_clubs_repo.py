@@ -51,3 +51,16 @@ def get_club_boats(conn, club_id):
     result = conn.execute(query, {"club_id": club_id})
 
     return rows_to_dict(result)
+
+def load_boat_clubs_rel_cache(conn):
+    query = text("""
+        SELECT id_boat, id_club
+        FROM yacht_db.boat_clubs
+    """)
+
+    rows = conn.execute(query).fetchall()
+
+    return {
+        (row.id_boat, row.id_club)
+        for row in rows
+    }

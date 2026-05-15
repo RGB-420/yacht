@@ -57,6 +57,22 @@ def upsert_club_alias(conn, raw_name, normalized_name, id_club, status, confiden
     conn.execute(query, {"raw_name": raw_name, "normalized_name": normalized_name, "id_club": id_club, "status": status, "confidence": confidence})
 
 
+def bulk_upsert_club_aliases(conn, rows):
+    query = text("""
+        INSERT INTO yacht_norm.club_aliases (raw_name, normalized_name, id_club, status, confidence)
+        VALUES (:raw_name, :normalized_name, :id_club, :status, :confidence)
+                 
+        ON CONFLICT (raw_name)
+        DO UPDATE SET
+            normalized_name = EXCLUDED.normalized_name,
+            id_club = EXCLUDED.id_club,
+            status = EXCLUDED.status,
+            confidence = EXCLUDED.confidence
+    """)
+
+    conn.execute(query, rows)
+
+
 def get_pending_club_aliases(conn):
     query = text("""
         SELECT raw_name, normalized_name, COUNT(*) AS occurrences
@@ -83,3 +99,31 @@ def get_resolved_club_aliases(conn):
     result = conn.execute(query)
 
     return [dict(row._mapping) for row in result]
+
+def load_club_alias_cache(conn):
+    query = text("""
+        SELECT ca.raw_name, ca.normalized_name, ca.status, ca.confidence, c.canonical_name
+        FROM yacht_norm.club_aliases ca
+                 
+        LEFT JOIN yacht_norm.clubs c
+            ON ca.id_club = c.id_club
+    """)
+
+    rows = conn.execute(query).mappings().all()
+
+    raw_cache = {}
+    normalized_cache = {}
+
+    for row in rows:
+        row_dict = dict(row)
+
+        raw_name = row["raw_name"]
+        normalized_name = row["normalized_name"]
+
+        if raw_name:
+            raw_cache[str(raw_name).upper()] = row_dict
+        
+        if normalized_name:
+            normalized_cache[str(normalized_name).upper()] = row_dict
+
+    return raw_cache, normalized_cache
