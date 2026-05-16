@@ -2,16 +2,18 @@ from sqlalchemy import text
 
 from app.core.db import rows_to_dict
 
-def upsert_regatta_schedule(conn, edition_id):
+def upsert_regatta_schedule(conn, edition_id, start_date, end_date):
     query = text("""
-        INSERT INTO yacht_db.regatta_schedule (id_edition)
-        VALUES (:edition_id)
+        INSERT INTO yacht_db.regatta_schedule (id_edition, start_date, end_date)
+        VALUES (:edition_id, :start_date, :end_date)
         
         ON CONFLICT (id_edition)
-        DO NOTHING
+        DO UPDATE SET
+            start_date = EXCLUDED.start_date,
+            end_date = EXCLUDED.end_date
     """)
 
-    result = conn.execute(query, {"edition_id": edition_id})
+    result = conn.execute(query, {"edition_id": edition_id, "start_date": start_date, "end_date": end_date})
 
     return result
 

@@ -10,14 +10,14 @@ from app.repositories.raw_results_repo import insert_raw_result
 from scraping.webs import archive_halsail, burnhamweek, cape31, clubspot, cowesclassic, cowesweek, events2, falmouthclassics, flying15, halsail, j70, manage2sail, racing_islands, racing_rules, rtyc, ryyc, sailevent, sailracehq, sailwave, sailworld, yachtsandyachting, yachtscoring, sailti, sportspage
 from scraping.pdfs import royalsolent_pdf, sailwave_pdf, wlyc_pdf
 
-from app.core.config import DATA_RAW, BASE_DIR
+from app.core.config import DATA_RAW, DATA_MASTER
 
 from pipelines.common.logger import get_logger
 
 logger = get_logger(__name__)
 
 BASE_OUTPUT = DATA_RAW / "regattas"
-CONFIG_FILE = BASE_DIR / "infrastructure/config/ToScrape.xlsx"
+REGATTAS_MASTER_PATH = (DATA_MASTER / "regattas_master.csv")
 
 SCRAPERS = {
     "events2": events2.scrape,
@@ -50,6 +50,20 @@ SCRAPERS = {
     "wlyc_pdf": wlyc_pdf.scrape
 }
 
+def load_scrape_config():
+    logger.info("Loading scrape config")
+
+    df = pd.read_csv(REGATTAS_MASTER_PATH)
+
+    for col in df.columns:
+        df[col] = (df[col].astype("string").str.strip())
+    
+    df = df[df["scrape_active"].astype(str).str.startswith("1")].copy()
+
+    logger.info(f"Active scrape rows: {len(df)}")
+
+    return df
+
 def run_scraper(scrape_fn, source, year, name, class_=None, source_page=None, source_type=None, browser=None):
     logger.info(f"Scraping {source_page} | {name} ({year})")
         
@@ -66,7 +80,7 @@ def run_scraper(scrape_fn, source, year, name, class_=None, source_page=None, so
         logger.error(str(e))
         raise
 
-    if class_ and class_ != "No":
+    if pd.notna(class_) and class_ != "No":
         df["class"] = class_
 
     df = df.dropna(axis=1, how="all")
@@ -85,69 +99,50 @@ def run_scraper(scrape_fn, source, year, name, class_=None, source_page=None, so
 
     logger.info(f"Saved CSV: {output_path}")
 
-def scrape_web():
-    logger.info("Loading web scraping config")
-
-    df_links = pd.read_excel(CONFIG_FILE, sheet_name="Web")
-    df_links = df_links[df_links["Active"] == 1]
-
-    logger.info(f"Active web scrapers: {len(df_links)}")
+def scrape_regattas():
+    df = load_scrape_config()
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)
 
-        for _, row in df_links.iterrows():
-            pagina = row["Page"]
-            if pagina not in SCRAPERS:
-                logger.warning(f"No scraper found for {pagina}")
+        for _, row in df.iterrows():
+            scraper_name = row["scraper_name"]
+
+            if scraper_name not in SCRAPERS:
+                logger.warning(f"No scraper found for {scraper_name}")
                 continue
 
+            source_type = str(row["source_type"]).lower()
+
             try:
-                run_scraper(
-                    SCRAPERS[pagina],
-                    row["URL"],
-                    row["Year"],
-                    row["Regatta Name"],
-                    row["Specified Class"],
-                    pagina,
-                    "Web",
-                    browser=browser
-                )
-                logger.info(f"{pagina} | {row['Regatta Name']} OK")
+                if source_type == "web":
+                    run_scraper(
+                        SCRAPERS[scraper_name],
+                        row["link"],
+                        row["year"],
+                        row["regatta_name"],
+                        row["specified_class"],
+                        scraper_name,
+                        "Web",
+                        browser=browser
+                    )
+                
+                elif source_type == "pdf":
+                    run_scraper(
+                        SCRAPERS[scraper_name],
+                        row["link"],
+                        row["year"],
+                        row["regatta_name"],
+                        row["specified_class"],
+                        scraper_name,
+                        "PDF",
+                    )
 
+                else:
+                    logger.warning(f"Unknown source type: {source_type}")
+                    continue
+            
             except Exception as e:
-                logger.error(f"Error in {pagina} | {row['URL']}")
+                logger.error(f"Error in {scraper_name} | {row['link']}")
+
                 logger.error(str(e))
-
-def scrape_pdfs():
-    logger.info("Loading PDF scraping config")
-    
-    df_pdf = pd.read_excel(CONFIG_FILE, sheet_name="PDF")
-    df_pdf = df_pdf[df_pdf["Active"] == 1]
-
-    logger.info("Loading PDF scraping config")
-    
-    for _, row in df_pdf.iterrows():
-        pagina = row["Page"]
-        if pagina not in SCRAPERS:
-            logger.warning(f"No scraper found for {pagina}")
-            continue
-
-        try:
-            run_scraper(
-                SCRAPERS[pagina],
-                row["PDF Route"],
-                row["Year"],
-                row["Regatta Name"],
-                row["Specified Class"],
-                pagina,
-                "PDF"
-            )
-
-            logger.info(f"{pagina} | {row['Regatta Name']} OK")
-
-        except Exception as e:
-            logger.error(f"Error in {pagina} | {row['PDF Route']}")
-            logger.error(str(e))
-
-

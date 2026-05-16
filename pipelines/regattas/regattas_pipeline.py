@@ -1,22 +1,21 @@
 from pathlib import Path
+import pandas as pd
 
 from db.connection import get_engine
 from app.repositories.regattas_repo import upsert_regatta
 from app.repositories.editions_repo import upsert_edition
 from app.repositories.regatta_links_repo import upsert_regatta_link
 from app.repositories.locations_repo import get_or_create_location
-from app.repositories.schedule_repo import upsert_regatta_schedule
+from app.repositories.schedule_repo import upsert_regatta_schedule, upsert_regatta_schedule_dates
 
 from app.services.masters.master_regattas import generate_master_regattas
 from app.core.config import DATA_MASTER
 
-from pipelines.schedule.schedule_sync import sync_schedule_csv_with_db
 from pipelines.common.logger import get_logger
 
 logger = get_logger(__name__)
 
 REGATTAS_FILE = DATA_MASTER / "regattas_master.csv"
-SCHEDULE_FILE = DATA_MASTER / "schedule_master.csv"
 
 def run_regattas_pipeline():
     logger.info("===== START REGATTAS PIPELINE =====")
@@ -38,6 +37,7 @@ def run_regattas_pipeline():
     inserted_regattas = 0
     inserted_editions = 0
     inserted_links = 0
+    updated_schedules = 0
 
     logger.info("Starting database insertion")
 
@@ -64,13 +64,15 @@ def run_regattas_pipeline():
                 if created_link:
                     inserted_links += 1
             
-            if row.status == "future":
-                scheduled_id = upsert_regatta_schedule(conn, edition_id)
+            if pd.notna(row.start_date and pd.notna(row.end_date)):
+                upsert_regatta_schedule(conn, edition_id, row.start_date, row.end_date)
 
-        sync_schedule_csv_with_db(conn, SCHEDULE_FILE)
+                updated_schedules += 1
+
 
     logger.info(f"Regattas inserted: {inserted_regattas}")
     logger.info(f"Editions inserted: {inserted_editions}")
     logger.info(f"Links inserted: {inserted_links}")
+    logger.info(f"Schedules inserted: {updated_schedules}")
 
     logger.info("===== END REGATTAS PIPELINE =====")
