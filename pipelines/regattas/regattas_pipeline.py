@@ -1,4 +1,3 @@
-from pathlib import Path
 import pandas as pd
 
 from db.connection import get_engine
@@ -6,10 +5,13 @@ from app.repositories.regattas_repo import upsert_regatta
 from app.repositories.editions_repo import upsert_edition
 from app.repositories.regatta_links_repo import upsert_regatta_link
 from app.repositories.locations_repo import get_or_create_location
-from app.repositories.schedule_repo import upsert_regatta_schedule, upsert_regatta_schedule_dates
+from app.repositories.schedule_repo import upsert_regatta_schedule
 
 from app.services.masters.master_regattas import generate_master_regattas
 from app.core.config import DATA_MASTER
+
+from pipelines.operations.sync_scrape_queue import sync_scrape_queue
+from pipelines.operations.generate_unscraped_regattas import generate_unscraped_regattas
 
 from pipelines.common.logger import get_logger
 
@@ -19,6 +21,8 @@ REGATTAS_FILE = DATA_MASTER / "regattas_master.csv"
 
 def run_regattas_pipeline():
     logger.info("===== START REGATTAS PIPELINE =====")
+
+    sync_scrape_queue()
 
     if not REGATTAS_FILE.exists():
         logger.error("regattas_master.csv not found")
@@ -58,14 +62,14 @@ def run_regattas_pipeline():
             if created_edition:
                 inserted_editions += 1
 
-            if row.link:
+            if pd.notna(row.link):
                 created_link = upsert_regatta_link(conn, edition_id, row.link)
 
                 if created_link:
                     inserted_links += 1
             
-            if pd.notna(row.start_date and pd.notna(row.end_date)):
-                upsert_regatta_schedule(conn, edition_id, row.start_date, row.end_date)
+            if pd.notna(row.start_date) and pd.notna(row.end_date):
+                upsert_regatta_schedule(conn, edition_id, row.start_date.to_pydatetime(), row.end_date.to_pydatetime())
 
                 updated_schedules += 1
 
@@ -74,5 +78,7 @@ def run_regattas_pipeline():
     logger.info(f"Editions inserted: {inserted_editions}")
     logger.info(f"Links inserted: {inserted_links}")
     logger.info(f"Schedules inserted: {updated_schedules}")
+
+    generate_unscraped_regattas()
 
     logger.info("===== END REGATTAS PIPELINE =====")

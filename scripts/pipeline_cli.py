@@ -1,14 +1,18 @@
 import argparse
 import time
+import sys
 
 from pipelines.scraping.scrape_pipelines import run_scrape_pipeline
 from pipelines.boats.boats_pipeline import run_boats_pipeline
 from pipelines.classes.classes_pipeline import run_classes_pipeline
 from pipelines.clubs.clubs_pipeline import run_clubs_pipeline
 from pipelines.regattas.regattas_pipeline import run_regattas_pipeline
-from pipelines.schedule.schedule_pipeline import run_scheduled_pipeline
 
 from pipelines.orchestrator import run_full_pipeline
+
+from pipelines.common.logger import get_logger
+
+logger = get_logger(__name__)
 
 PIPELINES = {
     "scrape": run_scrape_pipeline,
@@ -16,7 +20,6 @@ PIPELINES = {
     "classes": run_classes_pipeline,
     "clubs": run_clubs_pipeline,
     "regattas": run_regattas_pipeline,
-    "schedule": run_scheduled_pipeline,
     "full": run_full_pipeline,
 }
 
@@ -49,11 +52,13 @@ def main():
             PIPELINES[pipeline_name]()
 
         except Exception as e:
-            print(f"\n❌ Pipeline failed: {e}")
+            logger.exception(f"Pipeline failed: {e}")
+
+            sys.exit(1)
 
         end = time.time()
 
-        print(f"\nFinished in {end - start:.2f} seconds")
+        logger.info(f"Finished in {end - start:.2f} seconds")
 
 
 if __name__ == "__main__":

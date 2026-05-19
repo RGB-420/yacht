@@ -6,11 +6,12 @@ from pathlib import Path
 from db.connection import get_engine
 from app.repositories.raw_results_repo import insert_raw_result
 
-
 from scraping.webs import archive_halsail, burnhamweek, cape31, clubspot, cowesclassic, cowesweek, events2, falmouthclassics, flying15, halsail, j70, manage2sail, racing_islands, racing_rules, rtyc, ryyc, sailevent, sailracehq, sailwave, sailworld, yachtsandyachting, yachtscoring, sailti, sportspage
 from scraping.pdfs import royalsolent_pdf, sailwave_pdf, wlyc_pdf
 
 from app.core.config import DATA_RAW, DATA_MASTER
+
+from pipelines.operations.update_scrape_status import update_scrape_status
 
 from pipelines.common.logger import get_logger
 
@@ -98,6 +99,8 @@ def run_scraper(scrape_fn, source, year, name, class_=None, source_page=None, so
     df.to_csv(output_path, index=False)
 
     logger.info(f"Saved CSV: {output_path}")
+
+    update_scrape_status(regatta_name=name, year=year, link=source)
 
 def scrape_regattas():
     df = load_scrape_config()

@@ -3,16 +3,18 @@ from pipelines.boats.boats_pipeline import run_boats_pipeline
 from pipelines.classes.classes_pipeline import run_classes_pipeline
 from pipelines.clubs.clubs_pipeline import run_clubs_pipeline
 from pipelines.regattas.regattas_pipeline import run_regattas_pipeline
-from pipelines.schedule.schedule_pipeline import run_scheduled_pipeline
+
+from pipelines.common.logger import get_logger
+
+logger = get_logger(__name__)
 
 def run_full_pipeline():
-    print("Starting full pipeline...")
+    logger.info("Starting full pipeline...")
 
     run_regattas_pipeline()
     run_classes_pipeline()
     run_clubs_pipeline()
-    run_scheduled_pipeline()
     run_scrape_pipeline()
     run_boats_pipeline()
 
-    print("Pipeline finished succesfully")
+    logger.info("Pipeline finished succesfully")
