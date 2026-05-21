@@ -1,4 +1,5 @@
 import pandas as pd
+import re
 
 from pipelines.common.logger import get_logger
 
@@ -17,6 +18,9 @@ def sync_scrape_queue():
 
     queue_df = pd.read_csv(QUEUE_PATH)
 
+    if "source_id" not in queue_df.columns:
+        queue_df["source_id"] = pd.NA
+
     for df in [master_df, queue_df]:
         for col in df.columns:
             df[col] = (df[col].astype("string").str.strip())
@@ -30,21 +34,37 @@ def sync_scrape_queue():
     logger.info(f"Queue rows: {len(queue_df)}")
 
     master_index = set(
-        zip(
-            master_df["regatta_name"].fillna(""),
-            master_df["year"].astype(str),
-            master_df["link"].fillna("")
-        )
+        master_df["source_id"].dropna().astype(str)
     )
+
+    existing_ids = set(master_df["source_id"].dropna().astype(str))
+
+    source_counters = {}
 
     new_rows = []
 
     for _, row in queue_df.iterrows():
-        key = (
-            row["regatta_name"],
-            str(row["year"]),
-            row["link"] if pd.notna(row["Link"]) else ""
-        )
+        if pd.isna(row["source_id"]):
+            base = (f"{slugify(row['regatta_name'])}_{row['year']}")
+
+            counter = source_counters.get(base, 0) + 1
+
+            source_id = generate_source_id(row["regatta_name"], row["year"], counter)
+
+            while source_id in existing_ids:
+                counter += 1
+
+                source_id = generate_source_id(row["regatta_name"], row["year"], counter)
+
+            source_counters[base] = counter
+
+            queue_df.at[_, "source_id"] = source_id
+
+            row["source_id"] = source_id
+
+            existing_ids.add(source_id)
+
+        key = row["source_id"]
 
         if key not in master_index:
             new_rows.append(row)
@@ -67,3 +87,17 @@ def sync_scrape_queue():
     )
 
     logger.info("Scrape queue synced successfully")
+
+def slugify(text):
+    text = text.lower()
+
+    text = re.sub(r"[^a-z0-9]+", "_", text)
+
+    text = text.strip("_")
+
+    return text
+
+def generate_source_id(regatta_name, year, counter):
+    base = (f"{slugify(regatta_name)}_{year}")
+
+    return f"{base}_{counter}"

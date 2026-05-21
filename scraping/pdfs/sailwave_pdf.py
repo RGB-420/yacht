@@ -6,11 +6,14 @@ from pathlib import Path
 from app.core.base_scraper import BaseScraper
 
 
-columns_map = {
-    "owner": ["owner"],
-    "boat": ["yacht", "boat"],
-    "number": ["sail number", "sailno", "number"],
-    "club": ["club"]
+COLUMN_MAP = {
+    "division": ["fleet", "divisione"],
+    "sailno": [ "sailno", "sail number", "sail_no", "numvel"],
+    "boat": ["boat", "boat name", "barca"],
+    "type": ["class", "boat type", "design class"],
+    "club": ["club", "yacht club"],
+    "owner": ["owner", "helm/owner"],
+    "mna": ["boat mna", "naz"],
 }
 
 
@@ -29,7 +32,7 @@ class SailwavePDFScraper(BaseScraper):
             tables = camelot.read_pdf(
                 str(route),
                 pages="all",
-                flavor="stream"
+                flavor="lattice"
             )
 
             self.logger.info(f"[INFO] Tables detected: {len(tables)}")
@@ -41,49 +44,58 @@ class SailwavePDFScraper(BaseScraper):
         dfs = []
 
         for table_idx, table in enumerate(tables):
+
             try:
+                self.logger.info(f"[STEP] Processing table {table_idx}")
+
                 df = table.df.reset_index(drop=True)
 
-                self.logger.info(f"[STEP] Processing table {table_idx} ({len(df)} rows)")
-
-                header_idx = None
-
-                for i, row in df.iterrows():
-                    row_norm = row.astype(str).apply(self.normalize)
-
-                    if any(val in columns_map["number"] for val in row_norm):
-                        header_idx = i
-                        break
+                header_idx = self.detect_header_row(df)
 
                 if header_idx is None:
-                    self.logger.warning(f"[SKIP] No header detected in table {table_idx}")
+                    self.logger.warning(f"[SKIP] No valid header detected")
                     continue
 
-                df.columns = df.iloc[header_idx]
+                headers = df.iloc[header_idx].tolist()
+
+                indices = self.get_column_indices(headers)
+
+                cols = self.resolve_columns(indices, COLUMN_MAP)
+
                 df = df.iloc[header_idx + 1:].reset_index(drop=True)
 
-                df = self.map_columns(df, columns_map)
+                df = self.extract_rows(df, cols)
+
                 df = self.merge_multiline_rows(df)
 
-                df = df[df["number"].astype(str).str.contains(r"\d+", na=False)]
+                df = df[
+                    df["sailno"]
+                    .astype(str)
+                    .str.contains(r"\d+", na=False)
+                ]
 
                 dfs.append(df)
 
                 self.logger.info(f"[OK] Table {table_idx} processed ({len(df)} rows)")
 
             except Exception as e:
-                self.logger.error(f"[FAIL] Error processing table {table_idx}: {e}", exc_info=True)
+                self.logger.error(
+                    f"[FAIL] Error processing table {table_idx}: {e}",
+                    exc_info=True
+                )
 
         if not dfs:
-            self.logger.error("[FAIL] No valid tables extracted from PDF")
+            self.logger.error("[FAIL] No valid tables extracted")
             return None
 
         df_all = pd.concat(dfs, ignore_index=True)
 
-        expected = ["number", "boat", "owner", "club"]
+        expected = ["sailno", "boat", "owner", "club"]
+
         available = [c for c in expected if c in df_all.columns]
 
         df_all = df_all[available]
+
         df_all = df_all.replace({np.nan: None})
 
         self.logger.info(f"[END] Total rows extracted: {len(df_all)}")
@@ -91,9 +103,9 @@ class SailwavePDFScraper(BaseScraper):
         return df_all
 
 
-    def normalize(self, col):
+    def normalize(self, text):
         return (
-            str(col)
+            str(text)
             .lower()
             .strip()
             .replace("\n", " ")
@@ -105,44 +117,133 @@ class SailwavePDFScraper(BaseScraper):
         )
 
 
-    def map_columns(self, df, columns_map):
-        new_cols = []
+    def detect_header_row(self, df):
 
-        for col in df.columns:
+        for i, row in df.iterrows():
+
+            row_norm = [
+                self.normalize(v)
+                for v in row.tolist()
+            ]
+
+            hits = 0
+
+            for aliases in COLUMN_MAP.values():
+                if any(alias in row_norm for alias in aliases):
+                    hits += 1
+
+            if hits >= 2:
+                self.logger.info(
+                    f"[INFO] Header detected at row {i}"
+                )
+
+                return i
+
+        return None
+
+
+    def get_column_indices(self, headers):
+
+        col_index = {}
+
+        for i, col in enumerate(headers):
+
             norm_col = self.normalize(col)
-            mapped = col
 
-            for canonical, aliases in columns_map.items():
-                if norm_col in aliases:
-                    mapped = canonical
+            col_index[norm_col] = i
+
+        self.logger.info(
+            f"[INFO] Headers detected: {list(col_index.keys())}"
+        )
+
+        return col_index
+
+
+    def resolve_columns(self, indices, column_map):
+
+        resolved = {}
+
+        for logical_name, possible_headers in column_map.items():
+
+            resolved[logical_name] = None
+
+            for header in possible_headers:
+
+                header = self.normalize(header)
+
+                for detected_header, idx in indices.items():
+
+                    detected_header = self.normalize(detected_header)
+
+                    detected_tokens = detected_header.split()
+
+                    if header in detected_tokens:
+
+                        resolved[logical_name] = idx
+                        break
+
+                if resolved[logical_name] is not None:
                     break
 
-            new_cols.append(mapped)
+        self.logger.info(f"[INFO] Resolved columns: {resolved}")
 
-        df.columns = new_cols
+        return resolved
 
-        self.logger.info(f"[INFO] Mapped columns: {list(df.columns)}")
 
-        return df
+    def get_cell_value(self, row, idx):
+
+        if idx is None:
+            return None
+
+        if idx >= len(row):
+            return None
+
+        return row.iloc[idx]
+
+
+    def extract_rows(self, df, cols):
+
+        rows = []
+
+        for _, row in df.iterrows():
+
+            row_data = {
+                key: self.get_cell_value(row, idx)
+                for key, idx in cols.items()
+            }
+
+            rows.append(row_data)
+
+        return pd.DataFrame(rows)
 
 
     def merge_multiline_rows(self, df):
+
         rows = []
+
         current = None
 
         for _, row in df.iterrows():
-            number = str(row.get("number", "")).strip()
+
+            number = str(row.get("sailno", "")).strip()
 
             if number and any(char.isdigit() for char in number):
+
                 if current is not None:
                     rows.append(current)
+
                 current = row.to_dict()
 
             else:
+
                 if current is not None:
+
                     for col in df.columns:
+
                         val = str(row[col]).strip()
+
                         if val and val.lower() != "nan":
+
                             if current[col] in [None, ""]:
                                 current[col] = val
                             else:
@@ -153,7 +254,9 @@ class SailwavePDFScraper(BaseScraper):
 
         result = pd.DataFrame(rows)
 
-        self.logger.info(f"[INFO] Rows after merge: {len(result)}")
+        self.logger.info(
+            f"[INFO] Rows after merge: {len(result)}"
+        )
 
         return result
 

@@ -8,8 +8,8 @@ from app.core.config import DATA_MASTER
 
 MASTER_PATH = DATA_MASTER / "regattas_master.csv"
 
-def update_scrape_status(regatta_name, year, link):
-    logger.info(f"Updating scrape status: {regatta_name} ({year})")
+def update_scrape_status(source_id):
+    logger.info(f"Updating scrape status: {source_id})")
 
     df = pd.read_csv(MASTER_PATH)
 
@@ -21,24 +21,8 @@ def update_scrape_status(regatta_name, year, link):
     updated = False
 
     for idx, row in df.iterrows():
-        row_link = (
-            row["link"]
-            if pd.notna(row["link"])
-            else ""
-        )
-
-        target_link = (
-            link
-            if pd.notna(link)
-            else ""
-        )
-
-        if (
-            row["regatta_name"] == regatta_name
-            and str(row["year"]) == str(year)
-            and row_link == target_link
-        ):
-            df.at[idx, "scrape_active"] = 0
+        if row["source_id"] == source_id:
+            df.at[idx, "scrape_active"] = "0"
 
             df.at[idx, "scrape_status"] = "Scrapeado"
 

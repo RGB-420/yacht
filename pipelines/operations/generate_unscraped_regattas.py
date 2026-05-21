@@ -22,7 +22,7 @@ def generate_unscraped_regattas():
 
     unscraped_df = df[df["scrape_status"].fillna("") != "Scrapeado"].copy()
 
-    unscraped_df = (unscraped_df.sort_values(by=["scrape_active", "start_date", "end_date"], ascending=[False, True, True]).reset_index(drop=True))
+    unscraped_df = (unscraped_df.sort_values(by=["start_date", "end_date"], ascending=[True, True], na_position="last").reset_index(drop=True))
 
     unscraped_df.to_csv(UNSCRAPED_PATH, index=False)
 

@@ -10,7 +10,7 @@ COLUMN_MAP = {
     "class": ["class"],
     "type": ["boat type", "yacht type"],
     "club": ["club", "yacht club"],
-    "owner": ["owner", "owner's name"]
+    "owner": ["owner", "owner's name", "owner/skipper"]
 }
 
 

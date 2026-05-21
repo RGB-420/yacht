@@ -23,6 +23,7 @@ REQUIRED_COLUMNS = [
 ]
 
 STRING_COLUMNS = [
+    "source_id",
     "regatta_name",
     "type",
     "status",

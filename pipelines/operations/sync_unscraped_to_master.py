@@ -10,6 +10,19 @@ MASTER_PATH = DATA_MASTER / "regattas_master.csv"
 
 UNSCRAPED_PATH = DATA_QUEUE / "unscraped_regattas.csv"
 
+SYNC_COLUMNS = [
+    "status",
+    "scraper_name",
+    "source_type",
+    "scrape_active",
+    "scrape_status",
+    "specified_class",
+    "start_date",
+    "end_date",
+    "notes",
+    "link"
+]
+
 def sync_unscraped_to_master():
     logger.info("Syncing unscraped regattas to master...")
 
@@ -26,37 +39,25 @@ def sync_unscraped_to_master():
     unscraped_df = unscraped_df.replace(r"^\s*$", pd.NA, regex=True)
 
     unscraped_index = {
-        (
-            row["regatta_name"],
-            str(row["year"]),
-            row["link"]
-            if pd.notna(row["link"])
-            else ""
-        ): row
-
+        row["source_id"]: row
         for _, row in unscraped_df.iterrows()
     }
 
     updated = 0
 
     for idx, row in master_df.iterrows():
-        key = (
-            row["regatta_name"],
-            str(row["year"]),
-            row["link"]
-            if pd.notna(row["link"])
-            else ""
-        )
+        key = row["source_id"]
 
         unscraped_row = unscraped_index.get(key)
 
         if unscraped_row is None:
             continue
 
-        master_df.at[
-            idx,
-            "scrape_active"
-        ] = unscraped_row["scrape_active"]
+        for col in SYNC_COLUMNS:
+            if col not in unscraped_row:
+                continue
+
+            master_df.at[idx, col] = unscraped_row[col]
 
         updated += 1
 
