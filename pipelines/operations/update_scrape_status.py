@@ -8,7 +8,7 @@ from app.core.config import DATA_MASTER
 
 MASTER_PATH = DATA_MASTER / "regattas_master.csv"
 
-def update_scrape_status(source_id):
+def update_scrape_status(source_id, status, notes=None):
     logger.info(f"Updating scrape status: {source_id})")
 
     df = pd.read_csv(MASTER_PATH)
@@ -24,8 +24,11 @@ def update_scrape_status(source_id):
         if row["source_id"] == source_id:
             df.at[idx, "scrape_active"] = "0"
 
-            df.at[idx, "scrape_status"] = "Scrapeado"
+            df.at[idx, "scrape_status"] = status
 
+            if notes:
+                df.at[idx, "notes"] = notes
+                
             updated = True
 
             break

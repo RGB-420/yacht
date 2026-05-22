@@ -6,7 +6,7 @@ from pathlib import Path
 from db.connection import get_engine
 from app.repositories.raw_results_repo import insert_raw_result
 
-from scraping.webs import archive_halsail, burnhamweek, cape31, clubspot, cowesclassic, cowesweek, events2, falmouthclassics, flying15, halsail, j70, manage2sail, racing_islands, racing_rules, rtyc, ryyc, sailevent, sailracehq, myjog, eaora, sailwave, sailworld, yachtsandyachting, yachtscoring, sailti, sportspage
+from scraping.webs import archive_halsail, burnhamweek, cape31, clubspot, cowesclassic, cowesweek, cyber_altura, events2, falmouthclassics, flying15, halsail, j70, manage2sail, racing_islands, racing_rules, rtyc, ryyc, sailevent, sailracehq, myjog, eaora, sailwave, sailworld, yachtsandyachting, yachtscoring, sailti, sportspage
 from scraping.pdfs import royalsolent_pdf, sailwave_pdf, wlyc_pdf
 
 from app.core.config import DATA_RAW, DATA_MASTER
@@ -47,6 +47,7 @@ SCRAPERS = {
     "sportspage": sportspage.scrape,
     "myjog": myjog.scrape,
     "eaora": eaora.scrape,
+    "cyber_altura": cyber_altura.scrape,
 
     "sailwave_pdf": sailwave_pdf.scrape,
     "royalsolent_pdf": royalsolent_pdf.scrape,
@@ -82,7 +83,11 @@ def run_scraper(scrape_fn, source, year, name, source_id, class_=None, source_pa
 
     except Exception as e:
         logger.error(f"Scraper failed: {source_page} | {name} | {source}")
+
         logger.error(str(e))
+
+        update_scrape_status(source_id=source_id, status="Failed", notes=str(e)[:200])
+
         raise
 
     if pd.notna(class_) and class_ != "No":
@@ -105,7 +110,7 @@ def run_scraper(scrape_fn, source, year, name, source_id, class_=None, source_pa
 
     logger.info(f"Saved CSV: {output_path}")
 
-    update_scrape_status(source_id=source_id)
+    update_scrape_status(source_id=source_id, status="Scrapeado", notes="")
 
 def scrape_regattas():
     df = load_scrape_config()

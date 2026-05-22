@@ -4,6 +4,7 @@ esquema.pgerd
 backup.sql
 raw_backup.sql
 ToScrape.xlsx
+infrastructure/pdfs
 
 # -------------------------------------------------
 # Docker (eliminar cuando este bien hecho)
