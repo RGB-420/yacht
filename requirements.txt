@@ -23,3 +23,7 @@ mkdocs
 mkdocs-material
 mkdocs-with-pdf
 zensical
+
+fastapi
+uvicorn
+resend

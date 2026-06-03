@@ -112,3 +112,21 @@ def get_regattas_scorecard(conn, week_ago):
     result = conn.execute(query, {"week_ago": week_ago}).fetchone()
 
     return {"total_active": result[0], "new_sourced": result[1]}
+
+def get_all_regattas_master_data(conn):
+    query = text("""
+        SELECT r.name AS regatta_name, r.type, re.year, re.status, rl.url AS link, rs.start_date, rs.end_date, l.city, l.region, l.country
+        FROM yacht_db.regattas r
+        LEFT JOIN yacht_db.regatta_editions re
+            ON re.id_regatta = r.id_regatta
+        LEFT JOIN yacht_db.regatta_links rl
+            ON rl.id_edition = re.id_edition
+        LEFT JOIN yacht_db.regatta_schedule rs
+            ON rs.id_edition = re.id_edition
+        LEFT JOIN yacht_db.locations l
+            ON l.id_location = r.id_location
+    """)
+
+    result = conn.execute(query).fetchall()
+
+    return result

@@ -26,6 +26,8 @@ def sync_club_mapping(conn):
 
     df = df.replace(r"^\s*$", pd.NA, regex=True)
 
+    df = df[df["club_raw_name"].notna()].copy()
+
     df = df[
         df["status"].isin([
             "resolved",

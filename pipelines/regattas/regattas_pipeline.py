@@ -8,7 +8,9 @@ from app.repositories.locations_repo import get_or_create_location
 from app.repositories.schedule_repo import upsert_regatta_schedule
 
 from app.services.masters.master_regattas import generate_master_regattas
-from app.core.config import DATA_MASTER
+from app.core.config import DATA_MASTER, DATA_RAW
+
+from pipelines.regattas.regattas_sync import sync_regattas_csv_with_db
 
 from pipelines.operations.sync_scrape_queue import sync_scrape_queue
 from pipelines.operations.generate_unscraped_regattas import generate_unscraped_regattas
@@ -18,6 +20,8 @@ from pipelines.common.logger import get_logger
 logger = get_logger(__name__)
 
 REGATTAS_FILE = DATA_MASTER / "regattas_master.csv"
+
+RAW_REGATTAS_FILE = DATA_RAW / "regattas_master_raw.csv"
 
 def run_regattas_pipeline():
     logger.info("===== START REGATTAS PIPELINE =====")
@@ -73,6 +77,7 @@ def run_regattas_pipeline():
 
                 updated_schedules += 1
 
+        sync_regattas_csv_with_db(conn, df, RAW_REGATTAS_FILE)
 
     logger.info(f"Regattas inserted: {inserted_regattas}")
     logger.info(f"Editions inserted: {inserted_editions}")

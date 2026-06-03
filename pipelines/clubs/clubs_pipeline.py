@@ -8,7 +8,9 @@ from app.repositories.locations_repo import get_or_create_location
 from app.services.masters.master_clubs import generate_master_clubs
 
 from pipelines.clubs.clubs_sync import sync_clubs_csv_with_db
-from app.core.config import DATA_MASTER, DATA_RAW
+from pipelines.clubs.clubs_mapping_sync import sync_club_mapping_csv_with_db
+
+from app.core.config import DATA_MASTER, DATA_RAW, DATA_MAPPING
 
 from pipelines.common.logger import get_logger
 
@@ -16,6 +18,7 @@ logger = get_logger(__name__)
 
 CLUBS_FILE = DATA_MASTER / "clubs_master.csv"
 RAW_CLUBS_FILE = DATA_RAW / "clubs_master_raw.csv"
+CLUB_MAPPING_FILE = DATA_MAPPING / "club_mapping.csv"
 
 def run_clubs_pipeline():
     logger.info("===== START CLUBS PIPELINE =====")
@@ -39,7 +42,7 @@ def run_clubs_pipeline():
 
     logger.info("Starting database insertion")
 
-    with engine.begin() as conn:
+    with engine.begin() as conn:        
         for _, row in df.iterrows():
             location_id, created_location = get_or_create_location(conn, city=row['city'], region=row['region'], country=row['country'])
 
@@ -52,7 +55,7 @@ def run_clubs_pipeline():
                 inserted_clubs += 1
 
         sync_clubs_csv_with_db(conn, df, RAW_CLUBS_FILE)
-
+        sync_club_mapping_csv_with_db(conn, CLUB_MAPPING_FILE)
 
     logger.info(f"Locations inserted: {inserted_locations}")
     logger.info(f"Clubs inserted: {inserted_clubs}")

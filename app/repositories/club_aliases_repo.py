@@ -127,3 +127,17 @@ def load_club_alias_cache(conn):
             normalized_cache[str(normalized_name).upper()] = row_dict
 
     return raw_cache, normalized_cache
+
+def get_all_club_mappings(conn):
+    query = text("""
+        SELECT ca.raw_name, ca.normalized_name, ca.status, ca.confidence, ca.alias_type, ca.notes, c.canonical_name, c.country, c.website, c.entity_type
+        FROM yacht_norm.club_aliases ca
+        LEFT JOIN yacht_norm.clubs c
+            ON c.id_club = ca.id_club
+        
+        ORDER BY ca.raw_name
+    """)
+
+    result = conn.execute(query)
+
+    return [dict(row._mapping) for row in result]

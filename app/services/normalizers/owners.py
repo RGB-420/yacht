@@ -23,6 +23,8 @@ SEEN_PRENORM = set()
 
 EXISITNG_PRENORM = set()
 
+PRENORM_ROWS = []
+
 if PRENORM_PATH.exists():
     df_existing = pd.read_csv(PRENORM_PATH)
 
@@ -65,6 +67,8 @@ def finalize_owner_column(df):
     df["Owner"] = df["Owner"].str.title()
 
     df = df.drop(columns=["Owner_raw", "Owner_norm"])
+
+    flush_owner_prenorm()
 
     return df
 
@@ -193,22 +197,30 @@ def save_owner_prenorm(raw_name):
     SEEN_PRENORM.add(key)
     EXISITNG_PRENORM.add(key)
 
-    row = {
+    PRENORM_ROWS.append({
         "raw_name": raw_name,
         "canonical_name": "",
         "status": "pending",
         "confidence": "",
         "notes": ""
-    }
+    })
 
-    df_new = pd.DataFrame([row])
+def flush_owner_prenorm():
+    if not PRENORM_ROWS:
+        return
+    
+    df_new = pd.DataFrame(PRENORM_ROWS)
 
     if PRENORM_PATH.exists():
-
         df_existing = pd.read_csv(PRENORM_PATH)
 
         df_final = pd.concat([df_existing, df_new], ignore_index=True)
+    
     else:
         df_final = df_new
 
     df_final.to_csv(PRENORM_PATH, index=False)
+
+    logger.info(f"Owner prenorm saved: {len(PRENORM_ROWS)} rows")
+
+    PRENORM_ROWS.clear()

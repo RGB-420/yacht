@@ -29,3 +29,13 @@ def insert_raw_result(conn, source_type, source_page, regatta_name, year, data):
     """)
 
     conn.execute(query, {"source_type": source_type, "source_page": source_page, "regatta_name": regatta_name, "year": year, "data": Json(data)})
+
+def get_raw_regatta_sources(conn):
+    query = text("""
+        SELECT regatta_name, year, source_type, source_page
+        FROM yacht_raw.raw_regatta_results
+    """)
+
+    result = conn.execute(query).fetchall()
+
+    return result
