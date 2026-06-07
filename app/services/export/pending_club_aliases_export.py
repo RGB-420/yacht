@@ -86,7 +86,7 @@ def export_pending_club_aliases(conn):
     export_rows = []
 
     for row in rows:
-        suggested = (row.get("alias_suggested_canonical") or row.get("canonical_score"))
+        suggested = (row.get("alias_suggested_canonical") or row.get("canonical_suggested"))
 
         confidence = (row.get("alias_score") or row.get("canonical_score"))
 
@@ -101,7 +101,7 @@ def export_pending_club_aliases(conn):
         else:
             export_rows.append({
                 "club_raw_name": row["raw_name"],
-                "club_canonical_name": "",
+                "club_canonical_name": row["normalized_name"].title() if pd.notna(row["normalized_name"]) else row["raw_name"].title(),
                 "status": "pending",
                 "confidence": "",
                 "notes": ""
@@ -113,7 +113,7 @@ def export_pending_club_aliases(conn):
 
     df_mapping = df_mapping.sort_values(
         by=["confidence", "club_raw_name"],
-        ascending=[False, False],
+        ascending=[False, True],
         na_position="last"
     )
 
@@ -122,3 +122,4 @@ def export_pending_club_aliases(conn):
     logger.info(f"Mapping review exported: {len(df_mapping)}")
 
     logger.info(f"Saved debug file: {MAPPING_FILE}")
+    

@@ -22,6 +22,7 @@ from app.services.normalizers.columns import normalize_columns
 from app.services.aggregation.boats_transformation import explode_boats_for_db
 
 from app.services.sync.run_club_sync_pipeline import run_club_sync_pipeline
+from app.services.sync.run_owner_sync_pipeline import run_owner_sync_pipeline
 
 from app.services.export.pending_club_aliases_export import export_pending_club_aliases
 
@@ -46,6 +47,7 @@ def run_boats_pipeline():
     
     with engine.begin() as conn:
         run_club_sync_pipeline(conn)
+        run_owner_sync_pipeline()
 
         df_master = generate_master_boats(df_normalized, conn)
 

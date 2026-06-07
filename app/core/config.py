@@ -17,6 +17,7 @@ DATA_PRENORM = DATA_PATH / "prenormalization"
 DATA_SCORECARD = DATA_PATH / "scorecard"
 DATA_REVIEW = DATA_PATH / "review"
 DATA_QUEUE = DATA_PATH / "queue"
+DATA_DEBUG = DATA_PATH / "debug"
 
 SCRAPERS_LOG_PATH = LOG_PATH / "scrapers"
 
@@ -29,3 +30,4 @@ DATA_MAPPING.mkdir(parents=True, exist_ok=True)
 DATA_REPORT.mkdir(parents=True, exist_ok=True)
 DATA_PRENORM.mkdir(parents=True, exist_ok=True)
 DATA_SCORECARD.mkdir(parents=True, exist_ok=True)
+DATA_DEBUG.mkdir(parents=True, exist_ok=True)
