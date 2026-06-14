@@ -1,6 +1,6 @@
 import pandas as pd
 import re 
-
+from pathlib import Path
 
 from app.repositories.club_aliases_repo import create_pending_club_alias, load_club_alias_cache
 
@@ -19,6 +19,8 @@ SEEN_UNMAPPED_CLUBS = set()
 RAW_ALIAS_CACHE = {}
 NORMALIZED_ALIAS_CACHE = {}
 
+PENDING_DEBUG = []
+
 # ------ Main function ------
 def finalize_club_column(df, conn):
     if "Club"  not in df.columns:
@@ -31,7 +33,18 @@ def finalize_club_column(df, conn):
     UNMAPPED_CLUBS = 0
 
     SEEN_UNMAPPED_CLUBS.clear()
+    PENDING_DEBUG.clear()
     
+    sources_path = Path("data/review/pending_club_sources.csv")
+
+    if sources_path.exists():
+        existing_sources = pd.read_csv(sources_path)
+
+        existing_raws = set(existing_sources["raw_name"].astype(str).str.upper())
+
+    else:
+        existing_raws = set()
+
     df["Club"] = df["Club"].apply(split_club)
     df = df.explode("Club").reset_index(drop=True)
 
@@ -59,7 +72,7 @@ def finalize_club_column(df, conn):
 
     # Mapear o capturar prenormalization
     df["Club"] = df.apply(
-        lambda row: map_or_collect_club(conn, row["Club_norm"], row["Club_raw"]),
+        lambda row: map_or_collect_club(conn, row["Club_norm"], row["Club_raw"], row.get("Source"), existing_raws),
         axis=1
     )
 
@@ -70,6 +83,8 @@ def finalize_club_column(df, conn):
 
     logger.info(f"Mapped clubs: {MAPPED_CLUBS}")
     logger.info(f"Unmapped clubs excluded: {UNMAPPED_CLUBS}")
+
+    save_pending_source()
 
     return df
 
@@ -101,7 +116,7 @@ def normalize_club(s):
 
     return s
 
-def map_or_collect_club(conn, norm_name, raw_name):
+def map_or_collect_club(conn, norm_name, raw_name, regatta_name, existing_raws):
     if pd.isna(norm_name):
         return None
 
@@ -151,6 +166,13 @@ def map_or_collect_club(conn, norm_name, raw_name):
 
     create_pending_club_alias(conn, raw_name, norm_name)
 
+    if raw_name not in existing_raws:
+        PENDING_DEBUG.append({
+            "raw_name": raw_name,
+            "normalized_name": norm_name,
+            "regatta": regatta_name
+        })
+
     return None
 
 def split_club(cell):
@@ -158,7 +180,7 @@ def split_club(cell):
         return []
 
     # 1) Split por separadores habituales
-    parts = re.split(r"\s*/\s*|\s*&\s*|\s*et\s*|\band\b|,\s*", cell, flags=re.IGNORECASE)
+    parts = re.split(r"\s*/\s*|\s*&\s*|\bET\b|\bAND\b|,\s*", cell, flags=re.IGNORECASE)
     parts = [p.strip() for p in parts if p.strip()]
     if len(parts) > 3:
         logger.warning(
@@ -184,7 +206,23 @@ def infer_club_from_boat_name(name, club):
 
     return club
 
+def save_pending_source():
+    sources_path = Path("data/review/pending_club_sources.csv")
 
+    new_df = pd.DataFrame(PENDING_DEBUG)
+
+    if not new_df.empty:
+        if sources_path.exists() and sources_path.stat().st_size > 0:
+            old_df = pd.read_csv(sources_path)
+
+            final_df = pd.concat([old_df, new_df], ignore_index=True)
+
+        else:
+            final_df = new_df
+
+        final_df = final_df.drop_duplicates(subset=["raw_name"], keep="first")
+
+        final_df.to_csv(sources_path, index=False)
 
 def split_mapped_club(cell):
     if pd.isna(cell):

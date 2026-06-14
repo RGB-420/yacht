@@ -5,7 +5,7 @@ from app.core.config import DATA_MAPPING
 
 from app.repositories.clubs_norm_repo import bulk_upsert_norm_clubs, load_club_norm_sync_cache
 
-CLUBS_MAPPING_PATH = DATA_MAPPING / "club_mapping_review.csv"
+CLUBS_MAPPING_PATH = DATA_MAPPING / "clubs/club_mapping_review.csv"
 
 from pipelines.common.logger import get_logger
 
@@ -28,6 +28,10 @@ def sync_club_norm(conn):
         &
         (df["club_canonical_name"].notna())
     ].copy()
+
+    if clubs_df.empty:
+        logger.info("No resolved clubs found. Skipping sync.")
+        return
 
     clubs_df["club_canonical_name"] = (
         clubs_df["club_canonical_name"]

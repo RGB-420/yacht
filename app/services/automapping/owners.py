@@ -5,7 +5,7 @@ COMPANY_KEYWORDS = ["LTD", "LLP", "LIMITED", "PARTNERS", "PARTNER", "CAPITAL", "
 
 CLUB_KEYWORDS = ["YACHT CLUB", "SAILING CLUB", "BOAT CLUB", "SAILING"]
 
-MULTIPLE_OWNER_WORDS = [" AND ", " ET ", " Y ", " & "]
+MULTIPLE_OWNER_WORDS = [" AND ", " Y ", " & "]
 
 def build_result(canonical_name=None, confidence=0, entity_type="UNKNOWN", notes=""):
     if canonical_name is not None:

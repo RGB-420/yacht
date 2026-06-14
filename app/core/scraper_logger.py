@@ -1,6 +1,8 @@
 import logging
+
 from app.core.config import SCRAPERS_LOG_PATH
 
+SCRAPERS_LOG_PATH.mkdir(parents=True, exist_ok=True)
 
 def get_scraper_logger(name: str):
     logger = logging.getLogger(f"scraper.{name}")

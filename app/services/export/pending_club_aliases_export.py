@@ -6,6 +6,8 @@ from pathlib import Path
 from app.repositories.club_aliases_repo import get_pending_club_aliases, get_resolved_club_aliases
 from app.repositories.clubs_norm_repo import get_all_canonical_clubs
 
+from app.services.mappings.club_alias_utils import group_resolved_aliases
+
 from pipelines.common.logger import get_logger
 
 logger = get_logger(__name__)
@@ -23,6 +25,8 @@ def export_pending_club_aliases(conn):
     rows = get_pending_club_aliases(conn)
 
     resolved_aliases = get_resolved_club_aliases(conn)
+
+    resolved_aliases = group_resolved_aliases(resolved_aliases)
 
     canonical_clubs = get_all_canonical_clubs(conn)
     
@@ -108,6 +112,17 @@ def export_pending_club_aliases(conn):
             })
     
     df_mapping = pd.DataFrame(export_rows)
+
+    sources_path = Path("data/review/pending_club_sources.csv")
+
+    if sources_path.exists():
+        sources_df = pd.read_csv(sources_path)
+
+        sources_df = sources_df.groupby("raw_name", as_index=False).agg({"regatta": lambda x: " // ".join(sorted(set(x)))})
+
+        df_mapping = df_mapping.merge(sources_df, left_on="club_raw_name", right_on="raw_name", how="left")
+
+        df_mapping = df_mapping.drop(columns=["raw_name"])
 
     df_mapping = df_mapping.drop_duplicates(subset=["club_raw_name"])
 

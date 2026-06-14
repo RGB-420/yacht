@@ -4,6 +4,7 @@ from app.core.config import DATA_MAPPING
 
 from app.repositories.clubs_norm_repo import load_club_norm_cache
 from app.repositories.club_aliases_repo import bulk_upsert_club_aliases, load_club_alias_cache
+from app.repositories.club_alias_relations_repo import bulk_insert_club_alias_relations
 
 from app.services.normalizers.clubs import normalize_club
 
@@ -11,7 +12,7 @@ from pipelines.common.logger import get_logger
 
 logger = get_logger(__name__)
 
-CLUB_MAPPING_PATH = DATA_MAPPING / "club_mapping_review.csv"
+CLUB_MAPPING_PATH = DATA_MAPPING / "clubs/club_mapping_review.csv"
 
 def sync_club_mapping(conn):
 
@@ -49,6 +50,8 @@ def sync_club_mapping(conn):
 
     payload = []
 
+    relations_payload = []
+
     for row in df.itertuples(index=False):
         raw_name = row.club_raw_name
         canonical_name = row.club_canonical_name
@@ -58,14 +61,21 @@ def sync_club_mapping(conn):
         if pd.isna(confidence):
             confidence = None
 
-        id_club = None
+        club_ids = []
 
         if status == "resolved" and pd.notna(canonical_name):
-            id_club = club_norm_cache.get(
-                str(canonical_name).upper()
-            )
+            canonical_names = [p.strip() for p in str(canonical_name).split("//") if p.strip()]
 
-            if id_club is None:
+            for canonical in canonical_names:
+                club_id = club_norm_cache.get(str(canonical).upper())
+
+                if club_id is None:
+                    logger.warning(f"Canonical club not found: {canonical}")
+                    continue
+
+                club_ids.append(club_id)
+
+            if not club_ids:
                 skipped += 1
                 continue
 
@@ -87,13 +97,35 @@ def sync_club_mapping(conn):
         payload.append({
             "raw_name": raw_name,
             "normalized_name": normalized_name,
-            "id_club": id_club,
             "status": status,
             "confidence": confidence
         })
-    
+
+        if status == "resolved":
+            for club_id in club_ids:
+                relations_payload.append({"id_club": club_id, "raw_name": raw_name})
+
     if payload:
         bulk_upsert_club_aliases(conn, payload)
+
+    existing_alias_cache, _ = load_club_alias_cache(conn)
+
+    relations_insert_payload = []
+
+    for relation in relations_payload:
+        alias = existing_alias_cache.get(str(relation["raw_name"]).upper())
+
+        if not alias:
+            logger.warning(f"Alias not found: {relation['raw_name']}")
+            continue
+
+        relations_insert_payload.append({"id_alias": alias["id_alias"], "id_club": relation["id_club"]})
+
+    if relations_insert_payload:
+        bulk_insert_club_alias_relations(conn, relations_insert_payload)
+
+        logger.info(f"Relations synced: {len(relations_insert_payload)}")
+
 
     synced = len(payload)
 

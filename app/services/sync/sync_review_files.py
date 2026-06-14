@@ -6,11 +6,13 @@ from pipelines.common.logger import get_logger
 
 logger = get_logger(__name__)
 
-REVIEW_PATH = DATA_MAPPING / "club_mapping_review.csv"
+REVIEW_PATH = DATA_MAPPING / "clubs/club_mapping_review.csv"
 
 PENDING_PATH = DATA_REVIEW / "club_mapping_pending.csv"
 
-UNRESOLVED_PATH = DATA_MAPPING / "club_mapping_unresolved.csv"
+UNRESOLVED_PATH = DATA_MAPPING / "clubs/club_mapping_unresolved.csv"
+
+IGNORED_PATH = DATA_MAPPING / "clubs/club_mapping_ignored.csv"
 
 def sync_review_files(working_path):
     logger.info(f"Syncing working file: {working_path.name}")
@@ -71,6 +73,9 @@ def sync_pending_to_review():
 
 def sync_unresolved_to_review():
     sync_review_files(UNRESOLVED_PATH)
+
+def sync_ignored_to_review():
+    sync_review_files(IGNORED_PATH)
 
 def clean_df(df):
     for col in df.columns:

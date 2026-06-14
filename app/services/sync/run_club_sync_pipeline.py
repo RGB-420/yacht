@@ -1,4 +1,4 @@
-from app.services.sync.sync_review_files import sync_unresolved_to_review, sync_pending_to_review
+from app.services.sync.sync_review_files import sync_unresolved_to_review, sync_pending_to_review, sync_ignored_to_review
 
 from app.services.sync.split_review_mapping import split_review_mapping
 
@@ -16,6 +16,8 @@ def run_club_sync_pipeline(conn):
     sync_pending_to_review()
 
     sync_unresolved_to_review()
+
+    sync_ignored_to_review()
 
     split_review_mapping()
 

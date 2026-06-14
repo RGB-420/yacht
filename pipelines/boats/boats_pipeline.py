@@ -39,6 +39,8 @@ def run_boats_pipeline():
         df_raw = get_all_raw_results(conn)
         logger.info(f"Raw rows: {len(df_raw)}")
 
+    df_raw.to_csv("data/raw/boats_raw.csv", index=False)
+
     if df_raw.empty:
         logger.warning("No raw results found")
         return

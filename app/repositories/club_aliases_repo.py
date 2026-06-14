@@ -1,34 +1,54 @@
 from sqlalchemy import text
 
+from app.services.mappings.club_alias_utils import group_club_alias_cache, group_club_mappings
+
 
 def find_club_alias_by_raw_name(conn, raw_name):
     query = text("""
-        SELECT ca.raw_name, ca.normalized_name, ca.status, ca.confidence, c.canonical_name
+        SELECT ca.id_alias, ca.raw_name, ca.normalized_name, ca.status, ca.confidence, c.canonical_name
         FROM yacht_norm.club_aliases ca
                  
+        LEFT JOIN yacht_norm.club_alias_relations car
+            ON car.id_alias = ca.id_alias
+
         LEFT JOIN yacht_norm.clubs c
-            ON ca.id_club = c.id_club
+            ON car.id_club = c.id_club
+                 
         WHERE UPPER(ca.raw_name) = UPPER(:raw_name)
     """)
 
-    result = conn.execute(query, {"raw_name": raw_name}).mappings().first()
+    rows = conn.execute(query, {"raw_name": raw_name}).mappings().all()
 
-    return result
+    rows = group_club_alias_cache(rows)
+
+    if not rows:
+        return None
+
+    return rows[0]
 
 
 def find_club_alias_by_normalized_name(conn, normalized_name):
     query = text("""
-        SELECT ca.raw_name, ca.normalized_name, ca.status, ca.confidence, c.canonical_name
+        SELECT ca.id_alias, ca.raw_name, ca.normalized_name, ca.status, ca.confidence, c.canonical_name
         FROM yacht_norm.club_aliases ca
                  
+        LEFT JOIN yacht_norm.club_alias_relations car
+            ON car.id_alias = ca.id_alias
+                 
         LEFT JOIN yacht_norm.clubs c
-            ON ca.id_club = c.id_club
+            ON car.id_club = c.id_club
+        
         WHERE UPPER(ca.normalized_name) = UPPER(:normalized_name)
     """)
 
-    result = conn.execute(query, {"normalized_name": normalized_name}).mappings().first()
+    rows = conn.execute(query, {"normalized_name": normalized_name}).mappings().all()
 
-    return result
+    rows = group_club_alias_cache(rows)
+
+    if not rows:
+        return None
+
+    return rows[0]
 
 
 def create_pending_club_alias(conn, raw_name, normalized_name):
@@ -59,13 +79,12 @@ def upsert_club_alias(conn, raw_name, normalized_name, id_club, status, confiden
 
 def bulk_upsert_club_aliases(conn, rows):
     query = text("""
-        INSERT INTO yacht_norm.club_aliases (raw_name, normalized_name, id_club, status, confidence)
-        VALUES (:raw_name, :normalized_name, :id_club, :status, :confidence)
+        INSERT INTO yacht_norm.club_aliases (raw_name, normalized_name, status, confidence)
+        VALUES (:raw_name, :normalized_name, :status, :confidence)
                  
         ON CONFLICT (raw_name)
         DO UPDATE SET
             normalized_name = EXCLUDED.normalized_name,
-            id_club = EXCLUDED.id_club,
             status = EXCLUDED.status,
             confidence = EXCLUDED.confidence
     """)
@@ -88,10 +107,15 @@ def get_pending_club_aliases(conn):
 
 def get_resolved_club_aliases(conn):
     query = text("""
-        SELECT raw_name, normalized_name, canonical_name
+        SELECT ca.raw_name, ca.normalized_name, c.canonical_name
         FROM yacht_norm.club_aliases ca
+        
+        JOIN yacht_norm.club_alias_relations car
+            ON car.id_alias = ca.id_alias
+
         JOIN yacht_norm.clubs c
-            ON c.id_club=ca.id_club
+            ON c.id_club=car.id_club
+                 
         WHERE status = 'resolved'
         AND canonical_name IS NOT NULL
     """)
@@ -102,14 +126,19 @@ def get_resolved_club_aliases(conn):
 
 def load_club_alias_cache(conn):
     query = text("""
-        SELECT ca.raw_name, ca.normalized_name, ca.status, ca.confidence, c.canonical_name
+        SELECT ca.id_alias, ca.raw_name, ca.normalized_name, ca.status, ca.confidence, c.canonical_name
         FROM yacht_norm.club_aliases ca
-                 
+
+
+        LEFT JOIN yacht_norm.club_alias_relations car
+            ON car.id_alias = ca.id_alias
         LEFT JOIN yacht_norm.clubs c
-            ON ca.id_club = c.id_club
+            ON car.id_club = c.id_club
     """)
 
     rows = conn.execute(query).mappings().all()
+
+    rows = group_club_alias_cache(rows)
 
     raw_cache = {}
     normalized_cache = {}
@@ -130,14 +159,21 @@ def load_club_alias_cache(conn):
 
 def get_all_club_mappings(conn):
     query = text("""
-        SELECT ca.raw_name, ca.normalized_name, ca.status, ca.confidence, ca.alias_type, ca.notes, c.canonical_name, c.country, c.website, c.entity_type
+        SELECT ca.id_alias, ca.raw_name, ca.normalized_name, ca.status, ca.confidence, ca.alias_type, ca.notes, c.canonical_name, c.country, c.website, c.entity_type
+
         FROM yacht_norm.club_aliases ca
+
+        LEFT JOIN yacht_norm.club_alias_relations car
+            ON car.id_alias = ca.id_alias
+
         LEFT JOIN yacht_norm.clubs c
-            ON c.id_club = ca.id_club
+            ON c.id_club = car.id_club
         
         ORDER BY ca.raw_name
     """)
 
-    result = conn.execute(query)
+    rows = conn.execute(query).mappings().all()
 
-    return [dict(row._mapping) for row in result]
+    rows= group_club_mappings(rows)
+
+    return rows

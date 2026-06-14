@@ -361,6 +361,19 @@ CREATE TABLE yacht_norm.club_aliases (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
+CREATE TABLE yacht_norm.club_alias_relations (
+
+    id_alias INTEGER NOT NULL,
+
+    id_club INTEGER NOT NULL,
+
+    created_at TIMESTAMP DEFAULT NOW(),
+
+    PRIMARY KEY (id_alias, id_club)
+
+);
+
+
 ALTER TABLE IF EXISTS yacht_norm.club_aliases
     ADD FOREIGN KEY (id_club)
     REFERENCES yacht_norm.clubs (id_club) MATCH SIMPLE
@@ -371,5 +384,21 @@ ALTER TABLE IF EXISTS yacht_norm.club_aliases
 ALTER TABLE yacht_norm.club_aliases
 ADD CONSTRAINT unique_raw_name
 UNIQUE (raw_name);
+
+ALTER TABLE IF EXISTS yacht_norm.club_alias_relations
+    ADD CONSTRAINT fk_club_alias_relations_alias
+    FOREIGN KEY (id_alias)
+    REFERENCES yacht_norm.club_aliases (id_alias)
+    MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+ALTER TABLE IF EXISTS yacht_norm.club_alias_relations
+    ADD CONSTRAINT fk_club_alias_relations_club
+    FOREIGN KEY (id_club)
+    REFERENCES yacht_norm.clubs (id_club)
+    MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
 
 END;
