@@ -1,10 +1,10 @@
-from app.services.sync.sync_review_files import sync_unresolved_to_review, sync_pending_to_review, sync_ignored_to_review
+from app.services.sync.clubs.sync_review_files import sync_unresolved_to_review, sync_pending_to_review, sync_ignored_to_review
 
-from app.services.sync.split_review_mapping import split_review_mapping
+from app.services.sync.clubs.split_review_mapping import split_review_mapping
 
-from app.services.sync.club_norm_sync import sync_club_norm
+from app.services.sync.clubs.club_norm_sync import sync_club_norm
 
-from app.services.sync.club_mapping_sync import sync_club_mapping
+from app.services.sync.clubs.club_mapping_sync import sync_club_mapping
 
 from pipelines.common.logger import get_logger
 

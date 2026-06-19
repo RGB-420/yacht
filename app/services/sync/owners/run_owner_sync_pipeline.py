@@ -1,4 +1,4 @@
-from app.services.sync.owner_mapping_sync import sync_owner_mapping
+from app.services.sync.owners.owner_mapping_sync import sync_owner_mapping
 
 from pipelines.common.logger import get_logger
 

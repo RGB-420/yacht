@@ -31,9 +31,11 @@ def generate_master_boats(df, conn):
     df = boat_id.finalize_boat_id_column(df)
     log_df_stats(df, "BOAT_ID")
 
-    df = type_class.final_type_class_columns(df)
+    df.to_csv("data/debug/boats_before_type_class.csv", index=False)
+    df = type_class.final_type_class_columns(df, conn)
     log_df_stats(df, "TYPE_CLASS")
-    
+    df.to_csv("data/debug/boats_after_type_class.csv", index=False)
+
     df = clubs.finalize_club_column(df, conn)
     log_df_stats(df, "CLUBS")
 
