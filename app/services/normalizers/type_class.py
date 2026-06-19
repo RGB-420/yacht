@@ -3,34 +3,18 @@ import re
 
 from pathlib import Path
 
-from app.services.mappings.type_class_mapping import type_class_mapping
-from app.services.mappings.class_mapping import class_mapping
+from app.repositories.class_type_aliases_repo import create_pending_class_type_alias, load_class_type_alias_cache 
 
 from pipelines.common.logger import get_logger
 
 logger = get_logger(__name__)
 
-PRENORM_PATH = Path("data/prenormalization/class_type_prenormalization.csv")
-
-SEEN_PRENORM = set()
-
-EXISTING_PRENORM = set()
-NEW_PRENORM_ROWS = []
-
-if PRENORM_PATH.exists() and PRENORM_PATH.stat().st_size > 0:
-
-    try:
-        df_existing = pd.read_csv(PRENORM_PATH)
-
-        EXISTING_PRENORM = set((df_existing["raw_class"].fillna("").str.lower() + "|" + df_existing["raw_type"].fillna("").str.lower()))
-
-    except Exception:
-        EXISTING_PRENORM = set()
-
 SEEN_UNKNOWN_CLASSES = set()
 
+RAW_ALIAS_CACHE = {}
+NORMALIZED_ALIAS_CACHE = {}
 
-def final_type_class_columns(df):
+def final_type_class_columns(df, conn):
     global MAPPED_CLASS_TYPES
     global UNMAPPED_CLASS_TYPES
 
@@ -65,9 +49,17 @@ def final_type_class_columns(df):
     df["Class_norm"] = df["Class"]
     df["Type_norm"] = df["Boat Type"]
 
+    global RAW_ALIAS_CACHE
+    global NORMALIZED_ALIAS_CACHE
+
+    RAW_ALIAS_CACHE, NORMALIZED_ALIAS_CACHE = load_class_type_alias_cache(conn)
+
     df[["Class", "Boat Type"]] = df.apply(
         lambda row: pd.Series(
             map_or_collect_class_type(
+                conn,
+                row["Class_raw"],
+                row["Type_raw"],
                 row["Class_norm"],
                 row["Type_norm"]
             )
@@ -80,31 +72,13 @@ def final_type_class_columns(df):
     logger.info(f"Mapped class/type pairs: {MAPPED_CLASS_TYPES}")
     logger.info(f"Unmapped class/type pairs: {UNMAPPED_CLASS_TYPES}")
 
-    flush_class_type_prenorm()
-
     return df
 
 def preprocess_class(value):
     if pd.isna(value) or str(value).strip().lower() in {"", "nan"}:
         return None
 
-    # Normalización básica
-    text = value.upper().strip()
-
-    for normalized, patterns in class_mapping.items():
-        for pattern in patterns:
-            try:
-                if re.search(pattern, text):
-                    return normalized
-            except re.error as e:
-                print(f"Regex invalido: {pattern}")
-                raise e
-    
-    if text not in SEEN_UNKNOWN_CLASSES:
-        logger.warning(f"Unknown class not mapped: {text}")
-        SEEN_UNKNOWN_CLASSES.add(text)
-
-    return None
+    return str(value).upper().strip()
 
 def preprocess_type(value):
     if pd.isna(value) or str(value).strip() in {"","0",'""'}:
@@ -210,25 +184,48 @@ def normalize_x_boat(value):
     
     return model
 
-def map_or_collect_class_type(class_norm, type_norm):
+def map_or_collect_class_type(conn, class_raw, type_raw, class_norm, type_norm):
     if pd.isna(class_norm) and pd.isna(type_norm):
         return None, None
 
-    key = (class_norm, type_norm)
+    class_norm = str(class_norm).strip().upper() if pd.notna(class_norm) else None
 
-    mapping = type_class_mapping.get(key)
+    type_norm = str(type_norm).strip().upper() if pd.notna(type_norm) else None
 
-    if mapping:
-        global MAPPED_CLASS_TYPES
-        MAPPED_CLASS_TYPES += 1
-        return mapping["canonical_class"], mapping["canonical_type"]
+    raw_key = (str(class_raw).strip().upper() if pd.notna(class_raw) else None,
+               str(type_raw).strip().upper() if pd.notna(type_raw) else None)
+    
+    normalized_key = (class_norm, type_norm)
 
-    save_class_type_prenorm(class_norm, type_norm)
-
+    global MAPPED_CLASS_TYPES
     global UNMAPPED_CLASS_TYPES
+
+    entry = RAW_ALIAS_CACHE.get(raw_key)
+
+    if entry is None:
+        entry = NORMALIZED_ALIAS_CACHE.get(normalized_key)
+
+    if entry is not None:
+        status = entry["status"]
+
+        if status == "resolved":
+            MAPPED_CLASS_TYPES += 1
+
+            return (entry["canonical_class"], entry["canonical_type"])
+        
+        elif status in ["pending", "unresolved", "ignored"]:
+            return None, None
+        
     UNMAPPED_CLASS_TYPES += 1
 
-    return class_norm, type_norm
+    logger.info(f"Creating pending class/type alias: {class_norm} | {type_norm}")
+
+    create_pending_class_type_alias(conn, class_raw, type_raw, class_norm, type_norm)
+
+    RAW_ALIAS_CACHE[raw_key] = {"status": "pending"}
+    NORMALIZED_ALIAS_CACHE[normalized_key] = {"status": "pending"}
+
+    return None, None
 
 def fill_type_from_class(row):
     class_val = row["Class"]
@@ -239,70 +236,3 @@ def fill_type_from_class(row):
             return class_val
     
     return type_val
-
-
-def save_class_type_prenorm(raw_class, raw_type):
-    if pd.isna(raw_class) and pd.isna(raw_type):
-        return
-
-    key = f"{str(raw_class).lower()}|{str(raw_type).lower()}"
-
-    if key in SEEN_PRENORM:
-        return
-    
-    if key in EXISTING_PRENORM:
-        return
-    
-    SEEN_PRENORM.add(key)
-    EXISTING_PRENORM.add(key)
-
-    NEW_PRENORM_ROWS.append({
-        "raw_class": raw_class,
-        "raw_type": raw_type,
-        "canonical_type": "",
-        "canonical_class": "",
-        "status": "pending",
-        "confidence": "",
-        "notes": ""
-    })
-
-def flush_class_type_prenorm():
-
-    if not NEW_PRENORM_ROWS:
-        return
-
-    df_new = pd.DataFrame(NEW_PRENORM_ROWS)
-
-    if PRENORM_PATH.exists() and PRENORM_PATH.stat().st_size > 0:
-
-        try:
-            df_existing = pd.read_csv(PRENORM_PATH)
-
-        except Exception:
-
-            df_existing = pd.DataFrame(columns=[
-                "raw_class",
-                "raw_type",
-                "canonical_type",
-                "canonical_class",
-                "status",
-                "confidence",
-                "notes"
-            ])
-
-        df_final = pd.concat(
-            [df_existing, df_new],
-            ignore_index=True
-        )
-
-    else:
-
-        df_final = df_new
-
-    df_final.to_csv(PRENORM_PATH, index=False)
-
-    logger.info(
-        f"Saved {len(df_new)} new class/type prenorm rows"
-    )
-
-    NEW_PRENORM_ROWS.clear()
