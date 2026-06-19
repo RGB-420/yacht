@@ -2,8 +2,8 @@ export interface BoatListItem {
     id_boat: number
     name: string
     boat_identifier?: string | null
-    id_class?: number | null
-    class_name?: string | null
+    class_ids: number[]
+    classes: string[]
 }
 
 export interface BoatDetail {
@@ -11,11 +11,11 @@ export interface BoatDetail {
     name: string
     boat_identifier?: string | null
 
-    id_class?: number | null
-    class_name?: string | null
+    classes_ids: number[]
+    classes: string[]
 
-    id_type?: number | null
-    type_name?: string | null
+    type_ids: number[]
+    types: string[]
 
     owners: string[]
     clubs: string[]

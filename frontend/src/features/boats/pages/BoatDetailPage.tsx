@@ -41,12 +41,12 @@ export const BoatDetailPage = () => {
           <p><strong>Identifier:</strong> {boat.boat_identifier}</p>
         )}
 
-        {boat.class_name && (
-          <p><strong>Class:</strong> {boat.class_name}</p>
+        {boat.classes.length > 0 && (
+          <p><strong>Classes:</strong> {boat.classes.join(", ")}</p>
         )}
 
-        {boat.type_name && (
-          <p><strong>Type:</strong> {boat.type_name}</p>
+        {boat.types.length > 0 && (
+          <p><strong>Types:</strong> {boat.types.join(", ")}</p>
         )}
       </div>
 
