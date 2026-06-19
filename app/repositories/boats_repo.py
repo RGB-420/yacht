@@ -2,18 +2,19 @@ from sqlalchemy import text
 
 from app.core.db import row_to_dict, rows_to_dict
 
-def upsert_boat(conn, name, boat_identifier, type_id=None):
+def upsert_boat(conn, name, boat_identifier):
     query = text("""
-        INSERT INTO yacht_db.boats (name, boat_identifier, id_type)
-        VALUES (:name, :boat_identifier, :type_id)
+        INSERT INTO yacht_db.boats (name, boat_identifier)
+        VALUES (:name, :boat_identifier)
                  
-        ON CONFLICT (name, boat_identifier) DO UPDATE SET
-            id_type = COALESCE(EXCLUDED.id_type, yacht_db.boats.id_type)
+        ON CONFLICT (name, boat_identifier)
+        DO UPDATE SET
+            name = EXCLUDED.name
 
         RETURNING id_boat, (xmax = 0) AS inserted;
     """)
 
-    result = conn.execute(query, {"name": name, "boat_identifier": boat_identifier, "type_id": type_id}).fetchone()
+    result = conn.execute(query, {"name": name, "boat_identifier": boat_identifier}).fetchone()
 
     return result[0], result[1]
 
@@ -37,20 +38,26 @@ def load_boat_cache(conn):
                 else None
             )
 
-        ): row["id_boat"]
+        ): {"id_boat": row["id_boat"]}
 
         for row in rows
     }
 
 def get_boats(conn, limit, offset):
     query = text("""
-        SELECT b.id_boat, b.name, b.boat_identifier, bc.id_class, bc.name AS class_name, bt.id_type, bt.name AS type_name,
+        SELECT b.id_boat, b.name, b.boat_identifier,
+                ARRAY_REMOVE(ARRAY_AGG(DISTINCT bt.id_type), NULL) AS type_ids,
+                ARRAY_REMOVE(ARRAY_AGG(DISTINCT bt.name), NULL) AS types,
+                ARRAY_REMOVE(ARRAY_AGG(DISTINCT bc.id_class), NULL) AS class_ids,
+                ARRAY_REMOVE(ARRAY_AGG(DISTINCT bc.name), NULL) AS classes,  
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT o.name), NULL) AS owners,
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT c.name), NULL) AS clubs
         FROM yacht_db.boats b
                  
+        LEFT JOIN yacht_db.boat_type_relations btr
+            ON b.id_boat = btr.id_boat
         LEFT JOIN yacht_db.boat_type bt
-            ON bt.id_type = b.id_type
+            ON bt.id_type = btr.id_type
         LEFT JOIN yacht_db.boat_classes bc
             ON bt.id_class = bc.id_class
         LEFT JOIN yacht_db.boats_owner bo
@@ -62,7 +69,7 @@ def get_boats(conn, limit, offset):
         LEFT JOIN yacht_db.clubs c
             ON bclu.id_club = c.id_club
                  
-        GROUP BY b.id_boat, b.name, b.boat_identifier, bc.id_class, bc.name, bt.id_type, bt.name
+        GROUP BY b.id_boat, b.name, b.boat_identifier
                  
         ORDER BY b.name, b.boat_identifier
         LIMIT :limit
@@ -84,13 +91,19 @@ def count_boats(conn):
 
 def get_boat_by_id(conn, boat_id):
     query = text("""
-        SELECT b.id_boat, b.name, b.boat_identifier, bc.id_class, bc.name AS class_name, bt.id_type, bt.name AS type_name,
+        SELECT b.id_boat, b.name, b.boat_identifier,
+                ARRAY_REMOVE(ARRAY_AGG(DISTINCT bt.id_type), NULL) AS type_ids,
+                ARRAY_REMOVE(ARRAY_AGG(DISTINCT bt.name), NULL) AS types,
+                ARRAY_REMOVE(ARRAY_AGG(DISTINCT bc.id_class), NULL) AS class_ids,
+                ARRAY_REMOVE(ARRAY_AGG(DISTINCT bc.name), NULL) AS classes,
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT o.name), NULL) AS owners,
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT c.name), NULL) AS clubs
         FROM yacht_db.boats b
                  
+        LEFT JOIN yacht_db.boat_type_relations btr
+            ON btr.id_boat = b.id_boat         
         LEFT JOIN yacht_db.boat_type bt
-            ON bt.id_type = b.id_type
+            ON bt.id_type = btr.id_type
         LEFT JOIN yacht_db.boat_classes bc
             ON bt.id_class = bc.id_class
         LEFT JOIN yacht_db.boats_owner bo
@@ -103,7 +116,7 @@ def get_boat_by_id(conn, boat_id):
             ON bclu.id_club = c.id_club
                  
         WHERE b.id_boat = :boat_id
-        GROUP BY b.id_boat, b.name, b.boat_identifier, bc.id_class, bc.name, bt.id_type, bt.name
+        GROUP BY b.id_boat, b.name, b.boat_identifier
     """)
 
     result = conn.execute(query, {"boat_id": boat_id}).fetchone()
@@ -116,8 +129,10 @@ def get_class_boats(conn, class_id):
             ARRAY_REMOVE(ARRAY_AGG(DISTINCT o.name), NULL) AS owners
         FROM yacht_db.boats b
         
-        JOIN yacht_db.boat_type bt
-            ON b.id_type = bt.id_type
+        LEFT JOIN yacht_db.boat_type_relations btr
+            ON btr.id_boat = b.id_boat
+        LEFT JOIN yacht_db.boat_type bt
+            ON btr.id_type = bt.id_type
         LEFT JOIN yacht_db.boats_owner bo
             ON bo.id_boat = b.id_boat
         LEFT JOIN yacht_db.owners o

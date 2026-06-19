@@ -15,17 +15,24 @@ def insert_boat_edition(conn, boat_id, edition_id):
 
 def get_edition_boats(conn, edition_id):
     query = text("""
-        SELECT b.id_boat, b.name, b.boat_identifier, bc.id_class, bc.name as class_name
+        SELECT b.id_boat, b.name, b.boat_identifier,
+            ARRAY_REMOVE(ARRAY_AGG(DISTINCT bc.id_class), NULL) AS class_ids,
+            ARRAY_REMOVE(ARRAY_AGG(DISTINCT bc.name), NULL) AS classes
         FROM yacht_db.boat_editions be
                  
         JOIN yacht_db.boats b
             ON be.id_boat = b.id_boat
+        LEFT JOIN yacht_db.boat_type_relations btr
+            ON btr.id_boat = b.id_boat
         LEFT JOIN yacht_db.boat_type bt
-            ON bt.id_type = b.id_type
+            ON bt.id_type = btr.id_type
         LEFT JOIN yacht_db.boat_classes bc
             ON bt.id_class = bc.id_class
                  
         WHERE be.id_edition = :edition_id
+                 
+        GROUP BY b.id_boat, b.name, b.boat_identifier
+                 
         ORDER BY b.name
     """)
 

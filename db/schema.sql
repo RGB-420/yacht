@@ -155,6 +155,13 @@ CREATE TABLE IF NOT EXISTS yacht_db.regatta_schedule
     UNIQUE (id_edition)
 );
 
+CREATE TABLE yacht_db.boat_type_relations (
+    id_boat integer NOT NULL,
+    id_type integer NOT NULL,
+
+    PRIMARY KEY (id_boat, id_type),
+);
+
 CREATE TABLE IF NOT EXISTS yacht_db.feedback
 (
     id_feedback integer NOT NULL GENERATED ALWAYS AS IDENTITY,
@@ -323,6 +330,21 @@ ALTER TABLE IF EXISTS yacht_db.regatta_schedule
     ON DELETE NO ACTION
     NOT VALID;
 
+ALTER TABLE IF EXISTS yacht_db.boat_type_relations
+    ADD FOREIGN KEY (id_boat)
+    REFERENCES yacht_db.boats (id_boat) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS yacht_db.boat_type_relations
+    ADD FOREIGN KEY (id_type)
+    REFERENCES yacht_db.boat_type (id_type) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
 CREATE TABLE yacht_norm.clubs (
 
     id_club integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
@@ -401,4 +423,86 @@ ALTER TABLE IF EXISTS yacht_norm.club_alias_relations
     ON UPDATE NO ACTION
     ON DELETE CASCADE;
 
+CREATE TABLE yacht_norm.class_types (
+
+    id_class_type integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
+
+    canonical_class TEXT,
+    canonical_type TEXT,
+
+    created_at TIMESTAMP DEFAULT NOW()
+
+);
+
+ALTER TABLE yacht_norm.class_types
+ADD CONSTRAINT unique_class_type
+UNIQUE (canonical_class, canonical_type);
+
+CREATE TABLE yacht_norm.class_type_aliases (
+
+    id_alias integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
+
+    raw_class TEXT,
+    raw_type TEXT,
+
+    normalized_class TEXT,
+    normalized_type TEXT,
+
+    id_class_type INTEGER,
+
+    status TEXT NOT NULL,
+
+    confidence TEXT,
+
+    notes TEXT,
+
+    reviewed_by TEXT,
+
+    reviewed_at TIMESTAMP,
+
+    created_at TIMESTAMP DEFAULT NOW()
+
+);
+
+ALTER TABLE yacht_norm.class_type_aliases
+ADD CONSTRAINT unique_raw_class_type
+UNIQUE (raw_class, raw_type);
+
+CREATE TABLE yacht_norm.class_type_alias_relations (
+
+    id_alias INTEGER NOT NULL,
+
+    id_class_type INTEGER NOT NULL,
+
+    created_at TIMESTAMP DEFAULT NOW(),
+
+    PRIMARY KEY (id_alias, id_class_type)
+
+);
+
+ALTER TABLE IF EXISTS yacht_norm.class_type_aliases
+    ADD FOREIGN KEY (id_class_type)
+    REFERENCES yacht_norm.class_types (id_class_type)
+    MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE SET NULL
+    NOT VALID;
+
+ALTER TABLE IF EXISTS yacht_norm.class_type_alias_relations
+    ADD CONSTRAINT fk_class_type_alias_relations_alias
+    FOREIGN KEY (id_alias)
+    REFERENCES yacht_norm.class_type_aliases (id_alias)
+    MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS yacht_norm.class_type_alias_relations
+    ADD CONSTRAINT fk_class_type_alias_relations_class_type
+    FOREIGN KEY (id_class_type)
+    REFERENCES yacht_norm.class_types (id_class_type)
+    MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+    
 END;

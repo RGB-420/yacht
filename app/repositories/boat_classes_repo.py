@@ -51,13 +51,15 @@ def get_class_id(conn, name):
 def get_classes(conn):
     query = text("""
         SELECT bc.id_class, bc.name, bc.manufacturer, bc.category, bc.rating_rule, bc.start_year, bc.crew_min, bc.crew_max, bc.length_m,
-            COUNT(b.id_boat) AS number_of_boats
+            COUNT(DISTINCT b.id_boat) AS number_of_boats
         FROM yacht_db.boat_classes bc
-        
+                 
         LEFT JOIN yacht_db.boat_type as bt
             ON bt.id_class = bc.id_class
+        LEFT JOIN yacht_db.boat_type_relations btr
+            ON btr.id_type = bt.id_type
         LEFT JOIN yacht_db.boats b
-            ON b.id_type = bt.id_type
+            ON b.id_boat = btr.id_boat
 
         GROUP BY bc.id_class, bc.name, bc.manufacturer, bc.category, bc.rating_rule, bc.start_year, bc.crew_min, bc.crew_max, bc.length_m
 
@@ -71,13 +73,15 @@ def get_classes(conn):
 def get_class_by_id(conn, class_id):
     query = text("""
         SELECT bc.id_class, bc.name, bc.manufacturer, bc.category, bc.rating_rule, bc.start_year, bc.crew_min, bc.crew_max, bc.length_m,
-            COUNT(b.id_boat) AS number_of_boats
+            COUNT(DISTINCT b.id_boat) AS number_of_boats
         FROM yacht_db.boat_classes bc
         
         LEFT JOIN yacht_db.boat_type bt
             ON bt.id_class = bc.id_class
+        LEFT JOIN yacht_db.boat_type_relations btr
+            ON btr.id_type = bt.id_type
         LEFT JOIN yacht_db.boats b
-            ON b.id_type = bt.id_type
+            ON b.id_boat = btr.id_boat
                  
         WHERE bc.id_class = :class_id
                  

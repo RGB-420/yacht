@@ -33,17 +33,23 @@ def get_boat_clubs(conn, boat_id):
 
 def get_club_boats(conn, club_id):
     query = text("""
-        SELECT b.id_boat, b.name, b.boat_identifier, bc.id_class, bc.name AS class_name
+        SELECT b.id_boat, b.name, b.boat_identifier,
+            ARRAY_REMOVE(ARRAY_AGG(DISTINCT bc.id_class), NULL) AS class_ids,
+            ARRAY_REMOVE(ARRAY_AGG(DISTINCT bc.name), NULL) AS classes
         FROM yacht_db.boat_clubs bclu
         
         JOIN yacht_db.boats b
             ON bclu.id_boat = b.id_boat
+        LEFT JOIN yacht_db.boat_type_relations btr
+            ON btr.id_boat = b.id_boat
         LEFT JOIN yacht_db.boat_type bt
-            ON b.id_type = bt.id_type
+            ON bt.id_type = btr.id_type
         LEFT JOIN yacht_db.boat_classes bc
             ON bt.id_class = bc.id_class
 
         WHERE bclu.id_club = :club_id
+                 
+        GROUP BY b.id_boat, b.name, b.boat_identifier
 
         ORDER BY b.name 
     """)

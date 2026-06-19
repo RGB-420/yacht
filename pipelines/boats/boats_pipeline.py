@@ -3,6 +3,7 @@ from pathlib import Path
 import pandas as pd
 
 from db.connection import get_engine
+
 from app.repositories.boat_classes_repo import load_class_cache
 from app.repositories.clubs_repo import upsert_club, load_club_cache
 from app.repositories.owners_repo import upsert_owner, load_owner_cache
@@ -14,6 +15,7 @@ from app.repositories.boat_type_repo import upsert_boat_type, load_type_cache
 from app.repositories.boat_clubs_repo import insert_boat_club, load_boat_clubs_rel_cache
 from app.repositories.boat_editions_repo import insert_boat_edition, load_boat_editions_rel_cache
 from app.repositories.raw_results_repo import get_all_raw_results
+from app.repositories.boat_type_relations_repo import insert_boat_type_relation, load_boat_type_rel_cache
 
 from app.services.masters.master_boats import generate_master_boats
 
@@ -21,8 +23,9 @@ from app.services.normalizers.columns import normalize_columns
 
 from app.services.aggregation.boats_transformation import explode_boats_for_db
 
-from app.services.sync.run_club_sync_pipeline import run_club_sync_pipeline
-from app.services.sync.run_owner_sync_pipeline import run_owner_sync_pipeline
+from app.services.sync.clubs.run_club_sync_pipeline import run_club_sync_pipeline
+from app.services.sync.owners.run_owner_sync_pipeline import run_owner_sync_pipeline
+from app.services.sync.class_types.run_class_type_sync_pipeline import run_class_type_sync_pipeline
 
 from app.services.export.pending_club_aliases_export import export_pending_club_aliases
 
@@ -50,6 +53,7 @@ def run_boats_pipeline():
     with engine.begin() as conn:
         run_club_sync_pipeline(conn)
         run_owner_sync_pipeline()
+        run_class_type_sync_pipeline(conn)
 
         df_master = generate_master_boats(df_normalized, conn)
 
@@ -77,6 +81,7 @@ def run_boats_pipeline():
         boat_club_rel_cache = load_boat_clubs_rel_cache(conn)
         boat_edition_rel_cache = load_boat_editions_rel_cache(conn)
         edition_class_rel_cache = load_edition_class_rel_cache(conn)
+        boat_type_rel_cache = load_boat_type_rel_cache(conn)
 
         logger.info(f"Edition cache: {len(edition_cache)}")
         logger.info(f"Class cache: {len(class_cache)}")
@@ -89,6 +94,7 @@ def run_boats_pipeline():
         logger.info(f"Boat-Club relation cache: {len(boat_club_rel_cache)}")
         logger.info(f"Boat-Editions relations cache: {len(boat_edition_rel_cache)}")
         logger.info(f"Edition-Class relation cache: {len(edition_class_rel_cache)}")
+        logger.info(f"Boat-Type relation cache: {len(boat_type_rel_cache)}")
         
         prenorm = {
             "class": set(),
@@ -184,13 +190,16 @@ def run_boats_pipeline():
 
             boat_key = (row.Name, boat_id_value)
 
-            if boat_key in boat_cache:
-                boat_id = boat_cache[boat_key]
-                created_boat = False
-            else:
-                boat_id, created_boat = upsert_boat(conn, row.Name, boat_id_value, type_id)
+            boat_entry = boat_cache.get(boat_key)
 
-                boat_cache[boat_key] = boat_id
+            if boat_entry:
+                boat_id = boat_entry["id_boat"]
+                created_boat = False
+
+            else:
+                boat_id, created_boat = upsert_boat(conn, row.Name, boat_id_value)
+
+                boat_cache[boat_key] = {"id_boat": boat_id}
 
                 if created_boat:
                     inserted_boats += 1
@@ -209,6 +218,13 @@ def run_boats_pipeline():
                 if relation_key not in boat_club_rel_cache:
                     insert_boat_club(conn, boat_id, club_id)
                     boat_club_rel_cache.add(relation_key)
+
+            if type_id:
+                relation_key = (boat_id, type_id)
+
+                if relation_key not in boat_type_rel_cache:
+                    insert_boat_type_relation(conn, boat_id, type_id)
+                    boat_type_rel_cache.add(relation_key)
                 
             relation_key = (boat_id, edition_id)
 

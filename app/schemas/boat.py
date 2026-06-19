@@ -6,11 +6,11 @@ class Boat(BaseModel):
     name: str
     boat_identifier: Optional[str]
 
-    id_class: Optional[int]
-    class_name: Optional[str]
+    class_ids: List[int]
+    classes: List[str]
 
-    id_type: Optional[int]
-    type_name: Optional[str]
+    type_ids: List[int]
+    types: List[str]
 
     owners: List[str]
     clubs: List[str]
