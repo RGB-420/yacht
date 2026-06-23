@@ -25,7 +25,7 @@ def get_edition_classes(conn, edition_id):
         LEFT JOIN yacht_db.boat_type_relations btr
             ON btr.id_type = bt.id_type
         LEFT JOIN yacht_db.boats b
-            ON b.id_type = bt.id_type
+            ON b.id_boat = bt.id_boat
         LEFT JOIN yacht_db.boat_editions be
             ON be.id_boat = b.id_boat
             AND be.id_edition = ec.id_edition

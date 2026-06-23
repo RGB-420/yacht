@@ -1,23 +1,17 @@
-export interface BoatListItem {
-    id_boat: number
-    name: string
-    boat_identifier?: string | null
-    class_ids: number[]
-    classes: string[]
-}
-
 export interface BoatDetail {
     id_boat: number
     name: string
     boat_identifier?: string | null
 
-    classes_ids: number[]
+    class_ids: number[]
     classes: string[]
 
     type_ids: number[]
     types: string[]
 
     owners: string[]
+
+    club_ids: number[]
     clubs: string[]
 }
 
@@ -38,4 +32,15 @@ export interface PaginatedBoats {
   total: number
   limit: number
   offset: number
+}
+
+export interface BoatPreview {
+    id_boat: number
+    name: string
+    boat_identifier?: string | null
+}
+
+export interface BoatListItem extends BoatPreview {
+    class_ids: number[]
+    classes: string[]
 }

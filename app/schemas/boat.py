@@ -13,6 +13,8 @@ class Boat(BaseModel):
     types: List[str]
 
     owners: List[str]
+
+    club_ids: List[int]
     clubs: List[str]
 
 class PaginatedBoats(BaseModel):

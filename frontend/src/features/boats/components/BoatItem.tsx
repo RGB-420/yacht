@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom"
 import { Sailboat } from "lucide-react"
-import type { BoatListItem } from "../types"
+import type { BoatPreview } from "../types"
 
 interface Props {
-  boat: BoatListItem
+  boat: BoatPreview
 }
 
 export const BoatItem = ({ boat }: Props) => {

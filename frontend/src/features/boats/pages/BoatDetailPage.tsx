@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom"
+import { useParams, Link } from "react-router-dom"
 import { useBoat } from "../hooks/useBoat"
 import { useBoatEditions } from "../hooks/useBoatsEditions"
 import { EditionBoatItem } from "../../editions/components/EditionBoatItem"
@@ -36,39 +36,79 @@ export const BoatDetailPage = () => {
         </div>
 
 
-      <div className="space-y-1">
+      <div className="space-y-4">
         {boat.boat_identifier && (
           <p><strong>Identifier:</strong> {boat.boat_identifier}</p>
         )}
 
         {boat.classes.length > 0 && (
-          <p><strong>Classes:</strong> {boat.classes.join(", ")}</p>
+          <div>
+            <h2 className="font-semibold">Classes</h2>
+
+            <div className="flex flex-wrap gap-2 mt-2">
+              {boat.classes.map((className, i) => (
+                <Link
+                  key={i}
+                  to={`/classes/${boat.class_ids[i]}`}
+                  className="px-2 py-1 text-sm border rounded-lg hover:bg-primary hover:text-white transition"
+                >
+                  {className}
+                </Link>
+              ))}
+            </div>
+          </div>
         )}
 
         {boat.types.length > 0 && (
-          <p><strong>Types:</strong> {boat.types.join(", ")}</p>
+          <div>
+            <h2 className="font-semibold">Types</h2>
+
+            <div className="flex flex-wrap gap-2 mt-2">
+              {boat.types.map((type, i) => (
+                <span
+                  key={i}
+                  className="px-2 py-1 text-sm border rounded-lg"
+                >
+                  {type}
+                </span>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 
       {boat.owners.length > 0 && (
         <div>
           <h2 className="font-semibold">Owners</h2>
-          <ul className="list-disc ml-5">
+
+          <div className="flex flex-wrap gap-2 mt-2">
             {boat.owners.map((owner, i) => (
-              <li key={i}>{owner}</li>
+              <span
+                key={i}
+                className="px-2 py-1 text-sm border rounded-lg"
+              >
+                {owner}
+              </span>
             ))}
-          </ul>
+          </div>
         </div>
       )}
 
       {boat.clubs.length > 0 && (
         <div>
           <h2 className="font-semibold">Clubs</h2>
-          <ul className="list-disc ml-5">
+          
+          <div className="flex flex-wrap gap-2 mt-2">
             {boat.clubs.map((club, i) => (
-              <li key={i}>{club}</li>
+              <Link
+                key={i}
+                to={`/clubs/${boat.club_ids[i]}`}
+                className="px-2 py-1 text-sm border rounded-lg hover:bg-primary"
+              >
+                {club}
+              </Link>
             ))}
-          </ul>
+          </div>
         </div>
       )}
 

@@ -51,6 +51,7 @@ def get_boats(conn, limit, offset):
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT bc.id_class), NULL) AS class_ids,
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT bc.name), NULL) AS classes,  
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT o.name), NULL) AS owners,
+                ARRAY_REMOVE(ARRAY_AGG(DISTINCT c.id_club), NULL) AS club_ids,
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT c.name), NULL) AS clubs
         FROM yacht_db.boats b
                  
@@ -97,6 +98,7 @@ def get_boat_by_id(conn, boat_id):
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT bc.id_class), NULL) AS class_ids,
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT bc.name), NULL) AS classes,
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT o.name), NULL) AS owners,
+                ARRAY_REMOVE(ARRAY_AGG(DISTINCT c.id_club), NULL) AS club_ids,
                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT c.name), NULL) AS clubs
         FROM yacht_db.boats b
                  
