@@ -95,7 +95,6 @@ CREATE TABLE IF NOT EXISTS yacht_db.boats
     id_boat integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     name text NOT NULL,
     boat_identifier text,
-    id_type integer,
     created_at timestamp with time zone DEFAULT NOW(),
     PRIMARY KEY (id_boat),
     UNIQUE (name, boat_identifier)
@@ -155,11 +154,11 @@ CREATE TABLE IF NOT EXISTS yacht_db.regatta_schedule
     UNIQUE (id_edition)
 );
 
-CREATE TABLE yacht_db.boat_type_relations (
+CREATE TABLE IF NOT EXISTS yacht_db.boat_type_relations (
     id_boat integer NOT NULL,
     id_type integer NOT NULL,
 
-    PRIMARY KEY (id_boat, id_type),
+    PRIMARY KEY (id_boat, id_type)
 );
 
 CREATE TABLE IF NOT EXISTS yacht_db.feedback
@@ -254,14 +253,6 @@ ALTER TABLE IF EXISTS yacht_db.edition_classes
 ALTER TABLE IF EXISTS yacht_db.edition_classes
     ADD FOREIGN KEY (id_edition)
     REFERENCES yacht_db.regatta_editions (id_edition) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
-
-
-ALTER TABLE IF EXISTS yacht_db.boats
-    ADD FOREIGN KEY (id_type)
-    REFERENCES yacht_db.boat_type (id_type) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
     NOT VALID;

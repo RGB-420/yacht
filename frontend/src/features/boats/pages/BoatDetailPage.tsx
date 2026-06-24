@@ -29,7 +29,7 @@ export const BoatDetailPage = () => {
             </h1>
             <div className="ml-auto">
                 <FeedbackButton
-                    entityType="edition"
+                    entityType="boat"
                     entityId={Number(id)}
                 />
             </div>
