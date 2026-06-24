@@ -6,207 +6,183 @@ comments: true
 
 ## Architectural Philosophy
 
-The system is designed as a **database-centric data platform**.
+The system is a database-centric data platform.
 
-PostgreSQL acts as the **single source of truth** for all structured data.
-All ingestion, normalisation and data access workflows are built around the database rather than file-based workflows.
+PostgreSQL is the system of record for raw scraped data, normalisation state and canonical application data. Files are still used for master inputs, review workflows, reports and operational artifacts, but the database is the durable integration point for the API and application layer.
 
-The primary objective of the platform is to build a **structured registry of boats and related entities**, including owners, clubs, and classes.
-
-Regatta results act primarily as a **data discovery source**, allowing the system to identify boats and extract associated information. The focus of the platform is therefore on **entity knowledge and relationships**, rather than on storing or analysing race results themselves.
-
-This architecture ensures:
-
-* traceability from raw data to canonical entities
-* reproducibility of ingestion workflows
-* clear separation between data storage and data consumption
-* scalability as the dataset grows
-
-The platform evolves from an initial script-based workflow toward a structured multi-layer architecture.
-
----
+The platform remains entity-centric. Regatta sources are used to discover and enrich durable entities such as boats, owners, clubs, classes, boat types, editions and schedules.
 
 ## High-Level Architecture
 
-The system consists of several layered components:
+```text
+External web/PDF sources
+  -> Scraping layer
+  -> Raw storage (yacht_raw)
+  -> Normalisation/review layer (yacht_norm + CSV review files)
+  -> Canonical storage (yacht_db)
+  -> Repository layer
+  -> FastAPI routes
+  -> React frontend
+```
 
-Sources → Ingestion → Raw Storage → ETL Pipelines → Canonical Data → API → Frontend (in progress)
+## 1. Data Sources
 
----
+The scraping layer supports multiple result providers and custom sources, including web modules such as Halsail, Sailwave, Yacht Scoring, Clubspot, Manage2Sail, Cowes Week, J/70, Cape 31 and other regatta-specific sites.
 
-### 1. Data Sources
+PDF scraping is also represented through dedicated modules for Sailwave-style PDFs, Royal Solent PDFs and WLYC PDFs.
 
-The system collects information from heterogeneous external sources, typically regatta result websites.
+Sources vary widely in structure. The scraper layer extracts the information that is available and preserves it for downstream processing rather than forcing every source into one rigid ingestion schema.
 
-These sources often contain valuable information about boats and their associated entities but present several challenges:
+## 2. Scraping And Ingestion
 
-* inconsistent formatting
-* varying naming conventions
-* incomplete metadata
+Scraping code lives under `scraping/`.
 
-Scrapers extract structured information about **boats and related entities** from these sources.
-While the pages contain race results, the system primarily uses them as a **signal to identify boats and their attributes** such as class, club affiliation, and ownership.
+The scraping pipeline is triggered through `scripts/pipeline_cli.py` with the `scrape` pipeline. Its current flow is:
 
----
+```text
+sync scrape queue
+  -> sync unscraped entries to master data
+  -> run configured scrapers
+  -> regenerate unscraped regatta list
+```
 
-### 2. Ingestion Layer
+Raw extracted data is stored in `yacht_raw.raw_regatta_results` as JSONB with source metadata, regatta name, year and scrape timestamp.
 
-Scrapers retrieve regatta pages and extract structured information from them.
+## 3. Normalisation And Review
 
-Each ingestion run collects:
+Normalisation is implemented through services under `app/services/normalizers`, `app/services/mappings`, `app/services/sync` and `app/services/automapping`.
 
-* regatta metadata (as contextual information)
-* boats appearing in the regatta
-* associated attributes such as class, club, owner, or boat type
+The codebase now has a dedicated `yacht_norm` schema for reviewable normalisation entities:
 
-The extracted information for each regatta is stored together as a **JSON object**.
+* `yacht_norm.clubs`
+* `yacht_norm.club_aliases`
+* `yacht_norm.club_alias_relations`
+* `yacht_norm.class_types`
+* `yacht_norm.class_type_aliases`
+* `yacht_norm.class_type_alias_relations`
 
-Ingestion pipelines are orchestrated through a CLI-based execution system, allowing individual pipelines to be triggered independently.
+CSV files are still part of the workflow. They are used for master data, mapping inputs, generated review files and pending alias exports. These files support human-in-the-loop review while the database holds canonical and normalisation state.
 
-This enables modular execution, better control over pipeline runs, and improved observability.
+## 4. Pipeline Layer
 
-Pipeline execution is monitored through a structured logging system, which records execution progress, warnings and errors for debugging and traceability.
+Pipelines live under `pipelines/` and can be run independently through:
 
----
+```bash
+python scripts/pipeline_cli.py run <pipeline>
+```
 
-### 3. Raw Data Storage
+Currently available pipeline names are:
 
-Raw scraped data is stored in PostgreSQL using **JSONB fields**.
+* `regattas`
+* `classes`
+* `clubs`
+* `scrape`
+* `boats`
+* `full`
 
-Each record represents the raw extracted information for a single regatta and preserves the original values obtained from the source.
+The `full` pipeline currently runs:
 
-This layer acts as an **immutable record of the original source data**, enabling:
+```text
+regattas -> classes -> clubs -> scrape -> boats
+```
 
-* reproducibility of transformations
-* debugging of ingestion pipelines
-* traceability between source data and canonical entities
+Domain pipelines combine file inputs, raw database reads, normalisation services and repository upserts. The boats pipeline is the main aggregation pipeline: it reads all raw results, normalises fields, synchronises clubs, owners and class/type aliases, generates master boat rows and writes boats plus relationship tables.
 
-Raw data is never modified or deleted.
+## 5. Canonical Database
 
----
+Canonical data lives in `yacht_db`.
 
-### 4. Normalisation Pipeline
+The core tables currently include:
 
-Raw data is processed through a Python normalisation pipeline.
+* `regattas`
+* `regatta_editions`
+* `regatta_links`
+* `regatta_schedule`
+* `boats`
+* `boat_type`
+* `boat_type_relations`
+* `owners`
+* `clubs`
+* `locations`
+* `boat_classes`
+* `edition_classes`
+* `boats_owner`
+* `boat_editions`
+* `boat_clubs`
+* `feedback`
 
-The objective of this stage is to transform inconsistent raw values into a consistent canonical representation of entities.
+This schema powers the API and frontend exploration experience.
 
-Typical transformations include:
+## 6. API Layer
 
-* mapping raw club names to canonical clubs
-* mapping raw class names to canonical classes
-* resolving boat identity across appearances
-* validating or correcting inconsistent values
+The API is a FastAPI application in `app/api/main.py`.
 
-At the current stage, mapping rules are stored in **CSV-based lookup tables** used by the normalisation logic.
+Routes are split by domain:
 
-These mappings will eventually migrate into database-managed mapping tables.
+* `/regattas`
+* `/editions`
+* `/boats`
+* `/classes`
+* `/clubs`
+* `/schedule`
+* `/search`
+* `/feedback`
+* `/project`
 
-Normalisation is designed to support a **human-in-the-loop workflow**, where edge cases and ambiguous values can be reviewed and corrected.
+The API uses route modules, Pydantic schemas and repository modules. Database sessions are provided through API dependencies, and admin-only feedback operations are protected through an `x-admin-key` header checked against `ADMIN_KEY`.
 
-Normalisation logic is implemented as part of the ETL pipeline layer, enabling consistent transformations and integration with database operations.
+## 7. Frontend Layer
 
----
+The frontend is an active React/Vite application under `frontend/`.
 
-### 5. Canonical Database
+It consumes the API through `VITE_API_URL` and currently provides:
 
-After normalisation, structured entities are written to canonical relational tables.
+* a home/search page
+* regatta list and detail pages
+* edition detail pages
+* boat list and detail pages
+* class list and detail pages
+* club list and detail pages
+* calendar page backed by schedule data
+* feedback submission components
+* admin feedback review page
+* light/dark theme support
 
-Core entities include:
-
-* boats
-* owners
-* clubs
-* boat classes
-* regattas and regatta editions (stored primarily as contextual metadata)
-
-These tables form a **structured registry of boats and their relationships**.
-
-The goal of the canonical dataset is to provide reliable information about boats and associated entities rather than detailed race results.
-
-Each canonical entity can be traced back to the raw data that generated it.
-
----
-
-### 6. API Layer
-The API layer is fully implemented and actively used to explore and interact with the dataset.
-
-A FastAPI application provides structured access to the canonical dataset.
-
-The API abstracts the database schema and exposes consistent endpoints for querying entities.
-
-Typical responsibilities include:
-
-* retrieving boats and their associated attributes
-* exploring relationships between boats, clubs, owners, and classes
-* filtering entities by attributes such as class or year
-* exposing structured data for applications or analysis
-
-The API layer decouples data storage from data consumption.
-
-The API is designed to support frontend applications and external integrations.
-
----
-
-### 7. Frontend Layer (In Progress)
-
-A web-based frontend application is currently being developed on top of the API layer.
-
-This interface is intended to support:
-
-* exploring boats and their associated information
-* understanding relationships between entities
-* inspecting raw vs normalised values
-* reviewing low-confidence mappings
-* improving transparency and trust in the dataset
-
-The UX will consume the API rather than interacting directly with the database.
-
----
+Navigation is defined in `frontend/src/shared/config/navigation.ts`, and application routes are defined in `frontend/src/app/routes.tsx`.
 
 ## Execution Environment
 
-The system is designed to support both local execution and future containerised deployment in cloud environments.
+The system is designed for local development and future private deployment.
 
-Typical components include:
+Environment variables configure database access and API/frontend behavior. Important examples include:
 
-* PostgreSQL database container
-* ingestion pipeline container
-* API container
+* `DB_USER`
+* `DB_PASSWORD`
+* `DB_HOST`
+* `DB_PORT`
+* `DB_NAME`
+* `PROJECT_DOCS_URL`
+* `ADMIN_KEY`
+* `VITE_API_URL`
 
-Containerisation ensures reproducibility and simplifies deployment to future environments such as a VPS or managed cloud infrastructure.
-
----
-## Pipeline Execution Model
-
-Pipelines are executed through a CLI-based system, allowing selective execution of ingestion and transformation processes.
-
-This approach provides:
-
-* modular pipeline execution
-* improved debugging and monitoring
-* flexibility in development and production workflows
-
-Each pipeline is responsible for a specific domain (boats, classes, regattas, etc.) and can be run independently.
+Centralised path configuration lives in `app/core/config.py` and creates data/log directories such as `data/raw`, `data/master`, `data/mapping`, `data/review`, `data/queue`, `data/report`, `data/prenormalization`, `data/scorecard` and `logs`.
 
 ## Architectural Principles
 
-The platform follows several key design principles.
+**Database-first architecture**  
+PostgreSQL is the integration point for raw, normalisation and canonical data.
 
-**Database-first architecture**
-The database is the central system of record.
+**Raw data preservation**  
+Scraped source data is preserved in JSONB before canonical transformation.
 
-**Raw data preservation**
-Original extracted data is stored unchanged for traceability.
+**Human-in-the-loop normalisation**  
+Ambiguous clubs, owners, classes and types are resolved through reviewable mappings and sync workflows.
 
-**Human-in-the-loop normalisation**
-Ambiguous data is resolved through structured human review.
+**Repository-backed API access**  
+FastAPI routes use repository modules rather than embedding SQL directly in route handlers.
 
-**API-based access**
-All external data access occurs through a controlled API layer.
+**Frontend consumes the API**  
+The React application interacts with the backend through HTTP and does not connect directly to the database.
 
-**Layered architecture**
-Each system layer has a clear and independent responsibility.
-
-**Entity-focused dataset**
-The platform focuses on building a reliable registry of boats and related entities, using regatta results as a discovery source rather than as the primary analytical dataset.
+**Entity-focused dataset**  
+The system prioritises durable sailing entities and relationships over complete race-result analytics.

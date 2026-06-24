@@ -4,211 +4,189 @@ comments: true
 
 # AI Development Context
 
-This document provides guidance for AI-assisted development tool working within this repository.
+This document helps AI-assisted development tools work safely and productively inside this repository.
 
-Its purpose is to help AI systems understand the structure of the project and the architectural constraints that must be respected when generating or modifying code.
+AI may help write code, update documentation, inspect architecture, scaffold tests and diagnose issues. Human review remains required for implementation, data quality and architectural decisions.
 
-AI tools are used in this project as a **development accelerator**, but all generated code remains subject to human review.
+## Project Summary
 
----
+The Regatta Data Platform collects, normalises and exposes sailing regatta data.
 
-# Project Summary
-
-The Regatta Data Platform is a structured data system designed to collect, normalise and expose information about sailing boats.
-
-The system ingests regatta result pages and extracts structured information about boats and their associated entities.
-
-The primary focus of the dataset is **boats and their relationships**, not race results.
-
-Core entities include:
+The core dataset is entity-centric:
 
 * boats
 * owners
 * clubs
+* locations
 * boat classes
-* regattas and regatta editions
+* boat types
+* regattas
+* regatta editions
+* schedules
+* source links
+* feedback
 
-Regattas act primarily as **data sources for discovering boats and metadata**, rather than as the central dataset.
+Regatta results are used primarily as discovery sources for durable entities and relationships.
 
----
+## Current Stack
 
-# Technology Stack
+Backend and data:
 
-Current core technologies:
+* Python
+* PostgreSQL
+* SQLAlchemy
+* FastAPI
+* pandas
+* Playwright
+* BeautifulSoup
+* requests
+* PDF/OCR parsing libraries where needed
 
-* Python (data processing and backend)
-* PostgreSQL (canonical database)
-* FastAPI (API layer)
-* Playwright (web scraping)
-* Docker (containerisation)
+Frontend:
 
-Additional components include:
+* React
+* TypeScript
+* Vite
+* React Router
+* TanStack Query
+* Tailwind CSS
+* lucide-react
 
-* CLI-based pipeline execution
-* structured logging system
-* centralised configuration management
+Documentation:
 
-The development environment is containerised using Docker to ensure reproducibility across systems.
+* MkDocs
+* Material for MkDocs
+* mkdocs-with-pdf
+* Zensical
 
----
+## Repository Structure
 
-# Repository Structure
+Important areas:
 
-The repository is organised around a layered architecture.
+* `scraping/` - web and PDF scrapers.
+* `pipelines/` - domain pipelines and orchestration.
+* `app/api/` - FastAPI app, routes and dependencies.
+* `app/repositories/` - SQL/database access functions.
+* `app/schemas/` - Pydantic response/request schemas.
+* `app/services/` - normalisation, mapping, sync, aggregation, export and email services.
+* `app/core/` - shared backend configuration and helpers.
+* `db/` - schema, connection and database initialisation.
+* `frontend/` - React/Vite frontend.
+* `scripts/` - operational commands and reports.
+* `docs/` - documentation and ADRs.
 
-Main components include:
+## Database Architecture
 
-* **scraping/**
-  Scrapers responsible for extracting structured data from external sources.
+The project uses PostgreSQL as the system of record.
 
-* **pipelines/**
-  ETL pipelines that process and transform data into the canonical model.
+Schemas:
 
-* **app/**
-  Core application layer, including:
-  - API (FastAPI routes)
-  - services (business logic)
-  - repositories (database access)
+* `yacht_raw` stores raw scraper output.
+* `yacht_norm` stores reviewable alias/mapping state.
+* `yacht_db` stores canonical application data.
 
-* **scripts/**
-  CLI tools for executing pipelines and utilities.
+Generated code should respect this separation. Do not mix raw ingestion, normalisation review state and canonical API data without a clear reason.
 
-* **data/**
-  Local storage for intermediate and generated data.
+## Pipeline Execution
 
-* **logs/**
-  Persistent logs for pipeline execution and debugging.
+Pipelines are run through:
 
----
-
-# Pipeline Execution Model
-
-Pipelines are executed through a CLI-based system, allowing individual pipelines to be run independently.
-
-This enables:
-
-* modular execution
-* easier debugging and monitoring
-* flexible development workflows
-
-Each pipeline is responsible for a specific domain (boats, classes, regattas, scraping, etc.).
-
----
-
-# Architectural Principles
-
-The system follows several architectural principles that must be respected by generated code.
-
-### Database-first architecture
-
-PostgreSQL acts as the **central system of record**.
-
-All ingestion and processing workflows operate around the database rather than file-based storage.
-
-### Raw vs canonical data separation
-
-The database contains separate schemas for:
-
-* raw ingestion data
-* canonical relational entities
-
-Raw data is stored unchanged and serves as the reproducible input for the normalisation pipeline.
-
-### Flexible ingestion layer
-
-Scraped raw data is stored as JSONB to support heterogeneous source structures.
-
-Normalisation pipelines transform this data into structured relational entities.
-
-### Entity-centric data model
-
-The canonical dataset focuses on boats and their relationships.
-
-Regattas act primarily as contextual sources of information.
-
-### Observability
-
-The system uses a structured logging system across pipelines and scraping modules.
-
-Logs provide:
-
-* execution tracking
-* warnings and error reporting
-* debugging support
-
-Logs are stored persistently and are used to monitor pipeline behaviour.
-
----
-
-# Architectural Decisions
-
-Important architectural decisions are documented in the **ADR (Architecture Decision Record)** documents located in:
-
+```bash
+python scripts/pipeline_cli.py run <pipeline>
 ```
+
+Available pipeline names:
+
+* `regattas`
+* `classes`
+* `clubs`
+* `scrape`
+* `boats`
+* `full`
+
+The full pipeline currently runs regattas, classes, clubs, scraping and boats in that order.
+
+## API Architecture
+
+FastAPI route modules should stay thin:
+
+* validate request parameters
+* call repository/service functions
+* return schema-shaped data
+* raise appropriate HTTP errors
+
+Database access should generally live in `app/repositories/`.
+
+Domain schemas should live in `app/schemas/`.
+
+Admin feedback routes use `app/api/dependencies/admin.py` and the `ADMIN_KEY` environment variable.
+
+## Frontend Architecture
+
+The frontend lives in `frontend/` and consumes the API through `VITE_API_URL`.
+
+Important conventions:
+
+* routes are defined in `frontend/src/app/routes.tsx`
+* navigation config lives in `frontend/src/shared/config/navigation.ts`
+* API fetch helper lives in `frontend/src/shared/api/client.ts`
+* feature modules live under `frontend/src/features/<domain>/`
+* hooks encapsulate API reads for each feature
+
+When adding frontend functionality, prefer the existing feature-based structure and shared components.
+
+## Architectural Constraints
+
+AI-generated changes should preserve these principles:
+
+**Database-first**  
+Use PostgreSQL-backed workflows for durable state.
+
+**Raw/canonical separation**  
+Raw scraped JSONB data and canonical application entities have different responsibilities.
+
+**Normalisation remains reviewable**  
+Ambiguous mappings should be surfaced for review instead of silently forcing questionable canonical values.
+
+**Entity-centric model**  
+The platform focuses on boats and relationships, not complete race-result analytics.
+
+**Repository-backed API**  
+Keep SQL out of route handlers unless there is a strong local precedent.
+
+**Frontend through API**  
+The React app should call FastAPI, not the database.
+
+## ADRs
+
+Architecture Decision Records live in:
+
+```text
 docs/decisions/
 ```
 
-Examples include:
+Treat accepted ADRs as constraints. If a change conflicts with an ADR, call out the conflict and propose a new ADR or explicit decision rather than silently changing direction.
 
-* database-first architecture
-* separation of raw and canonical data
-* JSONB storage for ingestion
-* entity-centric data model
-
-When generating code or suggesting architectural changes, these decisions must be **treated as constraints**.
-
-If a proposed change conflicts with an ADR, the AI should highlight the conflict rather than silently ignoring the documented decision.
-
----
-
-# Expected AI Contribution
+## Expected AI Contribution
 
 AI tools may assist with:
 
-* generating modules
-* implementing pipelines
-* writing API endpoints
-* suggesting refactors
-* improving documentation
+* code generation
+* documentation updates
+* bug diagnosis
+* refactoring
+* API/frontend alignment
+* test scaffolding
+* data-quality tooling
 
-AI-generated code should:
+Generated code should be:
 
-* follow the existing architectural structure
-* respect the database schema and ADRs
-* avoid introducing unnecessary abstractions
-* prioritise clarity and maintainability
+* explicit
+* maintainable
+* consistent with existing modules
+* conservative around schema and data changes
+* easy for a human maintainer to review
 
-Large changes should be broken into clearly explained steps.
+## Guiding Principle
 
----
-
-# Development Workflow
-
-AI-generated code should be treated as **draft implementations** that require human validation.
-
-Recommended workflow:
-
-1. AI proposes implementation or module.
-2. Human reviews architecture and logic.
-3. Code is tested locally.
-4. Adjustments are made before integration.
-
-AI systems should prioritise **readable and explicit code** over overly complex abstractions.
-
----
-
-# Future Stack Evolution
-
-The backend will remain Python-based.
-
-A frontend layer is currently under development using a JavaScript framework (React or similar).
-
-The API layer will expose structured access to the canonical dataset.
-
----
-
-# Guiding Principle
-
-AI is treated as a **capability multiplier**, not as an autonomous decision-maker.
-
-Architectural integrity and data correctness always take priority over development speed.
+Speed is useful only when it does not damage data correctness, traceability or architectural clarity.

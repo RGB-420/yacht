@@ -4,26 +4,37 @@ comments: true
 
 # Architectural Decisions
 
-This section contains the **Architecture Decision Records (ADRs)** for the project.
+This section contains the Architecture Decision Records (ADRs) for the project.
 
-ADRs document important architectural decisions and the reasoning behind them.
+ADRs document important architectural decisions and the reasoning behind them. They are historical records: once accepted, they should not be rewritten to match every later implementation detail. If the project changes direction, add a new ADR that supersedes or extends the earlier one.
 
-They provide historical context for why certain technologies, patterns or structures were chosen.
+## Current ADRs
 
-These documents help ensure that future development respects the architectural principles of the system.
+* ADR-001: Adopt a Database-First Architecture Using PostgreSQL
+* ADR-002: Separate Raw and Canonical Data Layers
+* ADR-003: Store Raw Scraped Data Using JSONB
+* ADR-004: Adopt an Entity-Centric Data Model Focused on Boats
+* ADR-005: Pipeline Execution via CLI
+* ADR-006: Centralised Configuration Management
+* ADR-007: Structured Logging System
 
-Each ADR includes:
+## Current Implementation Notes
 
-* the context in which the decision was made
-* the decision itself
-* the consequences for the system
+The implementation has evolved beyond the earliest raw/canonical split in one important way: the database now also includes a `yacht_norm` schema for reviewable normalisation state, including club aliases and class/type aliases.
 
-ADRs are immutable records.
-If a decision changes in the future, a new ADR should be created rather than modifying an existing one.
+This does not invalidate the accepted raw/canonical separation. It adds an explicit middle layer:
 
-Current ADRs cover topics such as:
+```text
+yacht_raw -> yacht_norm -> yacht_db
+```
 
-* database architecture
-* separation of raw and canonical data
-* ingestion storage strategy
-* the entity-centric data model
+Future documentation or ADR work should capture this normalisation layer as its own architectural decision if it becomes a stable long-term contract.
+
+## How To Use ADRs
+
+When making changes:
+
+* read the relevant ADRs before changing architecture
+* treat accepted ADRs as constraints
+* document new major decisions as new ADRs
+* avoid silently changing database, pipeline or API architecture without recording the reason

@@ -4,74 +4,72 @@ comments: true
 
 # Regatta Data Platform Documentation
 
-This documentation describes the architecture, backend system and API of the Regatta Data Platform.
+This documentation describes the current architecture, backend, pipelines, frontend and operating model of the Regatta Data Platform.
 
-The platform is a fully functional data system for sailing regattas, including data ingestion, processing pipelines and a public API layer.
+The platform collects sailing regatta data from heterogeneous web and PDF sources, stores the extracted source data, normalises it into canonical entities and exposes the resulting dataset through a FastAPI API and a React frontend.
 
-The goal of this documentation is to provide a clear and structured overview of the system for developers, collaborators and AI-assisted development tools.
+The project is now an integrated application, not only a backend prototype. The live codebase includes ingestion pipelines, normalisation workflows, a PostgreSQL data model, API routes, user feedback workflows and a frontend explorer.
 
 ## Current Status
 
 The platform currently includes:
 
-- Data ingestion pipelines (web scraping and PDF parsing)
-- ETL processing and canonical data model
-- Fully implemented FastAPI backend
-- Structured logging and execution tracking
-- API endpoints for exploring regattas, boats and related entities
+* web and PDF scraping modules for multiple regatta result providers
+* PostgreSQL storage split across raw, normalisation and canonical schemas
+* ETL pipelines for regattas, classes, clubs, scraping and boats
+* CSV-backed master and review workflows used by the pipeline layer
+* a FastAPI backend with entity, search, schedule, project and feedback routes
+* a React/Vite frontend named **Regatta Explorer**
+* global search, list/detail pages, calendar navigation and admin feedback review
+* structured logging and centralised path configuration
+* MkDocs/Zensical documentation generation
 
-A frontend application is currently under development.
+## Repository Areas
 
-## Download Documentation
+The main code areas are:
 
-You can download the complete documentation or access the Markdown source.
-
-[📄 Download PDF](pdf/document.pdf){ .md-button .md-button--primary }
-
-[📦 Download ZIP](download/regatta-docs.zip){ .md-button }
+* `scraping/` - web and PDF scrapers.
+* `pipelines/` - orchestration and domain-specific ETL pipelines.
+* `app/` - API routes, schemas, repositories, services and application configuration.
+* `frontend/` - React/Vite application that consumes the API.
+* `db/` - database connection, initialisation and schema definition.
+* `scripts/` - command-line utilities and operational helpers.
+* `docs/` - project, architecture, API, ADR and AI-development documentation.
 
 ## Documentation Structure
 
 ### Project
 
-High-level information about the project and its evolution.
-
-* Project overview
-* Project roadmap
+High-level project purpose, current phase, product shape and roadmap.
 
 ### Architecture
 
-Technical documentation describing how the system is structured.
+System architecture, execution model, storage layers and design principles.
 
-* System architecture
-* Data model
+### Data Model
+
+Current raw, normalisation and canonical database schemas and their entity relationships.
 
 ### API
 
-Documentation of the FastAPI backend and available endpoints.
-
-* API overview
-* Endpoint structure
-* Data navigation model
+The public FastAPI routes currently implemented by the backend.
 
 ### Architectural Decisions
 
-Architecture Decision Records (ADRs) documenting key design choices.
+Architecture Decision Records documenting accepted decisions and the constraints they introduce.
 
 ### AI Development Context
 
-Guidelines for AI-assisted development and how AI tools interact with the project.
+Guidance for AI-assisted development inside this repository.
 
-## Purpose of this Documentation
+## Download Documentation
 
-This documentation exists to:
+You can download generated documentation artifacts when the documentation build has been run.
 
-* document the architecture and backend system of the platform
-* provide governance and technical clarity
-* support AI-assisted development workflows
-* ensure long-term maintainability of the system
-* provide a clear interface for interacting with the data via the API
+[Download PDF](pdf/document.pdf){ .md-button .md-button--primary }
+
+[Download ZIP](download/regatta-docs.zip){ .md-button }
 
 ## Vision
 
-The long-term goal of the platform is to become a comprehensive data exploration tool for sailing regattas, combining structured data, analytics and user-facing applications.
+The long-term goal is to become a reliable exploration and intelligence layer for sailing regattas, centred on boats and their relationships with classes, clubs, owners, regattas and editions.

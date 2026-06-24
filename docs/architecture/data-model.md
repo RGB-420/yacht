@@ -6,244 +6,205 @@ comments: true
 
 ## Overview
 
-The data model is designed to build a structured registry of boats and their associated entities.
+The data model is organised into three PostgreSQL schemas:
 
-While regatta results are used as the primary source of information, the goal of the database is not to store detailed race results. Instead, regatta appearances act as a **discovery mechanism** for identifying boats and extracting structured information about them.
+```text
+yacht_raw  -> raw scraped source data
+yacht_norm -> reviewable normalisation and alias state
+yacht_db   -> canonical application data
+```
 
-The canonical dataset therefore focuses on **boats and their relationships**, including owners, clubs, and classes.
-
-The model follows a layered structure:
-
-Raw Data → ETL Pipelines → Canonical Entities
-
-The canonical dataset is exposed through a structured API, enabling exploration and integration with external applications.
----
+The canonical model is centred on boats and their relationships with owners, clubs, classes, types, regattas, editions and schedules.
 
 ## Raw Data Layer
 
-Raw data is populated through ingestion pipelines and serves as the entry point for all downstream transformations.
+Raw scraped data is stored in:
 
-Raw scraped data is stored in the `yacht_raw` schema.
-
-The table:
-
-```
+```text
 yacht_raw.raw_regatta_results
 ```
 
-stores the extracted information for each regatta page as a JSON object.
+Each row represents one scraped regatta source and includes:
 
-Each record typically includes:
+* `source_type`
+* `source_page`
+* `regatta_name`
+* `year`
+* `scraped_at`
+* `raw_data` as JSONB
 
-* source metadata
-* regatta name
-* year
-* scraped timestamp
-* structured raw data (`jsonb`)
+This layer preserves heterogeneous source structures and gives the pipeline layer a reproducible input.
 
-This layer preserves the original extracted values and allows all transformations to be reproducible and traceable.
+## Normalisation Layer
 
-Raw data is never modified or deleted.
+The `yacht_norm` schema stores reviewable alias and mapping state used by normalisation workflows.
 
----
+Current normalisation tables include:
 
-## Canonical Entity Model
+* `clubs` - canonical normalisation-level club names and metadata.
+* `club_aliases` - raw club names, normalised values, status, confidence and review metadata.
+* `club_alias_relations` - relationships between aliases and normalised clubs.
+* `class_types` - canonical class/type pairs.
+* `class_type_aliases` - raw class/type pairs, normalised values, status, confidence and review metadata.
+* `class_type_alias_relations` - relationships between aliases and canonical class/type records.
 
-The canonical schema (`yacht_db`) represents the structured dataset used by the system.
+This schema supports human review, automated mapping suggestions and repeatable sync into canonical entities.
 
-The model is centred around a set of core entities.
+## Canonical Schema
 
-The canonical dataset is actively used by the API layer to provide structured access to boats and their relationships.
+The `yacht_db` schema is the application-facing model used by the API and frontend.
+
+### Regattas And Editions
+
+`regattas` stores the stable event identity.
+
+Key fields:
+
+* `id_regatta`
+* `name`
+* `type`
+* `id_club`
+* `id_location`
+* `created_at`
+
+`regatta_editions` stores the year-specific instance of a regatta.
+
+Key fields:
+
+* `id_edition`
+* `id_regatta`
+* `year`
+* `status`
+* `created_at`
+
+This allows a single event such as Cowes Week to have multiple yearly editions.
+
+### Regatta Links And Schedule
+
+`regatta_links` stores source or reference URLs for editions.
+
+`regatta_schedule` stores start and end dates per edition and powers the frontend calendar/API schedule view.
 
 ### Boats
 
-The `boats` table represents the canonical identity of a boat.
+`boats` stores canonical boat identities.
 
-Each boat is defined by:
+Key fields:
 
-* boat name
-* boat identifier (typically a sail number)
-* associated boat class
+* `id_boat`
+* `name`
+* `boat_identifier`
+* `id_type`
+* `created_at`
 
-Boat identity is resolved during the normalisation process using:
-
-* cleaned sail numbers
-* fuzzy name matching
-* manual review where required
-
-This allows the system to recognise the same boat appearing across multiple regattas even when naming conventions differ.
-
----
+The unique key is currently `(name, boat_identifier)`.
 
 ### Owners
 
-The `owners` table stores the canonical identities of boat owners.
+`owners` stores canonical owner names.
 
-A boat may have multiple owners.
+The many-to-many boat-owner relationship is stored in:
 
-The relationship is represented through the junction table:
-
-```
-boats_owner
+```text
+yacht_db.boats_owner
 ```
 
-which allows a many-to-many relationship between boats and owners.
+### Clubs And Locations
 
----
+`clubs` stores canonical club records.
 
-### Clubs
+Key fields:
 
-The `clubs` table represents sailing clubs associated with boats.
+* `name`
+* `short_name`
+* `estimated_numbers`
+* `id_location`
 
-Club records may include additional metadata such as:
+`locations` stores city, region and country values. Clubs and regattas can reference locations.
 
-* location
-* short name
-* estimated number of members
+The many-to-many boat-club relationship is stored in:
 
-Boats may be affiliated with multiple clubs, represented through the junction table:
-
-```
-boat_clubs
-```
-
----
-
-### Boat Classes
-
-The `boat_classes` table represents the general class of a boat, such as:
-
-* Dragon
-* Etchells
-* J/70
-
-Classes may include metadata such as:
-
-* manufacturer
-* rating rule
-* crew size
-* hull length
-
----
-
-### Boat Types
-
-The `boat_type` table provides a more specific classification within a class, representing particular boat models or variants.
-
-This allows the system to distinguish between boats that belong to the same class but have different design variants.
-
----
-
-### Regattas and Editions
-
-Regattas are represented by two related tables:
-
-```
-regattas
-regatta_editions
+```text
+yacht_db.boat_clubs
 ```
 
-The `regattas` table represents the event itself, while `regatta_editions` represents a specific year of that event.
+### Classes And Boat Types
 
-For example:
+`boat_classes` stores higher-level class data such as manufacturer, category, rating rule, start year, crew range and length.
 
-```
-Cowes Week → Regatta
-Cowes Week 2025 → Edition
-```
+`boat_type` stores more specific type/model records and can reference a class.
 
-This separation avoids duplication of event metadata across years.
+The model currently supports both:
 
----
+* `boats.id_type` as a direct type reference
+* `boat_type_relations` as a many-to-many boat/type relationship
+
+`edition_classes` records which classes appear in each regatta edition.
 
 ### Boat Participation
 
-The table:
+`boat_editions` records which boats appear in which regatta editions.
 
+This is the core bridge between discovered regatta participation and canonical boat records.
+
+### Feedback
+
+`feedback` stores user-submitted corrections, missing-data reports, duplicate reports, broken-link reports and regatta suggestions.
+
+Feedback status values are:
+
+* `pending`
+* `reviewed`
+* `fixed`
+* `ignored`
+
+Feedback is used by the frontend and admin review workflow.
+
+## Main Relationships
+
+The main relationship tables are:
+
+* `boats_owner`: boats to owners
+* `boat_clubs`: boats to clubs
+* `boat_editions`: boats to regatta editions
+* `edition_classes`: editions to classes
+* `boat_type_relations`: boats to boat types
+
+Conceptually:
+
+```text
+Regatta -> Edition -> Boat
+Edition -> Class
+Boat -> Owner
+Boat -> Club
+Boat -> Type -> Class
+Regatta/Club -> Location
+Edition -> Link
+Edition -> Schedule
 ```
-boat_editions
-```
-
-records the participation of boats in specific regatta editions.
-
-This information is used primarily as contextual metadata and as a discovery signal for identifying boats and their relationships.
-
-The system does not aim to store full race result analytics at this stage, focusing instead on entity discovery and relationship mapping.
-
----
-
-### Locations
-
-The `locations` table provides geographic metadata used by both clubs and regattas.
-
-Typical attributes include:
-
-* city
-* region
-* country
-
-This allows geographic grouping and analysis of clubs and events.
-
----
-
-## Entity Relationships
-
-The model contains several many-to-many relationships:
-
-Boat ↔ Owner
-Boat ↔ Club
-Boat ↔ Regatta Edition
-Edition ↔ Class
-
-These relationships are implemented using junction tables to preserve flexibility and avoid duplication.
-
----
 
 ## Normalisation Workflow
 
-Raw values extracted from source pages are rarely consistent.
+The current workflow combines raw database reads, CSV master/review files and database-backed normalisation tables:
 
-Normalisation currently follows a hybrid workflow:
+1. Scrapers insert raw JSONB results.
+2. Regatta, class and club master files seed canonical reference data.
+3. Sync pipelines update scrape queues, master CSVs and normalisation tables.
+4. Raw boat rows are normalised into consistent column names and values.
+5. Club, owner and class/type sync workflows resolve or flag aliases.
+6. The boats pipeline writes canonical boats, owners, types, clubs and relationship rows.
+7. Pending aliases and unresolved cases are exported for review.
 
-1. Raw values are extracted from the JSON ingestion layer.
-2. Lists of unique raw values are generated.
-3. These values are reviewed and mapped to canonical entities.
-4. Canonical entities are inserted into the database.
+## Design Priorities
 
-Mapping rules are currently stored in CSV lookup files but will eventually be migrated into database-managed mapping tables.
+**Traceability**  
+Raw data is retained separately from canonical entities.
 
-Normalisation is integrated into the ETL pipeline layer, enabling consistent transformation and insertion into the canonical database.
+**Reviewability**  
+Ambiguous names and class/type values can be reviewed and mapped over time.
 
----
+**Application readiness**  
+Canonical tables are shaped for API and frontend navigation.
 
-## Data Usage
-
-The canonical data model is designed to support:
-
-* API-based exploration of boats and regattas
-* relationship analysis between entities
-* future frontend applications
-* incremental enrichment of the dataset over time
-
-The model prioritises flexibility and extensibility to support future analytical and product layers.
-
----
-
-## Design Principles
-
-The data model follows several key principles:
-
-**Entity-centric design**
-The system models boats and related entities rather than race results.
-
-**Traceability**
-All canonical entities can be traced back to raw source data.
-
-**Flexibility**
-Many-to-many relationships allow complex ownership and affiliation structures.
-
-**Incremental normalisation**
-Data quality improves over time through iterative normalisation.
-
-**Separation of raw and canonical layers**
-Raw scraped data is stored independently from the canonical relational model.
+**Entity focus**  
+Race participation is used to discover durable entities and relationships.

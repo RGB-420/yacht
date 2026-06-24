@@ -4,31 +4,21 @@ comments: true
 
 # AI Development Context
 
-This section contains documentation designed to support **AI-assisted development as an integrated part of the project workflow**.
+This section documents how AI-assisted development should work inside the Regatta Data Platform.
 
-The goal is to provide structured context that enables AI tools to understand the architecture, design principles and constraints of the system, allowing them to generate **consistent and architecture-aligned code**.
+The goal is to give AI tools enough architectural context to make useful changes without drifting away from the project's database-first, entity-centric design.
 
-AI is used within the project as a development tool to assist in:
+AI can help with:
 
 * code generation and refactoring
-* architectural reasoning and validation
-* documentation creation and maintenance
-* iterative development workflows
+* architecture review
+* documentation maintenance
+* test scaffolding
+* API/frontend alignment
+* pipeline and data-quality investigation
 
-These documents ensure that AI-generated outputs remain consistent with the system architecture, data model and established design decisions.
-
-## Role of AI in the Project
-
-AI is treated as a **development accelerator**, not as an autonomous system.
-
-All AI-generated outputs are:
-
-* reviewed by a human developer
-* aligned with architectural principles
-* integrated through controlled iteration
-
-This approach ensures that AI enhances productivity without compromising system integrity.
+AI is a development accelerator, not an autonomous decision-maker. Generated output should be reviewed by a human maintainer, especially when it touches schema, data quality, ingestion behavior or architectural boundaries.
 
 ## Contents
 
-* **AI Development Context** – guidelines and architectural constraints for AI-assisted development workflows.
+* **AI Development Context** - repository structure, architectural constraints and implementation guidance for AI-assisted development.

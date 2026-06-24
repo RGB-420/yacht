@@ -6,74 +6,86 @@ comments: true
 
 ## Purpose
 
-The Regatta Data Platform is a structured data system designed to collect, normalise and expose regatta race data from heterogeneous sources.
+The Regatta Data Platform is a structured data system for collecting, normalising and exploring sailing regatta information.
 
-Regatta results are often published across multiple websites with inconsistent formats and varying data quality.
-The goal of this project is to ingest these sources and transform them into a **clean canonical dataset** that can act as a **source of truth for regatta results**.
+Regatta results are published across many websites and PDF formats with inconsistent structure, naming and data quality. The platform ingests those sources and turns them into a canonical dataset that can be queried, reviewed and used by applications.
 
-This dataset is intended to support analysis, discovery, and future applications built on top of reliable structured data.
+The project is entity-centric. Regatta results are important because they reveal boats, classes, owners, clubs, schedules and relationships, but the platform is not primarily a race-results analytics system. Its core value is a clean, traceable registry of sailing entities discovered through regatta activity.
 
-The platform also exposes this data through a structured API, enabling exploration and integration with external applications.
+## Current Product Shape
+
+The project now contains both backend and frontend application layers.
+
+Current capabilities include:
+
+* ingestion from many web result providers and selected PDF formats
+* raw JSONB storage of scraped regatta results
+* normalisation and mapping workflows for clubs, owners, classes and boat types
+* canonical PostgreSQL tables for boats, owners, clubs, classes, types, regattas, editions, links, schedules and feedback
+* FastAPI routes for exploration and feedback
+* a React/Vite frontend called **Regatta Explorer**
+* frontend pages for home/search, regattas, editions, boats, classes, clubs, calendar and admin feedback
+* a user feedback flow, including admin-only review/update endpoints protected by `ADMIN_KEY`
+* structured pipeline logging and centralised path configuration
 
 ## Current Phase
 
-The project is currently in an **early production-ready backend phase**, transitioning from prototype to application development.
+The project is in a private pilot/application-development phase.
 
-The primary focus is on building a solid architectural foundation rather than releasing a finished product.
+The backend foundation is in place and the frontend is active. The main work is now about improving data completeness, operational stability, UI usefulness and the quality of the normalisation/review workflows.
 
 Current priorities include:
 
-* maintaining and improving ingestion pipelines
-* refining the canonical data model
-* expanding API capabilities
-* ensuring data quality and consistency
-* preparing the system for frontend integration
-* experimenting with AI-assisted development workflows
-
-This stage prioritises **structural clarity and scalability** over feature completeness.
-
-## Current Capabilities
-
-The platform currently provides:
-
-* automated data ingestion from multiple web and PDF sources
-* ETL pipelines for data transformation and normalisation
-* a canonical relational database (PostgreSQL)
-* a fully implemented FastAPI backend
-* structured logging for pipeline execution and monitoring
-* an API for navigating regattas, boats and related entities
-
-## Stakeholders
-
-**David**
-Strategic oversight and product perspective. Provides governance guidance and reviews key architectural and project decisions.
-
-**Raul**
-System architect and technical lead. Responsible for architecture design, data model definition, infrastructure decisions and AI-assisted development workflows.
-
-**Elena**
-Supports data normalisation, validation and research of regatta data sources.
+* keeping ingestion and synchronisation pipelines reliable
+* improving canonical data quality and mapping confidence
+* expanding and hardening frontend exploration workflows
+* improving API usability, pagination and filtering
+* making feedback and review loops useful for data correction
+* preparing the system for stable private deployment
 
 ## Core Technology
 
 Current stack:
 
-* Python (data processing and backend)
-* PostgreSQL (canonical database)
-* FastAPI (API layer)
-* Playwright (web scraping)
-* Docker (deployment and portability)
+* Python for scraping, ETL and backend code
+* PostgreSQL for raw, normalisation and canonical data
+* FastAPI for the API layer
+* SQLAlchemy for database access
+* pandas for pipeline transformations
+* Playwright, BeautifulSoup, requests and PDF/OCR libraries for ingestion
+* React, TypeScript, Vite, React Router and TanStack Query for the frontend
+* Tailwind CSS and lucide-react for UI styling and icons
+* MkDocs, Material for MkDocs, Zensical and mkdocs-with-pdf for documentation
 
-Development follows a layered model:
+The operational flow is:
 
-Data Sources → Ingestion → ETL Pipelines → Canonical Database → API → Frontend (in progress)
+```text
+External sources
+  -> Scrapers
+  -> Raw PostgreSQL storage
+  -> Normalisation and sync pipelines
+  -> Canonical PostgreSQL tables
+  -> FastAPI
+  -> React frontend
+```
+
+## Stakeholders
+
+**David**  
+Strategic oversight and product perspective. Provides governance guidance and reviews key architectural and project decisions.
+
+**Raul**  
+System architect and technical lead. Responsible for architecture design, data model definition, implementation decisions and AI-assisted development workflows.
+
+**Elena**  
+Supports data normalisation, validation and research of regatta data sources.
 
 ## Governance Model
 
-The project uses a clear separation of responsibilities between systems:
+The project separates governance and delivery concerns:
 
-* **GitHub** → codebase and technical implementation
-* **Zensical** → governance, architecture documentation and decisions
-* **Email / lightweight coordination** → operational updates and communication
+* GitHub tracks codebase and implementation history.
+* Documentation records architecture, decisions and operating context.
+* Lightweight coordination channels are used for operational updates.
 
-This structure maintains a clear traceable history of architectural decisions while keeping development workflows lightweight.
+Architecture Decision Records in `docs/decisions/` should be treated as accepted constraints. When implementation evolves beyond an ADR, a new ADR should be added rather than silently rewriting the historical decision.

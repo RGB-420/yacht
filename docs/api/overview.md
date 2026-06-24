@@ -1,122 +1,236 @@
+---
+comments: true
+---
+
 # Regatta Data API
 
-This document describes the available endpoints of the Regatta Data API.
+The API is implemented with FastAPI in `app/api/main.py`.
 
-The API is designed around a hierarchical navigation model:
+Routes are grouped by domain under `app/api/routes/`, use Pydantic schemas from `app/schemas/` and read/write data through repository modules in `app/repositories/`.
 
-**Regattas → Editions → Boats → Related entities (Classes, Clubs, Owners)**
+The API is designed for entity exploration:
 
----
+```text
+Search
+  -> Regattas
+  -> Editions
+  -> Boats
+  -> Classes / Clubs / Owners / Types / Links / Schedule
+```
+
+## Common Patterns
+
+List endpoints for boats and regattas support pagination:
+
+```text
+limit: 1..200, default 20
+offset: >= 0, default 0
+```
+
+Paginated responses include:
+
+* `data`
+* `total`
+* `limit`
+* `offset`
+
+Admin feedback endpoints require an `x-admin-key` header matching the backend `ADMIN_KEY` environment variable.
 
 ## Search
 
-Global search across entities.
+Global entity search.
 
-GET /search?q={query}
+```http
+GET /search/?q={query}
+```
 
-Returns matching:
-- Boats
-- Regattas
-- Classes
+The query must be at least two characters.
 
----
+Returns grouped matches across searchable entities such as boats, regattas and classes.
 
 ## Regattas
 
-Access regatta information and related data.
+```http
+GET /regattas/?limit=20&offset=0
+```
 
-GET /regattas  
-→ List all regattas  
+Lists regattas with pagination.
 
-GET /regattas/{id}  
-→ Get detailed information about a specific regatta  
+```http
+GET /regattas/{regatta_id}
+```
 
-GET /regattas/{id}/editions  
-→ List all editions of the regatta  
+Returns one regatta by id.
 
-GET /regattas/{id}/links  
-→ External sources (official pages, results)
+```http
+GET /regattas/{regatta_id}/editions
+```
 
----
+Returns all editions for a regatta.
 
 ## Editions
 
-Access information about a specific regatta edition.
+```http
+GET /editions/{edition_id}
+```
 
-GET /editions/{id}  
-→ Edition metadata (year, status, regatta)
+Returns one edition with its regatta context.
 
-GET /editions/{id}/boats  
-→ Boats participating in the edition  
+```http
+GET /editions/{edition_id}/boats
+```
 
-GET /editions/{id}/classes  
-→ Classes present in the edition  
+Returns boats participating in an edition.
 
----
+```http
+GET /editions/{edition_id}/classes
+```
+
+Returns classes represented in an edition.
+
+```http
+GET /editions/{edition_id}/links
+```
+
+Returns external links associated with an edition.
 
 ## Boats
 
-Access boat data and relationships.
+```http
+GET /boats/?limit=20&offset=0
+```
 
-GET /boats  
-→ List boats (supports future pagination)
+Lists boats with pagination.
 
-GET /boats/{id}  
-→ Detailed boat information:
-- class
-- type
-- owners
-- clubs
+```http
+GET /boats/{boat_id}
+```
 
-GET /boats/{id}/owners  
-→ Boat owners  
+Returns a boat detail record.
 
-GET /boats/{id}/clubs  
-→ Boat clubs  
+```http
+GET /boats/{boat_id}/owners
+```
 
-GET /boats/{id}/editions  
-→ Participation history  
+Returns owners linked to a boat.
 
----
+```http
+GET /boats/{boat_id}/clubs
+```
+
+Returns clubs linked to a boat.
+
+```http
+GET /boats/{boat_id}/editions
+```
+
+Returns the boat's regatta edition participation history.
 
 ## Classes
 
-Access boat class information.
+```http
+GET /classes/
+```
 
-GET /classes  
-→ List all classes  
+Lists boat classes.
 
-GET /classes/{id}  
-→ Class details  
+```http
+GET /classes/{class_id}
+```
 
-GET /classes/{id}/boats  
-→ Boats belonging to the class  
+Returns one class by id.
 
-GET /classes/{id}/types  
-→ Types within the class  
+```http
+GET /classes/{class_id}/boats
+```
 
----
+Returns boats associated with a class.
+
+```http
+GET /classes/{class_id}/types
+```
+
+Returns boat types under a class.
 
 ## Clubs
 
-Access club information.
+```http
+GET /clubs/
+```
 
-GET /clubs  
-→ List all clubs  
+Lists clubs.
 
-GET /clubs/{id}  
-→ Club details  
+```http
+GET /clubs/{club_id}
+```
 
-GET /clubs/{id}/boats  
-→ Boats associated with the club  
+Returns one club with detail fields.
 
-GET /clubs/{id}/regattas  
-→ Regattas organized by the club  
+```http
+GET /clubs/{club_id}/boats
+```
 
----
+Returns boats associated with a club.
+
+```http
+GET /clubs/{club_id}/regattas
+```
+
+Returns regattas associated with a club.
+
+## Schedule
+
+```http
+GET /schedule/
+```
+
+Returns scheduled regatta edition events with dates. This endpoint powers the frontend calendar.
+
+## Feedback
+
+```http
+POST /feedback/
+```
+
+Creates a feedback item and schedules an email notification.
+
+Feedback types currently include:
+
+* `wrong_data`
+* `missing_data`
+* `duplicate`
+* `wrong_relation`
+* `broken_link`
+* `other`
+* `regatta_suggestion`
+
+```http
+GET /feedback
+```
+
+Admin-only. Lists feedback items.
+
+```http
+PATCH /feedback/{feedback_id}
+```
+
+Admin-only. Updates feedback status.
+
+Allowed statuses:
+
+* `pending`
+* `reviewed`
+* `fixed`
+* `ignored`
+
+## Project
+
+```http
+GET /project
+```
+
+Returns project-level metadata used by the application.
 
 ## Design Notes
 
-- The API follows an **entity-centric model focused on boats**
-- Relationships are exposed through dedicated endpoints
-- The API is designed for **exploration and analysis**, not just retrieval
+The API is read-heavy and exploration-oriented. Most routes expose canonical entities and their relationships. Feedback is the main write workflow currently exposed to the frontend.

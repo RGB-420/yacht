@@ -19,13 +19,13 @@ with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
     for md_file in DOCS_DIR.rglob("*.md"):
         z.write(md_file, md_file.relative_to(DOCS_DIR))
 
-print("✔ ZIP created:", zip_path)
+print("ZIP created:", zip_path)
 
 # -------------------------
 # 2 Generate PDF with MkDocs
 # -------------------------
 
-print("📄 Building PDF with MkDocs...")
+print("Building PDF with MkDocs...")
 subprocess.run(["mkdocs", "build"], check=True)
 
 pdf_src = PROJECT_ROOT / "site" / "pdf" / "document.pdf"
@@ -37,13 +37,13 @@ if not pdf_src.exists():
 temp_pdf = PROJECT_ROOT / "document_temp.pdf"
 shutil.copyfile(pdf_src, temp_pdf)
 
-print("📄 Temporary PDF saved")
+print("Temporary PDF saved")
 
 # -------------------------
 # 3 Build Zensical site
 # -------------------------
 
-print("🌐 Building Zensical site...")
+print("Building Zensical site...")
 subprocess.run(["zensical", "build"], check=True)
 
 # -------------------------
@@ -55,7 +55,7 @@ final_pdf_dir.mkdir(exist_ok=True)
 
 shutil.copyfile(temp_pdf, final_pdf_dir / "document.pdf")
 
-print("📄 PDF added to final site")
+print("PDF added to final site")
 
 # borrar temporal
 temp_pdf.unlink()
@@ -69,6 +69,6 @@ final_download_dir.mkdir(exist_ok=True)
 
 shutil.copyfile(zip_path, final_download_dir / "regatta-docs.zip")
 
-print("📦 ZIP added to final site")
+print("ZIP added to final site")
 
-print("✅ Documentation build complete")
+print("Documentation build complete")
