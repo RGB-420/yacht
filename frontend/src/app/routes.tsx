@@ -14,6 +14,7 @@ import { FeedbackPage } from "../features/feedback/pages/FeedbackPage"
 import { AdminPage } from "../features/admin/pages/AdminPage"
 import { QualityDashboardPage } from "../features/quality/pages/QualityDashboardPage"
 import { QualityIssuePage } from "../features/quality/pages/QualityIssuePage"
+import { AdminRegattasPage } from "../features/adminRegattas/pages/AdminRegattasPage"
 
 export const AppRoutes = () => {
     return (
@@ -47,6 +48,8 @@ export const AppRoutes = () => {
             <Route path="/admin/quality" element={<QualityDashboardPage />} />
 
             <Route path="/admin/quality/boats/issues/:issueKey" element={<QualityIssuePage />} />
+
+            <Route path="/admin/regattas" element={<AdminRegattasPage />} />
         </Routes>
     )
 }

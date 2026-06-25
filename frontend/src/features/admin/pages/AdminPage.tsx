@@ -1,4 +1,4 @@
-import { BarChart3, MessageSquare } from "lucide-react"
+import { BarChart3, Flag, MessageSquare } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 
 export const AdminPage = () => {
@@ -69,6 +69,28 @@ export const AdminPage = () => {
                             <p className="font-semibold">Feedback</p>
                             <p className="text-sm opacity-70">
                                 Review user feedback and suggestions
+                            </p>
+                        </div>
+                    </div>
+                </Link>
+
+                <Link
+                    to="/admin/regattas"
+                    className="
+                        p-4 rounded-xl
+                        border border-border dark:border-borderDark
+                        bg-background dark:bg-backgroundDark
+                        hover:bg-primary dark:hover:bg-primaryDark
+                        hover:text-white
+                        transition-all duration-200
+                    "
+                >
+                    <div className="flex items-center gap-3">
+                        <Flag size={26} />
+                        <div>
+                            <p className="font-semibold">Regattas</p>
+                            <p className="text-sm opacity-70">
+                                Prepare pending regattas for scraping
                             </p>
                         </div>
                     </div>
