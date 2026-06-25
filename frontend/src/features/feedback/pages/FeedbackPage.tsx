@@ -3,7 +3,7 @@ import { useFeedbackList } from "../hooks/useFeedbackList"
 import { FeedbackCard } from "../components/FeedbackCard"
 import { ClipLoader } from "react-spinners"
 import { FeedbackTabs } from "../components/FeedbackTabs"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 
 export const FeedbackPage = () => {
     const { data, loading, error, changeStatus } = useFeedbackList()
@@ -50,17 +50,31 @@ export const FeedbackPage = () => {
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold">Feedback</h1>
 
-                <button 
-                    onClick={handleLogout}
-                    className="
-                        text-sm px-3 py-1 rounded-xl
-                        border border-border dark:border-borderDark
-                        hover:bg-red-500 hover:text-white
-                        transition-colors    
-                    "
-                >
-                    Logout
-                </button>
+                <div className="flex items-center gap-2">
+                    <Link
+                        to="/admin"
+                        className="
+                            text-sm px-3 py-1 rounded-xl
+                            border border-border dark:border-borderDark
+                            hover:bg-primary hover:text-white
+                            transition-colors
+                        "
+                    >
+                        Admin
+                    </Link>
+
+                    <button 
+                        onClick={handleLogout}
+                        className="
+                            text-sm px-3 py-1 rounded-xl
+                            border border-border dark:border-borderDark
+                            hover:bg-red-500 hover:text-white
+                            transition-colors    
+                        "
+                    >
+                        Logout
+                    </button>
+                </div>
             </div>
             
             <FeedbackTabs

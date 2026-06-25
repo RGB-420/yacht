@@ -20,7 +20,7 @@ export const AdminAccess = () => {
             setCode("")
             setError(false)
 
-            navigate("/admin/feedback")
+            navigate("/admin")
         } else {
             setError(true)
             setCode("")

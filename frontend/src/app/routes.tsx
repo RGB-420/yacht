@@ -11,6 +11,9 @@ import { ClubsPage } from "../features/clubs/pages/ClubsPage"
 import { ClubDetailPage } from "../features/clubs/pages/ClubDetailPage"
 import { CalendarPage } from "../features/schedules/pages/CalendarPage"
 import { FeedbackPage } from "../features/feedback/pages/FeedbackPage"
+import { AdminPage } from "../features/admin/pages/AdminPage"
+import { QualityDashboardPage } from "../features/quality/pages/QualityDashboardPage"
+import { QualityIssuePage } from "../features/quality/pages/QualityIssuePage"
 
 export const AppRoutes = () => {
     return (
@@ -37,7 +40,13 @@ export const AppRoutes = () => {
 
             <Route path="/calendar" element={<CalendarPage />} />
 
+            <Route path="/admin" element={<AdminPage />} />
+
             <Route path="/admin/feedback" element={<FeedbackPage />} />
+
+            <Route path="/admin/quality" element={<QualityDashboardPage />} />
+
+            <Route path="/admin/quality/boats/issues/:issueKey" element={<QualityIssuePage />} />
         </Routes>
     )
 }
