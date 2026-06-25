@@ -6,11 +6,11 @@ export const apiFetch = async <T>(
   ): Promise<T> => {
 
   const res = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
     headers: {
       "Content-Type": "application/json",
       ...(options?.headers || {})
-    },
-    ...options
+    }
   })
 
   if (!res.ok) {
