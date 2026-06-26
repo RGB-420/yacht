@@ -37,7 +37,7 @@ def sync_owner_mapping():
     if not new_rows.empty:
         mapping_df = pd.concat([mapping_df, new_rows], ignore_index=True)
 
-        mapping_df = mapping_df.sort_values(by=["raw_name"]).reset_index(drpo=True)
+        mapping_df = mapping_df.sort_values(by=["raw_name"]).reset_index(drop=True)
 
         mapping_df.to_csv(MAPPING_PATH, index=False)
 
