@@ -12,9 +12,13 @@ import { ClubDetailPage } from "../features/clubs/pages/ClubDetailPage"
 import { CalendarPage } from "../features/schedules/pages/CalendarPage"
 import { FeedbackPage } from "../features/feedback/pages/FeedbackPage"
 import { AdminPage } from "../features/admin/pages/AdminPage"
+import { AdminCorrectionsPage } from "../features/admin/pages/AdminCorrectionsPage"
 import { QualityDashboardPage } from "../features/quality/pages/QualityDashboardPage"
 import { QualityIssuePage } from "../features/quality/pages/QualityIssuePage"
 import { AdminRegattasPage } from "../features/adminRegattas/pages/AdminRegattasPage"
+import { AdminClubCorrectionsPage } from "../features/adminClubCorrections/pages/AdminClubCorrectionsPage"
+import { AdminClassTypeCorrectionsPage } from "../features/adminClassTypeCorrections/pages/AdminClassTypeCorrectionsPage"
+import { AdminOwnerCorrectionsPage } from "../features/adminOwnerCorrections/pages/AdminOwnerCorrectionsPage"
 
 export const AppRoutes = () => {
     return (
@@ -50,6 +54,14 @@ export const AppRoutes = () => {
             <Route path="/admin/quality/boats/issues/:issueKey" element={<QualityIssuePage />} />
 
             <Route path="/admin/regattas" element={<AdminRegattasPage />} />
+
+            <Route path="/admin/corrections" element={<AdminCorrectionsPage />} />
+
+            <Route path="/admin/corrections/clubs" element={<AdminClubCorrectionsPage />} />
+
+            <Route path="/admin/corrections/class-types" element={<AdminClassTypeCorrectionsPage />} />
+
+            <Route path="/admin/corrections/owners" element={<AdminOwnerCorrectionsPage />} />
         </Routes>
     )
 }

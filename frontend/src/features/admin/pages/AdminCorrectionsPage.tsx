@@ -1,37 +1,33 @@
-import { BarChart3, Flag, MessageSquare, Wrench } from "lucide-react"
-import { Link, useNavigate } from "react-router-dom"
+import { Layers, Sailboat, UserRound } from "lucide-react"
+import { Link } from "react-router-dom"
 
-export const AdminPage = () => {
-    const navigate = useNavigate()
-
-    const handleLogout = () => {
-        localStorage.removeItem("isAdmin")
-        localStorage.removeItem("admin_code")
-
-        navigate("/")
-    }
-
+export const AdminCorrectionsPage = () => {
     return (
         <div className="p-4 space-y-4">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Admin</h1>
+                <div>
+                    <h1 className="text-2xl font-bold">Corrections</h1>
+                    <p className="text-sm opacity-70">
+                        Review and maintain mapping rules used by the pipelines
+                    </p>
+                </div>
 
-                <button 
-                    onClick={handleLogout}
+                <Link
+                    to="/admin"
                     className="
                         text-sm px-3 py-1 rounded-xl
                         border border-border dark:border-borderDark
-                        hover:bg-red-500 hover:text-white
-                        transition-colors    
+                        hover:bg-primary hover:text-white
+                        transition-colors
                     "
                 >
-                    Logout
-                </button>
+                    Admin
+                </Link>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Link
-                    to="/admin/quality"
+                    to="/admin/corrections/clubs"
                     className="
                         p-4 rounded-xl
                         border border-border dark:border-borderDark
@@ -42,18 +38,18 @@ export const AdminPage = () => {
                     "
                 >
                     <div className="flex items-center gap-3">
-                        <BarChart3 size={26} />
+                        <Sailboat size={26} />
                         <div>
-                            <p className="font-semibold">Quality</p>
+                            <p className="font-semibold">Club Corrections</p>
                             <p className="text-sm opacity-70">
-                                Review coverage and data quality metrics
+                                Review and resolve club mapping rules
                             </p>
                         </div>
                     </div>
                 </Link>
 
                 <Link
-                    to="/admin/feedback"
+                    to="/admin/corrections/class-types"
                     className="
                         p-4 rounded-xl
                         border border-border dark:border-borderDark
@@ -64,18 +60,18 @@ export const AdminPage = () => {
                     "
                 >
                     <div className="flex items-center gap-3">
-                        <MessageSquare size={26} />
+                        <Layers size={26} />
                         <div>
-                            <p className="font-semibold">Feedback</p>
+                            <p className="font-semibold">Class/Type Corrections</p>
                             <p className="text-sm opacity-70">
-                                Review user feedback and suggestions
+                                Review and resolve class and boat type mapping rules
                             </p>
                         </div>
                     </div>
                 </Link>
 
                 <Link
-                    to="/admin/regattas"
+                    to="/admin/corrections/owners"
                     className="
                         p-4 rounded-xl
                         border border-border dark:border-borderDark
@@ -86,33 +82,11 @@ export const AdminPage = () => {
                     "
                 >
                     <div className="flex items-center gap-3">
-                        <Flag size={26} />
+                        <UserRound size={26} />
                         <div>
-                            <p className="font-semibold">Regattas</p>
+                            <p className="font-semibold">Owner Corrections</p>
                             <p className="text-sm opacity-70">
-                                Prepare pending regattas for scraping
-                            </p>
-                        </div>
-                    </div>
-                </Link>
-
-                <Link
-                    to="/admin/corrections"
-                    className="
-                        p-4 rounded-xl
-                        border border-border dark:border-borderDark
-                        bg-background dark:bg-backgroundDark
-                        hover:bg-primary dark:hover:bg-primaryDark
-                        hover:text-white
-                        transition-all duration-200
-                    "
-                >
-                    <div className="flex items-center gap-3">
-                        <Wrench size={26} />
-                        <div>
-                            <p className="font-semibold">Corrections</p>
-                            <p className="text-sm opacity-70">
-                                Review and maintain mapping correction rules
+                                Review and resolve owner prenormalization rules
                             </p>
                         </div>
                     </div>
